@@ -1,5 +1,5 @@
 import { XOasObject } from '@ts-stack/openapi-spec';
-import { featureModule, MixinDynamicOptionsMap, DynamicModule, ProviderBuilder } from '@holu/core';
+import { featureModule, DynamicMixinOptionsMap, DynamicModule, ProviderBuilder } from '@holu/core';
 import { DispatcherExtension, RestRouteExtension, mixinRest } from '@holu/rest';
 
 import { OpenapiCompilerExtension } from './extensions/openapi-compiler.extension.js';
@@ -38,7 +38,7 @@ export class OpenapiModule {
       swaggerOAuthOptions,
     };
 
-    const mixinOptions: MixinDynamicOptionsMap = new Map();
+    const mixinOptions: DynamicMixinOptionsMap = new Map();
     if (absolutePath !== undefined) {
       mixinOptions.set(mixinRest, { absolutePath });
     }

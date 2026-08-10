@@ -1,4 +1,4 @@
-import { MixinDynamicOptionsMap, DynamicModuleWithMixinOptions } from '@holu/core';
+import { DynamicMixinOptionsMap, DynamicModuleWithMixinOptions } from '@holu/core';
 import { ValidationModule } from '@holu/openapi-validation';
 import { BodyParserModule } from '@holu/body-parser';
 import { mixinRest, restModule } from '@holu/rest';
@@ -11,7 +11,7 @@ import { FirstController } from './first.controller.js';
 })
 export class FirstModule {
   static withPath(path?: string): DynamicModuleWithMixinOptions<FirstModule> {
-    const mixinOptions: MixinDynamicOptionsMap = new Map();
+    const mixinOptions: DynamicMixinOptionsMap = new Map();
     mixinOptions.set(mixinRest, { path });
 
     return {

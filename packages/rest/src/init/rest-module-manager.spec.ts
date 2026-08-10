@@ -14,7 +14,7 @@ import {
   DynamicModuleWithMixinOptions,
   ModRefId,
   ForwardRefFn,
-  AllModuleMixins,
+  AllModuleMixinsMap,
 } from '@holu/core';
 import {
   UnknownExport,
