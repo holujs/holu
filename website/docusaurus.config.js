@@ -48,8 +48,8 @@ module.exports = {
     },
     algolia: {
       appId: 'KXSV6YPHSY',
-      apiKey: '4d1c9badb24964d992fb4d1b6badc88e',
-      indexName: 'holu',
+      apiKey: '78706897b68fdb7b924b694fbd705ea4',
+      indexName: 'Holu',
 
       // optional: see doc section below
       contextualSearch: true,
