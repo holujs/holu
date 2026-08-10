@@ -16,7 +16,7 @@ import { ShallowModuleImports } from './types.js';
 import { injectable } from '#di/decorators.js';
 import type { FactoryProvider, Provider } from '#di/top/types-and-models.js';
 import { forwardRef, type ForwardRefFn } from '#di/forward-ref.js';
-import { AllModuleMixins } from '#decorators/module-mixins.js';
+import { AllModuleMixinsMap } from '#decorators/module-mixins.js';
 import { Reflector } from '#di/reflector.js';
 
 describe('ShallowModulesImporter', () => {

@@ -3,7 +3,7 @@ import type { ModRefId, StaticModule } from '#decorators/module-decorator-option
 import type { Class, Provider } from '#di/top/types-and-models.js';
 import type { DynamicModule } from '../decorators/module-decorator-options.js';
 import type { BaseExtensionConfig, ExtensionConfig } from '#extension/extension-providers-and-configs.js';
-import type { MixinMetaMap, ModuleMixin, AllModuleMixins, MixinDecorator } from '#decorators/module-mixins.js';
+import type { NormalizedMixinMetaMap, ModuleMixin, AllModuleMixinsMap, MixinDecorator } from '#decorators/module-mixins.js';
 import type { ExtensionClass } from '#extension/extension-types.js';
 import type { ExtensionGroupToken } from '#di/key-registry.js';
 import type { MultiProvider } from '#di/utils.js';
@@ -183,11 +183,11 @@ export class NormalizedModuleMeta<
   /**
    * Contains normalized mixins metadata collected from current module.
    */
-  normalizedMixinMetaMap: MixinMetaMap = new Map();
+  normalizedMixinMetaMap: NormalizedMixinMetaMap = new Map();
   /**
    * List of unique module mixins found in the current module and all imported modules.
    */
-  allModuleMixinsMap: AllModuleMixins = new Map();
+  allModuleMixinsMap: AllModuleMixinsMap = new Map();
   /**
    * The mapping between an extension specified in {@link BaseExtensionConfig.groups | ExtensionConfig.groups}
    * and the extension group token assigned to it.
@@ -227,6 +227,8 @@ export class NormalizedModuleMeta<
   }
 
   /**
+   * @experimental
+   *
    * Creates a deep clone of the current normalized metadata instance, duplicating arrays, maps, and extension
    * configurations while re-evaluating initialization hooks to ensure complete metadata isolation.
    */

@@ -19,9 +19,9 @@ export { featureModule } from '#decorators/feature-module.js';
 export {
   ModuleMixin,
   MixinDecorator,
-  MixinMetaMap,
-  MixinDynamicOptionsMap,
-  AllModuleMixins,
+  NormalizedMixinMetaMap,
+  DynamicMixinOptionsMap,
+  AllModuleMixinsMap,
   StaticMixinOptions,
 } from '#decorators/module-mixins.js';
 export { rootModule, RootModuleOptions } from '#decorators/root-module.js';

@@ -2,7 +2,7 @@ import type { SystemLogMediator } from '#logger/system-log-mediator.js';
 import type { AnyObj } from '#types/mix.js';
 import type { StaticModule, ModRefId, DynamicModule } from '#decorators/module-decorator-options.js';
 import type { BaseNormalizedModuleMeta, NormalizedModuleMeta } from '#init/normalized-meta.js';
-import type { AllModuleMixins, ModuleMixin } from '#decorators/module-mixins.js';
+import type { AllModuleMixinsMap, ModuleMixin } from '#decorators/module-mixins.js';
 import type { Provider, AnyFn } from '#di/top/types-and-models.js';
 import type { Injector } from '#di/injector.js';
 import { resolveForwardRef, type ForwardRefFn } from '#di/forward-ref.js';
@@ -253,7 +253,7 @@ export class ModuleManager {
    *
    * Modules with their own mixin decorators keep them and do not inherit from the parent.
    */
-  protected propagateMixinsTopDown(startModule: ModRefId, parentMixins: AllModuleMixins = new Map(), visited = new Set<ModRefId>()) {
+  protected propagateMixinsTopDown(startModule: ModRefId, parentMixins: AllModuleMixinsMap = new Map(), visited = new Set<ModRefId>()) {
     if (visited.has(startModule)) {
       return;
     }
@@ -265,7 +265,7 @@ export class ModuleManager {
     }
 
     // Build the active mixin context: parent's mixins + current module's own mixins.
-    const activeMixins: AllModuleMixins = new Map(parentMixins);
+    const activeMixins: AllModuleMixinsMap = new Map(parentMixins);
     meta.moduleMixinMap.forEach((moduleMixin, decoratorId) => {
       activeMixins.set(decoratorId, moduleMixin);
     });
@@ -461,7 +461,7 @@ export class ModuleManager {
    * mixin from the parent's context and registers it on the module.
    * This ensures the mixin's `normalize()` can read dynamic options (path, guards, etc.).
    */
-  protected applyMixinsForDynamicModule(meta: NormalizedModuleMeta, parentMixins: AllModuleMixins) {
+  protected applyMixinsForDynamicModule(meta: NormalizedModuleMeta, parentMixins: AllModuleMixinsMap) {
     (meta.modRefId as DynamicModule).mixinOptions?.forEach((params, decoratorId) => {
       if (!meta.moduleMixinMap.has(decoratorId)) {
         const parentMixin = parentMixins.get(decoratorId);
@@ -480,7 +480,7 @@ export class ModuleManager {
    * For modules without any own mixin decorators, inherits all mixins from the parent.
    * Respects `inheritsMixins` and `isExternal` flags.
    */
-  protected inheritParentMixins(meta: NormalizedModuleMeta, parentMixins: AllModuleMixins) {
+  protected inheritParentMixins(meta: NormalizedModuleMeta, parentMixins: AllModuleMixinsMap) {
     const inheritsMixins = meta.inheritsMixins ?? !meta.isExternal;
     if (!inheritsMixins || meta.moduleMixinMap.size > 0) {
       return;

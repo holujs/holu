@@ -12,7 +12,7 @@ import type { rootModule } from '#decorators/root-module.js';
 import type { featureModule } from '#decorators/feature-module.js';
 import type { ShallowModulesImporter } from '#init/shallow-modules-importer.js';
 
-export type AllModuleMixins = Map<MixinDecorator<any, any, any>, Omit<ModuleMixin, 'moduleOptions'>>;
+export type AllModuleMixinsMap = Map<MixinDecorator<any, any, any>, Omit<ModuleMixin, 'moduleOptions'>>;
 
 /**
  * A base class for creating module mixins. They carry metadata attached by corresponding decorators
@@ -119,7 +119,7 @@ export class ModuleMixin<T1 extends StaticMixinOptions = StaticMixinOptions> {
   }
 }
 
-export interface MixinMetaMap {
+export interface NormalizedMixinMetaMap {
   set<T extends BaseNormalizedModuleMeta>(decorator: MixinDecorator<any, any, T>, meta: T): this;
   get<T extends BaseNormalizedModuleMeta>(decorator: MixinDecorator<any, any, T>): T | undefined;
   forEach<T extends BaseNormalizedModuleMeta>(
@@ -139,7 +139,7 @@ export interface MixinMetaMap {
   [Symbol.iterator](): any;
 }
 
-export interface MixinDynamicOptionsMap {
+export interface DynamicMixinOptionsMap {
   set<T extends AnyObj>(decorator: MixinDecorator<any, T, any>, params: T): this;
   get<T extends AnyObj>(decorator: MixinDecorator<any, T, any>): T | undefined;
   forEach<T extends AnyObj>(callbackfn: (params: T, decorator: AnyFn, map: Map<AnyFn, T>) => void, thisArg?: any): void;

@@ -7,7 +7,7 @@ import { Extension } from '#extension/extension-types.js';
 import { SystemLogMediator } from '#logger/system-log-mediator.js';
 import { ModuleManager } from './module-manager.js';
 import { ModuleNormalizer } from './module-normalizer.js';
-import { AllModuleMixins, StaticMixinOptions, MixinDecorator, ModuleMixin } from '#decorators/module-mixins.js';
+import { AllModuleMixinsMap, StaticMixinOptions, MixinDecorator, ModuleMixin } from '#decorators/module-mixins.js';
 import { BaseNormalizedModuleMeta, NormalizedModuleMeta, getProxyForMixinMeta } from '#init/normalized-meta.js';
 import { DynamicModuleOptions, ModRefId } from '#decorators/module-decorator-options.js';
 import { DynamicModule } from '#decorators/module-decorator-options.js';
