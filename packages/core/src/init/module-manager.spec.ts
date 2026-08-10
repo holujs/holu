@@ -73,14 +73,14 @@ describe('ModuleManager', () => {
 
   describe('scanRootModule()', () => {
     it('should scan the root module first among all modules (due to moduleNormalizer.checkAndMarkExternalModule())', () => {
-      class LocalService1 {}
-      class LocalService2 {}
+      class Service1 {}
+      class Service2 {}
 
-      @featureModule({ providersPerApp: [LocalService1] })
+      @featureModule({ providersPerApp: [Service1] })
       class Module1 {}
 
       @featureModule({
-        providersPerApp: [LocalService2],
+        providersPerApp: [Service2],
         imports: [Module1],
       })
       class Module2 {}
@@ -112,35 +112,35 @@ describe('ModuleManager', () => {
 
   describe('providersPerApp', () => {
     class Service0 {}
-    class LocalService1 {}
-    class LocalService2 {}
-    class LocalService3 {}
-    class LocalService4 {}
-    class LocalService5 {}
-    class LocalService6 {}
-    class LocalService7 {}
+    class Service1 {}
+    class Service2 {}
+    class Service3 {}
+    class Service4 {}
+    class Service5 {}
+    class Service6 {}
+    class Service7 {}
 
     @featureModule({ providersPerApp: [Service0] })
     class Module0 {}
 
-    @featureModule({ providersPerApp: [LocalService1] })
+    @featureModule({ providersPerApp: [Service1] })
     class Module1 {}
 
     @featureModule({
-      providersPerApp: [LocalService2, LocalService3, LocalService4],
+      providersPerApp: [Service2, Service3, Service4],
       imports: [Module1],
     })
     class Module2 {}
 
     @featureModule({
-      providersPerApp: [LocalService5, LocalService6],
+      providersPerApp: [Service5, Service6],
       imports: [Module2],
     })
     class Module3 {}
 
     @rootModule({
       imports: [Module3, Module0],
-      providersPerApp: [{ token: LocalService1, useClass: LocalService7 }],
+      providersPerApp: [{ token: Service1, useClass: Service7 }],
       exports: [Module0],
     })
     class AppModule {}
@@ -154,12 +154,12 @@ describe('ModuleManager', () => {
     it('should collect providers in a particular order', () => {
       mock.scanRootModule(AppModule);
       expect(mock.providersPerApp).toEqual([
-        LocalService1,
-        LocalService2,
-        LocalService3,
-        LocalService4,
-        LocalService5,
-        LocalService6,
+        Service1,
+        Service2,
+        Service3,
+        Service4,
+        Service5,
+        Service6,
         Service0,
       ]);
     });
@@ -168,9 +168,9 @@ describe('ModuleManager', () => {
       @featureModule({})
       class Module6 {}
 
-      mock.scanModule({ module: Module6, providersPerApp: [LocalService7] });
+      mock.scanModule({ module: Module6, providersPerApp: [Service7] });
       const providersPerApp = mock.providersPerApp;
-      expect(providersPerApp).toEqual([LocalService7]);
+      expect(providersPerApp).toEqual([Service7]);
     });
   });
 
@@ -546,7 +546,7 @@ describe('ModuleManager', () => {
       interface MixinMeta extends BaseNormalizedModuleMeta {
         path?: string;
       }
-      class ModuleMixin1Local extends ModuleMixin<RootModuleOptions> {
+      class ModuleMixin1 extends ModuleMixin<RootModuleOptions> {
         override normalize({ modRefId }: NormalizedModuleMeta): MixinMeta {
           if (isDynamicModule(modRefId)) {
             const params = modRefId.mixinOptions?.get(mixinSome);
@@ -557,7 +557,7 @@ describe('ModuleManager', () => {
       }
 
       const mixinSome: MixinDecorator<RootModuleOptions, MyDynamicOptions, MixinMeta> = Reflector.makeClassDecorator(
-        (d) => new ModuleMixin1Local(d),
+        (d) => new ModuleMixin1(d),
       );
 
       @featureModule({ providersPerApp: [{ token: 'token1', useValue: 'value1' }] })
@@ -567,9 +567,9 @@ describe('ModuleManager', () => {
 
       @mixinSome({ one: 'some-here', imports: [{ dynamicModule: dynamicModule, path: 'some-prefix' }] })
       @rootModule()
-      class AppModuleLocal {}
+      class AppModule {}
 
-      mock.scanRootModule(AppModuleLocal);
+      mock.scanRootModule(AppModule);
       const mod1 = mock.getNormalizedModuleMeta(dynamicModule)!;
       expect(mod1.normalizedMixinMetaMap.get(mixinSome)).toEqual({ path: 'some-prefix' });
     });
@@ -587,10 +587,10 @@ describe('ModuleManager', () => {
       }
 
       @featureModule()
-      class HostModule1Local {}
+      class HostModule1 {}
 
-      class ModuleMixin1Local extends ModuleMixin<RootModuleOptions> {
-        override hostModule = HostModule1Local;
+      class ModuleMixin1 extends ModuleMixin<RootModuleOptions> {
+        override hostModule = HostModule1;
         override normalize({ modRefId }: NormalizedModuleMeta): MixinMeta {
           return { path: 'static-default' } as MixinMeta;
         }
@@ -599,18 +599,18 @@ describe('ModuleManager', () => {
       @featureModule({ providersPerApp: [{ token: 'token1', useValue: 'value1' }] })
       class Module1 {}
 
-      const mixinSomeLocal: MixinDecorator<RootModuleOptions, { path?: string }, MixinMeta> = Reflector.makeClassDecorator(
-        (d) => new ModuleMixin1Local(d),
+      const mixinSome: MixinDecorator<RootModuleOptions, { path?: string }, MixinMeta> = Reflector.makeClassDecorator(
+        (d) => new ModuleMixin1(d),
       );
 
-      @mixinSomeLocal({ one: 'some-here', imports: [Module1] })
+      @mixinSome({ one: 'some-here', imports: [Module1] })
       @rootModule()
-      class AppModuleLocal {}
+      class AppModule {}
 
-      mock.scanRootModule(AppModuleLocal);
+      mock.scanRootModule(AppModule);
       const mod1 = mock.getNormalizedModuleMeta(Module1)!;
-      expect(mod1.normalizedMixinMetaMap.get(mixinSomeLocal)).toEqual({ path: 'static-default' });
-      expect(mod1.importedStaticModules.includes(HostModule1Local)).toBe(true);
+      expect(mod1.normalizedMixinMetaMap.get(mixinSome)).toEqual({ path: 'static-default' });
+      expect(mod1.importedStaticModules.includes(HostModule1)).toBe(true);
     });
 
     it('should not propagate context hooks when inheritsMixins is false for static Module1', () => {
@@ -625,17 +625,17 @@ describe('ModuleManager', () => {
       }
 
       @featureModule()
-      class HostModule1Local {}
+      class HostModule1 {}
 
-      class ModuleMixin1Local extends ModuleMixin<RootModuleOptions> {
-        override hostModule = HostModule1Local;
+      class ModuleMixin1 extends ModuleMixin<RootModuleOptions> {
+        override hostModule = HostModule1;
         override normalize({ modRefId }: NormalizedModuleMeta): MixinMeta {
           return { path: 'static-default' } as MixinMeta;
         }
       }
 
-      const mixinSomeLocal: MixinDecorator<RootModuleOptions, { path?: string }, MixinMeta> = Reflector.makeClassDecorator(
-        (d) => new ModuleMixin1Local(d),
+      const mixinSome: MixinDecorator<RootModuleOptions, { path?: string }, MixinMeta> = Reflector.makeClassDecorator(
+        (d) => new ModuleMixin1(d),
       );
 
       @featureModule({
@@ -644,14 +644,14 @@ describe('ModuleManager', () => {
       })
       class Module1 {}
 
-      @mixinSomeLocal({ one: 'some-here', imports: [Module1] })
+      @mixinSome({ one: 'some-here', imports: [Module1] })
       @rootModule()
-      class AppModuleLocal {}
+      class AppModule {}
 
-      mock.scanRootModule(AppModuleLocal);
+      mock.scanRootModule(AppModule);
       const mod1 = mock.getNormalizedModuleMeta(Module1)!;
-      expect(mod1.normalizedMixinMetaMap.has(mixinSomeLocal)).toBe(false);
-      expect(mod1.importedStaticModules.includes(HostModule1Local)).toBe(false);
+      expect(mod1.normalizedMixinMetaMap.has(mixinSome)).toBe(false);
+      expect(mod1.importedStaticModules.includes(HostModule1)).toBe(false);
     });
 
     it('should retrieve mixinOptions for three different modules with params', () => {
@@ -673,14 +673,14 @@ describe('ModuleManager', () => {
       interface MixinMeta2 {
         paramsForMixinMeta2?: any;
       }
-      class ModuleMixin1Local extends ModuleMixin<DecoratorOptions1> {}
-      class ModuleMixin2Local extends ModuleMixin<DecoratorOptions2> {}
+      class ModuleMixin1 extends ModuleMixin<DecoratorOptions1> {}
+      class ModuleMixin2 extends ModuleMixin<DecoratorOptions2> {}
 
       const mixinSome1: MixinDecorator<DecoratorOptions1, {}, MixinMeta1> = Reflector.makeClassDecorator(
-        (d) => new ModuleMixin1Local(d),
+        (d) => new ModuleMixin1(d),
       );
       const mixinSome2: MixinDecorator<DecoratorOptions2, {}, MixinMeta2> = Reflector.makeClassDecorator(
-        (d) => new ModuleMixin2Local(d),
+        (d) => new ModuleMixin2(d),
       );
 
       @featureModule({ providersPerApp: [{ token: 'token1', useValue: 'value1' }] })
@@ -723,40 +723,36 @@ describe('ModuleManager', () => {
 
     it('should successfully apply hostMixinOptions to a host module even if it is imported before the mixin module', () => {
       @featureModule()
-      class HostModuleLocal {}
+      class HostModule {}
 
-      class LocalMixinMeta extends BaseNormalizedModuleMeta {
+      class MixinMeta extends BaseNormalizedModuleMeta {
         customProp?: string;
       }
 
-      class ModuleMixinLocal extends ModuleMixin<any> {
-        override hostModule = HostModuleLocal;
+      class Mixin1 extends ModuleMixin<any> {
+        override hostModule = HostModule;
         override hostMixinOptions = { customProp: 'works' };
 
         override normalize(normalizedModuleMeta: NormalizedModuleMeta): any {
-          return getProxyForMixinMeta(normalizedModuleMeta, LocalMixinMeta);
+          return getProxyForMixinMeta(normalizedModuleMeta, MixinMeta);
         }
       }
 
-      const mixinSomeLocal: MixinDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new ModuleMixinLocal(d));
+      const mixinSome: MixinDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new Mixin1(d));
 
-      @mixinSomeLocal()
+      @mixinSome()
       @featureModule()
-      class MixinModuleLocal {}
+      class MixinModule {}
 
-      // Notice the order: HostModuleLocal is imported FIRST.
-      // In the old single-pass system, HostModuleLocal would be scanned when allModuleMixinsMap is empty,
-      // so it wouldn't receive its hostMixinOptions.
-      @rootModule({
-        imports: [HostModuleLocal, MixinModuleLocal],
-      })
-      class AppModuleLocal {}
+      // Notice the order: HostModule is imported FIRST.
+      @rootModule({ imports: [HostModule, MixinModule] })
+      class AppModule {}
 
-      mock.scanRootModule(AppModuleLocal);
+      mock.scanRootModule(AppModule);
 
-      const hostMeta = mock.getNormalizedModuleMeta(HostModuleLocal);
-      expect(hostMeta?.moduleMixinMap.has(mixinSomeLocal)).toBe(true);
-      const hostMixinInst = hostMeta?.moduleMixinMap.get(mixinSomeLocal);
+      const hostMeta = mock.getNormalizedModuleMeta(HostModule);
+      expect(hostMeta?.moduleMixinMap.has(mixinSome)).toBe(true);
+      const hostMixinInst = hostMeta?.moduleMixinMap.get(mixinSome);
       expect(hostMixinInst?.moduleOptions).toEqual({ customProp: 'works' });
     });
     it('should accumulate the exact same allModuleMixinsMap in the parent regardless of import order', () => {

@@ -6,7 +6,7 @@ import { rootModule } from '#decorators/root-module.js';
 import { SystemLogMediator } from '#logger/system-log-mediator.js';
 import { ModuleId } from './module-manager.js';
 import { MutableModuleManager } from './mutable-module-manager.js';
-import { AllModuleMixinsMap, StaticMixinOptions, MixinDecorator, ModuleMixin } from '#decorators/module-mixins.js';
+import { StaticMixinOptions, MixinDecorator, ModuleMixin } from '#decorators/module-mixins.js';
 import { BaseNormalizedModuleMeta, NormalizedModuleMeta, getProxyForMixinMeta } from '#init/normalized-meta.js';
 import { ModuleGraphState } from '#init/module-graph-state.js';
 import { DynamicModuleOptions, ModRefId } from '#decorators/module-decorator-options.js';
