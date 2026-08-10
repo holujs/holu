@@ -14,7 +14,7 @@ import type {
   SystemLogMediator,
   ForwardRefFn,
 } from '@holu/core';
-import { Reflector, ModuleMixin, BaseNormalizedModuleMeta, AppModuleMixins } from '@holu/core';
+import { Reflector, ModuleMixinHandler, BaseNormalizedModuleMeta, AppModuleMixins } from '@holu/core';
 
 import { TrpcModule } from '../trpc.module.js';
 import { TrpcModuleNormalizer } from '#init/trpc-module-normalizer.js';
@@ -62,23 +62,23 @@ export const trpcModule: MixinDecorator<TrpcStaticOptions, TrpcDynamicOptions, T
   mixinTrpcModule,
 );
 
-export function transformMixinMeta(data?: TrpcStaticOptions): ModuleMixin<TrpcStaticOptions> {
+export function transformMixinMeta(data?: TrpcStaticOptions): ModuleMixinHandler<TrpcStaticOptions> {
   const metadata = Object.assign({}, data);
-  return new TrpcModuleMixin(metadata);
+  return new TrpcModuleMixinHandler(metadata);
 }
-export function transformRootMetadata(data?: TrpcStaticOptions): ModuleMixin<TrpcStaticOptions> {
+export function transformRootMetadata(data?: TrpcStaticOptions): ModuleMixinHandler<TrpcStaticOptions> {
   const metadata = Object.assign({}, data);
-  const moduleMixin = new TrpcModuleMixin(metadata);
+  const moduleMixin = new TrpcModuleMixinHandler(metadata);
   moduleMixin.moduleRole = 'root';
   return moduleMixin;
 }
-export function transformFeatureMetadata(data?: TrpcStaticOptions): ModuleMixin<TrpcStaticOptions> {
+export function transformFeatureMetadata(data?: TrpcStaticOptions): ModuleMixinHandler<TrpcStaticOptions> {
   const metadata = transformRootMetadata(data);
   metadata.moduleRole = 'feature';
   return metadata;
 }
 
-export class TrpcModuleMixin extends ModuleMixin<TrpcStaticOptions> {
+export class TrpcModuleMixinHandler extends ModuleMixinHandler<TrpcStaticOptions> {
   override hostModule = TrpcModule;
 
   override normalize(normalizedModuleMeta: NormalizedModuleMeta): TrpcMixinMeta {

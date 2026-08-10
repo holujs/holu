@@ -1,5 +1,5 @@
 import { featureModule } from '#decorators/feature-module.js';
-import { StaticMixinOptions, ModuleMixin, MixinDecorator } from '#decorators/module-mixins.js';
+import { StaticMixinOptions, ModuleMixinHandler, MixinDecorator } from '#decorators/module-mixins.js';
 import { BaseNormalizedModuleMeta, getProxyForMixinMeta, NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { rootModule, RootModuleOptions } from '#decorators/root-module.js';
 import { Reflector } from '#di/reflector.js';
@@ -604,7 +604,7 @@ describe('ModuleNormalizer', () => {
       targetModRefId?: ModRefId;
     }
 
-    class SomeModuleMixin extends ModuleMixin<SomeMixinOptions> {
+    class SomeModuleMixin extends ModuleMixinHandler<SomeMixinOptions> {
       override normalize(normalizedModuleMeta: NormalizedModuleMeta) {
         const meta = getProxyForMixinMeta(normalizedModuleMeta, SomeMixinMeta);
         meta.normalizedModuleMeta = normalizedModuleMeta;
@@ -623,7 +623,7 @@ describe('ModuleNormalizer', () => {
       }
     }
 
-    function getModuleMixin(data?: SomeMixinOptions): ModuleMixin<SomeMixinOptions> {
+    function getModuleMixin(data?: SomeMixinOptions): ModuleMixinHandler<SomeMixinOptions> {
       return new SomeModuleMixin(Object.assign({}, data));
     }
 
@@ -632,7 +632,7 @@ describe('ModuleNormalizer', () => {
       'mixinSome',
     );
 
-    it('stores metadata returned by ModuleMixin.normalize() in normalizedModuleMeta.normalizedMixinMetaMap', () => {
+    it('stores metadata returned by ModuleMixinHandler.normalize() in normalizedModuleMeta.normalizedMixinMetaMap', () => {
       const moduleOptions: SomeMixinOptions = { one: 1, two: 2, flag: true };
 
       @mixinSome(moduleOptions)
@@ -804,7 +804,7 @@ describe('ModuleNormalizer', () => {
       @featureModule()
       class HostModule {}
 
-      class HostModuleMixin extends ModuleMixin<SomeMixinOptions> {
+      class HostModuleMixin extends ModuleMixinHandler<SomeMixinOptions> {
         override hostModule = HostModule;
         override hostMixinOptions = { flag: true };
 
@@ -829,7 +829,7 @@ describe('ModuleNormalizer', () => {
       @featureModule()
       class HostModule {}
 
-      class HostModuleMixin extends ModuleMixin<SomeMixinOptions> {
+      class HostModuleMixin extends ModuleMixinHandler<SomeMixinOptions> {
         override hostModule = HostModule;
       }
 

@@ -7,7 +7,7 @@ import { Extension } from '#extension/extension-types.js';
 import { SystemLogMediator } from '#logger/system-log-mediator.js';
 import { ModuleManager } from './module-manager.js';
 import { ModuleNormalizer } from './module-normalizer.js';
-import { AllModuleMixinsMap, StaticMixinOptions, MixinDecorator, ModuleMixin } from '#decorators/module-mixins.js';
+import { AllModuleMixinsMap, StaticMixinOptions, MixinDecorator, ModuleMixinHandler } from '#decorators/module-mixins.js';
 import { BaseNormalizedModuleMeta, NormalizedModuleMeta, getProxyForMixinMeta } from '#init/normalized-meta.js';
 import { DynamicModuleOptions, ModRefId } from '#decorators/module-decorator-options.js';
 import { DynamicModule } from '#decorators/module-decorator-options.js';
@@ -462,22 +462,22 @@ describe('ModuleManager', () => {
     @featureModule()
     class HostModule4 {}
 
-    class ModuleMixin1 extends ModuleMixin<any> {
+    class ModuleMixin1 extends ModuleMixinHandler<any> {
       override hostModule = HostModule1;
       override hostMixinOptions = { one: 1 };
     }
 
-    class ModuleMixin2 extends ModuleMixin<any> {
+    class ModuleMixin2 extends ModuleMixinHandler<any> {
       override hostModule = HostModule2;
       override hostMixinOptions = { two: 2 };
     }
 
-    class ModuleMixin3 extends ModuleMixin<any> {
+    class ModuleMixin3 extends ModuleMixinHandler<any> {
       override hostModule = HostModule3;
       override hostMixinOptions = { three: 3 };
     }
 
-    class ModuleMixin4 extends ModuleMixin<any> {
+    class ModuleMixin4 extends ModuleMixinHandler<any> {
       override hostModule = HostModule4;
       override hostMixinOptions = { four: 4 };
     }
@@ -546,7 +546,7 @@ describe('ModuleManager', () => {
       interface MixinMeta extends BaseNormalizedModuleMeta {
         path?: string;
       }
-      class ModuleMixin1 extends ModuleMixin<RootModuleOptions> {
+      class ModuleMixin1 extends ModuleMixinHandler<RootModuleOptions> {
         override normalize({ modRefId }: NormalizedModuleMeta): MixinMeta {
           if (isDynamicModule(modRefId)) {
             const params = modRefId.mixinOptions?.get(mixinSome);
@@ -589,7 +589,7 @@ describe('ModuleManager', () => {
       @featureModule()
       class HostModule1 {}
 
-      class ModuleMixin1 extends ModuleMixin<RootModuleOptions> {
+      class ModuleMixin1 extends ModuleMixinHandler<RootModuleOptions> {
         override hostModule = HostModule1;
         override normalize({ modRefId }: NormalizedModuleMeta): MixinMeta {
           return { path: 'static-default' } as MixinMeta;
@@ -627,7 +627,7 @@ describe('ModuleManager', () => {
       @featureModule()
       class HostModule1 {}
 
-      class ModuleMixin1 extends ModuleMixin<RootModuleOptions> {
+      class ModuleMixin1 extends ModuleMixinHandler<RootModuleOptions> {
         override hostModule = HostModule1;
         override normalize({ modRefId }: NormalizedModuleMeta): MixinMeta {
           return { path: 'static-default' } as MixinMeta;
@@ -673,8 +673,8 @@ describe('ModuleManager', () => {
       interface MixinMeta2 {
         paramsForMixinMeta2?: any;
       }
-      class ModuleMixin1 extends ModuleMixin<DecoratorOptions1> {}
-      class ModuleMixin2 extends ModuleMixin<DecoratorOptions2> {}
+      class ModuleMixin1 extends ModuleMixinHandler<DecoratorOptions1> {}
+      class ModuleMixin2 extends ModuleMixinHandler<DecoratorOptions2> {}
 
       const mixinSome1: MixinDecorator<DecoratorOptions1, {}, MixinMeta1> = Reflector.makeClassDecorator(
         (d) => new ModuleMixin1(d),
@@ -729,7 +729,7 @@ describe('ModuleManager', () => {
         customProp?: string;
       }
 
-      class Mixin1 extends ModuleMixin<any> {
+      class MixinHandler1 extends ModuleMixinHandler<any> {
         override hostModule = HostModule;
         override hostMixinOptions = { customProp: 'works' };
 
@@ -738,7 +738,7 @@ describe('ModuleManager', () => {
         }
       }
 
-      const mixinSome: MixinDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new Mixin1(d));
+      const mixinSome: MixinDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new MixinHandler1(d));
 
       @mixinSome()
       @featureModule()
@@ -752,16 +752,16 @@ describe('ModuleManager', () => {
 
       const hostMeta = mock.getNormalizedModuleMeta(HostModule);
       expect(hostMeta?.moduleMixinMap.has(mixinSome)).toBe(true);
-      const hostMixinInst = hostMeta?.moduleMixinMap.get(mixinSome);
-      expect(hostMixinInst?.moduleOptions).toEqual({ customProp: 'works' });
+      const moduleMixinHandler = hostMeta?.moduleMixinMap.get(mixinSome);
+      expect(moduleMixinHandler?.moduleOptions).toEqual({ customProp: 'works' });
     });
     it('should accumulate the exact same allModuleMixinsMap in the parent regardless of import order', () => {
-      class ModuleMixin1 extends ModuleMixin<any> {
+      class ModuleMixin1 extends ModuleMixinHandler<any> {
         override normalize(normalizedModuleMeta: NormalizedModuleMeta) {
           return normalizedModuleMeta;
         }
       }
-      class ModuleMixin2 extends ModuleMixin<any> {
+      class ModuleMixin2 extends ModuleMixinHandler<any> {
         override normalize(normalizedModuleMeta: NormalizedModuleMeta) {
           return normalizedModuleMeta;
         }

@@ -3,7 +3,7 @@ import type { ModRefId, StaticModule } from '#decorators/module-decorator-option
 import type { Class, Provider } from '#di/top/types-and-models.js';
 import type { DynamicModule } from '../decorators/module-decorator-options.js';
 import type { BaseExtensionConfig, ExtensionConfig } from '#extension/extension-providers-and-configs.js';
-import type { NormalizedMixinMetaMap, ModuleMixin, AllModuleMixinsMap, MixinDecorator } from '#decorators/module-mixins.js';
+import type { NormalizedMixinMetaMap, ModuleMixinHandler, AllModuleMixinsMap, MixinDecorator } from '#decorators/module-mixins.js';
 import type { ExtensionClass } from '#extension/extension-types.js';
 import type { ExtensionGroupToken } from '#di/key-registry.js';
 import type { MultiProvider } from '#di/utils.js';
@@ -177,9 +177,9 @@ export class NormalizedModuleMeta<
    */
   inheritsMixins?: boolean;
   /**
-   * Contains instances of `ModuleMixin` collected from current module.
+   * Contains instances of `ModuleMixinHandler` collected from current module.
    */
-  moduleMixinMap = new Map<MixinDecorator<any, any, any>, ModuleMixin>();
+  moduleMixinMap = new Map<MixinDecorator<any, any, any>, ModuleMixinHandler>();
   /**
    * Contains normalized mixins metadata collected from current module.
    */
@@ -271,7 +271,7 @@ export class NormalizedModuleMeta<
     this.allModuleMixinsMap.forEach((moduleMixin, decoratorId) => {
       const clonedMixin = (
         copy.moduleMixinMap.has(decoratorId) ? copy.moduleMixinMap.get(decoratorId) : moduleMixin.clone()
-      ) as ModuleMixin;
+      ) as ModuleMixinHandler;
       copy.allModuleMixinsMap.set(decoratorId, clonedMixin);
       if (!copy.moduleMixinMap.has(decoratorId)) {
         const meta = clonedMixin.normalize(copy);

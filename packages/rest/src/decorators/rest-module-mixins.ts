@@ -1,5 +1,5 @@
 import type { ModRefId, NormalizedModuleMeta, MixinDecorator, Provider, ForwardRefFn, StaticModule } from '@holu/core';
-import { Reflector, ModuleMixin } from '@holu/core';
+import { Reflector, ModuleMixinHandler } from '@holu/core';
 
 import type { RestStaticOptions, RestDynamicOptions } from '#init/rest-mixin-raw-meta.js';
 import { RestModuleNormalizer } from '#init/rest-module-normalizer.js';
@@ -30,23 +30,23 @@ export const restModule: MixinDecorator<RestStaticOptions, RestDynamicOptions, R
   mixinRest,
 );
 
-export function transformMixinMeta(data?: RestStaticOptions): ModuleMixin<RestStaticOptions> {
+export function transformMixinMeta(data?: RestStaticOptions): ModuleMixinHandler<RestStaticOptions> {
   const metadata = Object.assign({}, data);
-  return new RestModuleMixin(metadata);
+  return new RestModuleMixinHandler(metadata);
 }
-export function transformRootMeta(data?: RestStaticOptions): ModuleMixin<RestStaticOptions> {
+export function transformRootMeta(data?: RestStaticOptions): ModuleMixinHandler<RestStaticOptions> {
   const metadata = Object.assign({}, data);
-  const moduleMixin = new RestModuleMixin(metadata);
+  const moduleMixin = new RestModuleMixinHandler(metadata);
   moduleMixin.moduleRole = 'root';
   return moduleMixin;
 }
-export function transformFeatureMeta(data?: RestStaticOptions): ModuleMixin<RestStaticOptions> {
+export function transformFeatureMeta(data?: RestStaticOptions): ModuleMixinHandler<RestStaticOptions> {
   const metadata = transformRootMeta(data);
   metadata.moduleRole = 'feature';
   return metadata;
 }
 
-export class RestModuleMixin extends ModuleMixin<RestStaticOptions> {
+export class RestModuleMixinHandler extends ModuleMixinHandler<RestStaticOptions> {
   override hostModule = RestModule;
 
   override normalize(normalizedModuleMeta: NormalizedModuleMeta): RestMixinMeta {

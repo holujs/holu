@@ -16,7 +16,7 @@ import type { ModuleScopedGuard } from '#interceptors/guard.js';
 import type { RestModRefId } from '#init/rest-mixin-meta.js';
 import { RestMixinMeta } from '#init/rest-mixin-meta.js';
 import type { Level, RestAppProviders } from '#types/types.js';
-import { mixinRest, RestModuleMixin } from '#decorators/rest-module-mixins.js';
+import { mixinRest, RestModuleMixinHandler } from '#decorators/rest-module-mixins.js';
 import type { ImportModulesShallowConfig, RestImportedProvider, RestShallowModuleImports } from './types.js';
 import { ModuleIncludesInImportsAndAppends } from '#errors';
 import { ModuleMustHaveControllers } from '#services/rest-errors.js';
@@ -63,7 +63,7 @@ export class RestShallowModulesImporter {
     this.meta = this.getMixinMeta(normalizedModuleMeta);
 
     return {
-      moduleMixin: new RestModuleMixin({}),
+      moduleMixin: new RestModuleMixinHandler({}),
     };
   }
 

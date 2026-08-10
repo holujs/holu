@@ -6,7 +6,7 @@ import type { AnyFn, Provider } from '#di/top/types-and-models.js';
 import type { DynamicModule, FeatureModuleOptions } from '#decorators/module-decorator-options.js';
 import type { ForwardRefFn } from '#di/forward-ref.js';
 import type { ExtensionClass } from '#extension/extension-types.js';
-import type { StaticMixinOptions, ModuleMixin } from '#decorators/module-mixins.js';
+import type { StaticMixinOptions, ModuleMixinHandler } from '#decorators/module-mixins.js';
 import type { ProviderBuilder } from '#utils/providers.js';
 import type { ModuleManager } from '#init/module-manager.js';
 import { normalizeExtensionConfig } from '#extension/extension-providers-and-configs.js';
@@ -369,7 +369,7 @@ export class ModuleNormalizer {
     });
   }
 
-  applyHostMixinOptions(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleMixin: ModuleMixin) {
+  applyHostMixinOptions(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleMixin: ModuleMixinHandler) {
     this.normalizedModuleMeta = normalizedModuleMeta;
     this.fetchMixinOptions(decoratorId, moduleMixin.moduleOptions);
     this.callModuleMixin(decoratorId, moduleMixin);
@@ -379,7 +379,7 @@ export class ModuleNormalizer {
    * Ensures the host module (if any) is added to `importedStaticModules` for the current module,
    * unless the current module itself is the host module.
    */
-  protected ensureHostModuleImported(moduleMixin: ModuleMixin): void {
+  protected ensureHostModuleImported(moduleMixin: ModuleMixinHandler): void {
     const { hostModule } = moduleMixin;
     if (
       hostModule &&
@@ -398,7 +398,7 @@ export class ModuleNormalizer {
    * This is the single entry point used by {@link ModuleManager} to register a mixin
    * on a module during the post-scan propagation phase.
    */
-  registerMixinOnModule(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleMixin: ModuleMixin): void {
+  registerMixinOnModule(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleMixin: ModuleMixinHandler): void {
     this.normalizedModuleMeta = normalizedModuleMeta;
     normalizedModuleMeta.allModuleMixinsMap.set(decoratorId, moduleMixin);
     this.ensureHostModuleImported(moduleMixin);
@@ -518,7 +518,7 @@ export class ModuleNormalizer {
     }
   }
 
-  protected callModuleMixin(decoratorId: AnyFn, moduleMixin: ModuleMixin) {
+  protected callModuleMixin(decoratorId: AnyFn, moduleMixin: ModuleMixinHandler) {
     const meta = moduleMixin.normalize(this.normalizedModuleMeta);
     if (meta) {
       this.normalizedModuleMeta.normalizedMixinMetaMap.set(decoratorId, meta);

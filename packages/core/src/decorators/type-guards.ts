@@ -2,23 +2,23 @@ import { DecoratorMeta } from '#di/top/decorator-and-value.js';
 import type { AnyObj, RequireProps } from '#types/mix.js';
 import type { DynamicModule } from '#decorators/module-decorator-options.js';
 import { FeatureModuleOptions } from '#decorators/module-decorator-options.js';
-import { ModuleMixin } from '#decorators/module-mixins.js';
+import { ModuleMixinHandler } from '#decorators/module-mixins.js';
 import { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { RootModuleOptions } from './root-module.js';
 import { Reflector } from '#di/reflector.js';
 
 function checkModuleRole(arg: any, expectedRole: 'root' | 'feature', ExpectedClass: any): boolean {
   if (arg instanceof DecoratorMeta) {
-    if (arg.value instanceof ModuleMixin) {
+    if (arg.value instanceof ModuleMixinHandler) {
       return arg.value.moduleRole === expectedRole;
     }
     return arg.value instanceof ExpectedClass;
   } else if (arg instanceof NormalizedModuleMeta) {
-    if (arg.staticModuleOptions instanceof ModuleMixin) {
+    if (arg.staticModuleOptions instanceof ModuleMixinHandler) {
       return arg.staticModuleOptions.moduleRole === expectedRole;
     }
     return arg.staticModuleOptions instanceof ExpectedClass;
-  } else if (arg instanceof ModuleMixin) {
+  } else if (arg instanceof ModuleMixinHandler) {
     return arg.moduleRole === expectedRole;
   }
   const decoratorMeta = Reflector.getClassLevelMeta(arg);
@@ -56,13 +56,13 @@ export function isModuleDecorator(arg?: any) {
   return isRootModule(arg) || isFeatureModule(arg);
 }
 
-export function isModuleWithModuleMixin(metadata?: ModuleMixin<AnyObj>): metadata is ModuleMixin<AnyObj>;
-export function isModuleWithModuleMixin(arg?: DecoratorMeta): arg is Required<DecoratorMeta<ModuleMixin<AnyObj>>>;
+export function isModuleWithModuleMixin(metadata?: ModuleMixinHandler<AnyObj>): metadata is ModuleMixinHandler<AnyObj>;
+export function isModuleWithModuleMixin(arg?: DecoratorMeta): arg is Required<DecoratorMeta<ModuleMixinHandler<AnyObj>>>;
 export function isModuleWithModuleMixin(arg?: any): boolean {
   if (arg instanceof DecoratorMeta) {
-    return arg.value instanceof ModuleMixin;
+    return arg.value instanceof ModuleMixinHandler;
   } else {
-    return arg instanceof ModuleMixin;
+    return arg instanceof ModuleMixinHandler;
   }
 }
 

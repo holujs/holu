@@ -12,13 +12,13 @@ import type { rootModule } from '#decorators/root-module.js';
 import type { featureModule } from '#decorators/feature-module.js';
 import type { ShallowModulesImporter } from '#init/shallow-modules-importer.js';
 
-export type AllModuleMixinsMap = Map<MixinDecorator<any, any, any>, Omit<ModuleMixin, 'moduleOptions'>>;
+export type AllModuleMixinsMap = Map<MixinDecorator<any, any, any>, Omit<ModuleMixinHandler, 'moduleOptions'>>;
 
 /**
  * A base class for creating module mixins. They carry metadata attached by corresponding decorators
  * to supplement base decorators like {@link featureModule} or {@link rootModule}.
  */
-export class ModuleMixin<T1 extends StaticMixinOptions = StaticMixinOptions> {
+export class ModuleMixinHandler<T1 extends StaticMixinOptions = StaticMixinOptions> {
   /**
    * If you want your mixin decorator to also play the role of a base module, substitute the appropriate role.
    */
@@ -164,7 +164,7 @@ export interface DynamicMixinOptionsMap {
  * Type parameters:
  * - `T`: Options passed when using the decorator statically (e.g., `@myMixin({ ... })`).
  * - `DynamicMixinOptions`: Options passed when applying the mixin dynamically.
- * - `NormalizedMixinMeta`: The normalized metadata type resulting from `ModuleMixin.normalize()`.
+ * - `NormalizedMixinMeta`: The normalized metadata type resulting from `ModuleMixinHandler.normalize()`.
  *
  * For a complete guide, see the [Mixin Decorators documentation](http://holujs.github.io/en/deep-dive/module-mixins/).
  *

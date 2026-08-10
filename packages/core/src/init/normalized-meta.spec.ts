@@ -2,7 +2,7 @@ import { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { injectable } from '#di/decorators.js';
 import { ExtensionGroupToken } from '#di/key-registry.js';
 import type { Extension } from '#extension/extension-types.js';
-import { ModuleMixin } from '#decorators/module-mixins.js';
+import { ModuleMixinHandler } from '#decorators/module-mixins.js';
 
 describe('NormalizedModuleMeta', () => {
   @injectable()
@@ -55,7 +55,7 @@ describe('NormalizedModuleMeta', () => {
   });
 
   it('should not mutate original moduleMixin instance when clone() calls normalize()', () => {
-    class MutatingMixin extends ModuleMixin<any> {
+    class MutatingMixin extends ModuleMixinHandler<any> {
       normalizedCount = 0;
       constructor() {
         super({});

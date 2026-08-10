@@ -2,7 +2,7 @@ import type { SystemLogMediator } from '#logger/system-log-mediator.js';
 import type { AnyObj } from '#types/mix.js';
 import type { StaticModule, ModRefId, DynamicModule } from '#decorators/module-decorator-options.js';
 import type { BaseNormalizedModuleMeta, NormalizedModuleMeta } from '#init/normalized-meta.js';
-import type { AllModuleMixinsMap, ModuleMixin } from '#decorators/module-mixins.js';
+import type { AllModuleMixinsMap, ModuleMixinHandler } from '#decorators/module-mixins.js';
 import type { Provider, AnyFn } from '#di/top/types-and-models.js';
 import type { Injector } from '#di/injector.js';
 import { resolveForwardRef, type ForwardRefFn } from '#di/forward-ref.js';
@@ -198,7 +198,7 @@ export class ModuleManager {
   protected applyHostMixinAndGatherDependencies(
     hostMeta: NormalizedModuleMeta,
     decoratorId: AnyFn,
-    moduleMixin: ModuleMixin,
+    moduleMixin: ModuleMixinHandler,
     modulesToScan: Set<ModRefId>,
   ): boolean {
     const newModuleMixin = moduleMixin.clone(moduleMixin.hostMixinOptions);

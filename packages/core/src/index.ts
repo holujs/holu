@@ -17,7 +17,7 @@ export { defaultProvidersPerApp } from '#init/default-providers-per-app.js';
 export { OnModuleInit, BeforeShutdown, OnShutdown, SHUTDOWN_SIGNALS } from '#init/hooks.js';
 export { featureModule } from '#decorators/feature-module.js';
 export {
-  ModuleMixin,
+  ModuleMixinHandler,
   MixinDecorator,
   NormalizedMixinMetaMap,
   DynamicMixinOptionsMap,

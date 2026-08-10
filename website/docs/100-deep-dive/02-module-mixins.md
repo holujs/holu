@@ -39,13 +39,13 @@ sidebar_position: 2
 2. Як декоратор для оголошення **модуля фіч** (наприклад, `restModule`).
 3. Як **декоратор-модифікатор** для розширення вже оголошеного модуля. Таким декораторам рекомендується давати префікс `mixin*` (наприклад, `mixinRest`, `mixinTrpc`). Одразу декілька модифікаторів можна застосовувати до одного класу модуля.
 
-Оскільки ці декоратори приймають метадані модуля з розширеним типом, їм потрібен механізм для нормалізації та валідації переданих метаданих. Саме для цього існує базовий клас **`ModuleMixin`**.
+Оскільки ці декоратори приймають метадані модуля з розширеним типом, їм потрібен механізм для нормалізації та валідації переданих метаданих. Саме для цього існує базовий клас **`ModuleMixinHandler`**.
 
-Коли ви створюєте міксин за допомогою `Reflector.makeClassDecorator()`, ви передаєте йому функцію-трансформер. Цей трансформер повинен повертати інстанс класу, який розширює `ModuleMixin` — він і буде виступати в ролі обробника метаданих для вашого декоратора:
+Коли ви створюєте міксин за допомогою `Reflector.makeClassDecorator()`, ви передаєте йому функцію-трансформер. Цей трансформер повинен повертати інстанс класу, який розширює `ModuleMixinHandler` — він і буде виступати в ролі обробника метаданих для вашого декоратора:
 
 ```ts {24-26,46,50}
 import {
-  ModuleMixin,
+  ModuleMixinHandler,
   MixinDecorator,
   Reflector,
   StaticMixinOptions,
@@ -67,7 +67,7 @@ interface MyStaticMixinOptions extends StaticMixinOptions<DynamicMixinOptions> {
 /**
  * Методи цього класу нормалізуватимуть та перевірятимуть метадані модуля.
  */
-class SomeModuleMixin extends ModuleMixin<MyStaticMixinOptions> {
+class SomeModuleMixin extends ModuleMixinHandler<MyStaticMixinOptions> {
   // ...
 }
 
@@ -87,7 +87,7 @@ interface MyNormalizedModuleMeta extends BaseNormalizedModuleMeta {
   mixinDecoratorOptions: RootModuleOptions;
 }
 
-function transformMixinOptions(data?: MyStaticMixinOptions): ModuleMixin<MyStaticMixinOptions> {
+function transformMixinOptions(data?: MyStaticMixinOptions): ModuleMixinHandler<MyStaticMixinOptions> {
   const metadata = Object.assign({}, data);
   const moduleMixin = new SomeModuleMixin(metadata);
   moduleMixin.moduleRole = undefined;
@@ -109,7 +109,7 @@ export class SomeModule {}
 
 ## Взаємодія з кореневим модулем та модулем фіч {#interaction-with-root-and-feature-modules}
 
-Залежно від ролі, визначеної через властивість `moduleRole` класу `ModuleMixin` (що повертається функцією-трансформером), mixin-декоратори взаємодіють з базовими декораторами - `rootModule` та `featureModule` - по-різному:
+Залежно від ролі, визначеної через властивість `moduleRole` класу `ModuleMixinHandler` (що повертається функцією-трансформером), mixin-декоратори взаємодіють з базовими декораторами - `rootModule` та `featureModule` - по-різному:
 
 - **Декоратори-замінники**: коли `moduleRole` дорівнює `'root'` або `'feature'`, відповідні декоратори виступають у ролі повноцінних декораторів модуля. Клас, анотований ними (наприклад, `@restRootModule` або `@restModule`), не потребує додаткового використання `@featureModule` чи `@rootModule`. Фреймворк автоматично розпізнає їхню роль і опрацьовує їх.
 - **Декоратори-модифікатори**: коли `moduleRole` дорівнює `undefined`, відповідні декоратори лише модифікують/розширюють метадані. Клас, анотований ними (наприклад, `@mixinRest`), **обов'язково** повинен мати базовий декоратор модуля або декоратор-замінник. Якщо базовий декоратор модуля відсутній, фреймворк кине помилку `MissingModuleDecorator`.
@@ -120,16 +120,16 @@ export class SomeModule {}
 
 При створенні декоратора-замінника (з роллю `'root'` або `'feature'`) за допомогою `Reflector.makeClassDecorator()`, ви **обов'язково** повинні передати базовий декоратор-модифікатор (наприклад, `mixinRest` або `mixinSome`) як третій аргумент. Цей третій аргумент працює як `decoratorId`. Він вказує Holu, що ці декоратори належать до однієї групи, дозволяючи фреймворку правильно збирати, нормалізувати та пов'язувати метадані з відповідним контекстом групи під час ініціалізації.
 
-## Кастомізація ModuleMixin {#customizing-inithooks}
+## Кастомізація ModuleMixinHandler {#customizing-inithooks}
 
-Базовий клас `ModuleMixin` надає кілька властивостей життєвого циклу та методів, які ви можете перевизначити для керування обробкою метаданих.
+Базовий клас `ModuleMixinHandler` надає кілька властивостей життєвого циклу та методів, які ви можете перевизначити для керування обробкою метаданих.
 
 ### Відокремлення модуля фіч від mixin-декоратора {#separation-of-feature-module-and-mixin-decorator-using-hostmodule}
 
 Відокремлення оголошення mixin-декораторів від хост-модуля фіч є необхідністю для уникнення циклічних залежностей (оскільки декоратор імпортує модуль, а декорування хост-модуля ним самим створило б цикл імпорту):
 
 1. Спочатку створіть стандартний модуль фіч (наприклад, `MyLibModule`), що містить усі необхідні розширення, дефолтні провайдери та сервіси.
-2. Потім оголосіть свій кастомний підклас `ModuleMixin`, встановивши `override hostModule = MyLibModule`.
+2. Потім оголосіть свій кастомний підклас `ModuleMixinHandler`, встановивши `override hostModule = MyLibModule`.
 3. Створіть базовий декоратор-модифікатор `mixin*` (наприклад, `mixinSome`), який слугуватиме у якості ID для групи декораторів.
 4. Створіть функцію-трансформер, яка повертає інстанс хуків і встановлює `hooks.moduleRole = 'feature'` (або `'root'`).
 5. Створіть декоратор-замінник (наприклад, `myFeatureModule`) за допомогою `Reflector.makeClassDecorator()`, передавши трансформер першим аргументом, ім'я другим, а базовий декоратор-модифікатор (`mixinSome`) третім аргументом (як ID групи).
@@ -138,7 +138,7 @@ export class SomeModule {}
 Ось приклад:
 
 ```ts {12}
-import { featureModule, ModuleMixin, Reflector } from '@holu/core';
+import { featureModule, ModuleMixinHandler, Reflector } from '@holu/core';
 
 // 1. Стандартний модуль, що містить реальну логіку/провайдери
 @featureModule({
@@ -148,7 +148,7 @@ import { featureModule, ModuleMixin, Reflector } from '@holu/core';
 export class MyLibModule {}
 
 // 2. Кастомні хуки, що встановлюють hostModule
-class MyModuleMixin extends ModuleMixin {
+class MyModuleMixin extends ModuleMixinHandler {
   override hostModule = MyLibModule;
 }
 

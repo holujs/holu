@@ -7,7 +7,7 @@ import type {
   TrpcModRefId,
   TrpcShallowModuleImports,
 } from '#decorators/trpc-module-mixins.js';
-import { mixinTrpcModule, TrpcModuleMixin, TrpcMixinMeta } from '#decorators/trpc-module-mixins.js';
+import { mixinTrpcModule, TrpcModuleMixinHandler, TrpcMixinMeta } from '#decorators/trpc-module-mixins.js';
 import type { ModuleScopedGuard } from '#interceptors/trpc-guard.js';
 
 /**
@@ -51,7 +51,7 @@ export class TrpcShallowModulesImporter {
     this.meta = this.getMixinMeta(normalizedModuleMeta);
 
     return {
-      moduleMixin: new TrpcModuleMixin({}),
+      moduleMixin: new TrpcModuleMixinHandler({}),
     };
   }
 
