@@ -1,5 +1,5 @@
 import { rootModule, ProviderBuilder, LoggerConfig } from '@holu/core';
-import { controller, route, mixinRest } from '@holu/rest';
+import { controller, route, aspectRest } from '@holu/rest';
 
 @controller()
 export class RequestScopedController {
@@ -17,7 +17,7 @@ export class RouteScopedController {
   }
 }
 
-@mixinRest({
+@aspectRest({
   controllers: [RequestScopedController, RouteScopedController],
   providersPerApp: new ProviderBuilder().useValue(LoggerConfig, { level: 'info' }),
 })
