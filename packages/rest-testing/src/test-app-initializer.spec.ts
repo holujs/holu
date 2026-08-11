@@ -1,6 +1,6 @@
 import type { ModRefId, Provider } from '@holu/core';
 import { NormalizedModuleMeta, ProviderBuilder } from '@holu/core';
-import { RestMixinMeta, mixinRest } from '@holu/rest';
+import { RestAspectMeta, aspectRest } from '@holu/rest';
 
 import { TestAppInitializer } from '#app/test-app-initializer.js';
 
@@ -44,7 +44,7 @@ describe('TestAppInitializer', () => {
 
       mock.addProvidersToModule(modRefId, [Provider1]);
       const normalizedModuleMeta = new NormalizedModuleMeta();
-      normalizedModuleMeta.normalizedMixinMetaMap.set(mixinRest, new RestMixinMeta());
+      normalizedModuleMeta.normalizedAspectMetaMap.set(aspectRest, new RestAspectMeta());
       normalizedModuleMeta.providersPerApp.push(Provider0);
       normalizedModuleMeta.providersPerMod.push(Provider0);
 
