@@ -1,10 +1,10 @@
 import { featureModule, DynamicModule } from '@holu/core';
-import { mixinRest } from '@holu/rest';
+import { aspectRest } from '@holu/rest';
 
 import { JwtService } from './jwt.service.js';
 import { JwtServiceOptions } from './models/jwt-service-options.js';
 
-@mixinRest({
+@aspectRest({
   providersPerApp: [JwtServiceOptions],
   providersPerReq: [JwtService],
   exports: [JwtService],
