@@ -1208,7 +1208,20 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@holu/cli@npm:^0.1.0, @holu/cli@workspace:packages/cli":
+"@holu/cli@npm:^0.1.0":
+  version: 0.1.3
+  resolution: "@holu/cli@npm:0.1.3"
+  dependencies:
+    commander: "npm:^15.0.0"
+  peerDependencies:
+    typescript: ">=5.0.0"
+  bin:
+    holu: dist/holu.js
+  checksum: 10c0/72f88b1611fd4d09f904d5ef8b2f84010defe06b726b809d13824021c5fdb0a9066b923da489cd3ed5f0ed7e985b266fdb4b101c61ceb8a93b585cd893671ff9
+  languageName: node
+  linkType: hard
+
+"@holu/cli@workspace:packages/cli":
   version: 0.0.0-use.local
   resolution: "@holu/cli@workspace:packages/cli"
   dependencies:

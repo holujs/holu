@@ -1,7 +1,7 @@
 {
   "name": "@holu/i18n",
   "type": "module",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/holujs/holu.git"
