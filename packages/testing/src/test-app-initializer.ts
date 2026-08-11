@@ -42,8 +42,8 @@ export class TestAppInitializer extends RestAppInitializer {
   protected override overrideMetaAfterStage1(modRefId: ModRefId, normalizedModuleMeta: NormalizedModuleMeta) {
     const additionalProviders = this.additionalProvidersMap.get(modRefId);
     this.addAndOverrideProviders([normalizedModuleMeta.providersPerApp, normalizedModuleMeta.providersPerMod], additionalProviders);
-    normalizedModuleMeta.moduleMixinMap.forEach((moduleMixin, decorator) => {
-      const meta = normalizedModuleMeta.normalizedMixinMetaMap.get(decorator);
+    normalizedModuleMeta.moduleAspectMap.forEach((moduleMixin, decorator) => {
+      const meta = normalizedModuleMeta.normalizedAspectMetaMap.get(decorator);
       if (meta) {
         this.addAndOverrideProviders(moduleMixin.getProvidersToOverride(meta), additionalProviders);
       }
