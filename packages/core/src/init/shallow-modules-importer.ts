@@ -88,7 +88,7 @@ export class ShallowModulesImporter {
       mixinValueMap,
     };
 
-    normalizedModuleMeta.allModuleMixinsMap.forEach((moduleMixin, decorator) => {
+    normalizedModuleMeta.allModuleAspectsMap.forEach((moduleMixin, decorator) => {
       const val = moduleMixin.exportAppProviders({ moduleManager, appProviders, normalizedModuleMeta });
       mixinValueMap.set(decorator, val);
     });
@@ -137,8 +137,8 @@ export class ShallowModulesImporter {
       extensionConfigs = [...this.importedExtensionConfigs];
     } else {
       this.appProviders.mixinValueMap.forEach(({ moduleMixin }, decorator) => {
-        if (moduleMixin && !normalizedModuleMeta.allModuleMixinsMap.has(decorator)) {
-          normalizedModuleMeta.allModuleMixinsMap.set(decorator, moduleMixin);
+        if (moduleMixin && !normalizedModuleMeta.allModuleAspectsMap.has(decorator)) {
+          normalizedModuleMeta.allModuleAspectsMap.set(decorator, moduleMixin);
         }
       });
       perMod = new Map([...this.appProviders.importedProvidersPerMod, ...this.importedProvidersPerMod]);
@@ -174,8 +174,8 @@ export class ShallowModulesImporter {
   protected importAndScanModules() {
     this.importModules();
 
-    this.normalizedModuleMeta.allModuleMixinsMap.forEach((moduleMixin, decorator) => {
-      const meta = this.normalizedModuleMeta.normalizedMixinMetaMap.get(decorator);
+    this.normalizedModuleMeta.allModuleAspectsMap.forEach((moduleMixin, decorator) => {
+      const meta = this.normalizedModuleMeta.normalizedAspectMetaMap.get(decorator);
       for (const modRefId of moduleMixin.getModulesToScan(meta)) {
         if (this.unfinishedScanModules.has(modRefId)) {
           continue;

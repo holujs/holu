@@ -3,7 +3,7 @@ import type { AnyObj } from './mix.js';
 import type { ModRefId } from '#decorators/module-decorator-options.js';
 import type { AnyFn, Provider } from '#di/top/types-and-models.js';
 import type { ExtensionConfig } from '#extension/extension-providers-and-configs.js';
-import type { StaticMixinOptions, ModuleMixinHandler } from '#decorators/module-mixins.js';
+import type { StaticAspectOptions, ModuleAspectHandler } from '#decorators/module-aspects.js';
 import type { ExtensionClass } from '#extension/extension-types.js';
 import type { ExtensionGroupToken } from '#di/key-registry.js';
 
@@ -19,11 +19,11 @@ export class ImportedProvider<T extends Provider = Provider> {
   declare reexporter?: ModRefId;
 }
 
-export class AppModuleMixins<T extends StaticMixinOptions = StaticMixinOptions> {
+export class AppModuleMixins<T extends StaticAspectOptions = StaticAspectOptions> {
   /**
    * The presence of this property indicates whether at least one app provider is exported.
    */
-  moduleMixin?: ModuleMixinHandler<T>;
+  moduleMixin?: ModuleAspectHandler<T>;
 }
 
 export class AppProviders {

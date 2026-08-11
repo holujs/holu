@@ -2,7 +2,7 @@ import { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { injectable } from '#di/decorators.js';
 import { ExtensionGroupToken } from '#di/key-registry.js';
 import type { Extension } from '#extension/extension-types.js';
-import { ModuleMixinHandler } from '#decorators/module-mixins.js';
+import { ModuleAspectHandler } from '#decorators/module-aspects.js';
 
 describe('NormalizedModuleMeta', () => {
   @injectable()
@@ -55,7 +55,7 @@ describe('NormalizedModuleMeta', () => {
   });
 
   it('should not mutate original moduleMixin instance when clone() calls normalize()', () => {
-    class MutatingMixin extends ModuleMixinHandler<any> {
+    class MutatingMixin extends ModuleAspectHandler<any> {
       normalizedCount = 0;
       constructor() {
         super({});
@@ -68,7 +68,7 @@ describe('NormalizedModuleMeta', () => {
 
     const original = new NormalizedModuleMeta();
     const mixin = new MutatingMixin();
-    original.moduleMixinMap.set(MutatingMixin as any, mixin);
+    original.moduleAspectMap.set(MutatingMixin as any, mixin);
 
     expect(mixin.normalizedCount).toBe(0);
 
@@ -77,8 +77,8 @@ describe('NormalizedModuleMeta', () => {
     // The original mixin should remain untouched
     expect(mixin.normalizedCount).toBe(0);
 
-    // The copied mixin in copy.moduleMixinMap should be a clone and should have been normalized
-    const copiedMixin = copy.moduleMixinMap.get(MutatingMixin as any) as unknown as MutatingMixin;
+    // The copied mixin in copy.moduleAspectMap should be a clone and should have been normalized
+    const copiedMixin = copy.moduleAspectMap.get(MutatingMixin as any) as unknown as MutatingMixin;
     expect(copiedMixin).toBeDefined();
     expect(copiedMixin).not.toBe(mixin);
     expect(copiedMixin.normalizedCount).toBe(1);

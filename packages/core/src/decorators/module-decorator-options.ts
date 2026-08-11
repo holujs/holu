@@ -2,7 +2,7 @@ import type { ProvidersByLevel } from '#types/providers-metadata.js';
 import type { AnyObj } from '#types/mix.js';
 import type { ExtensionConfig } from '#extension/extension-providers-and-configs.js';
 import type { ExtensionClass } from '#extension/extension-types.js';
-import type { DynamicMixinOptionsMap } from '#decorators/module-mixins.js';
+import type { DynamicAspectOptionsMap } from '#decorators/module-aspects.js';
 import type { ProviderBuilder } from '#utils/providers.js';
 import type { Class, Provider } from '#di/top/types-and-models.js';
 import type { ForwardRefFn } from '#di/forward-ref.js';
@@ -109,14 +109,14 @@ export interface DynamicModule<M extends AnyObj = AnyObj> extends BaseDynamicMod
   /**
    * If the current module has this property populated, this means it was used in the context of mixin decorators.
    */
-  mixinOptions?: DynamicMixinOptionsMap;
+  aspectOptions?: DynamicAspectOptionsMap;
 }
 /**
- * This interface differs from {@link DynamicModule} only in that it requires the presence of the `mixinOptions` property.
+ * This interface differs from {@link DynamicModule} only in that it requires the presence of the `aspectOptions` property.
  * It is convenient to use in static module methods that return a dynamic module configured with mixin options.
  */
 export interface DynamicModuleWithMixinOptions<M extends AnyObj = AnyObj> extends DynamicModule<M> {
-  mixinOptions: DynamicMixinOptionsMap;
+  aspectOptions: DynamicAspectOptionsMap;
 }
 
 /**

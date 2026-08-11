@@ -2,7 +2,7 @@ import type { SystemLogMediator } from '#logger/system-log-mediator.js';
 import type { AnyObj } from '#types/mix.js';
 import type { StaticModule, ModRefId, DynamicModule } from '#decorators/module-decorator-options.js';
 import type { BaseNormalizedModuleMeta, NormalizedModuleMeta } from '#init/normalized-meta.js';
-import type { AllModuleMixinsMap, ModuleMixinHandler } from '#decorators/module-mixins.js';
+import type { AllModuleAspectsMap, ModuleAspectHandler } from '#decorators/module-aspects.js';
 import type { Provider, AnyFn } from '#di/top/types-and-models.js';
 import type { Injector } from '#di/injector.js';
 import { resolveForwardRef, type ForwardRefFn } from '#di/forward-ref.js';
@@ -22,7 +22,7 @@ export type ModuleId = string | ModRefId;
  * Essentially, `ModRefId` is the form in which a module is passed in the `imports` array — that is,
  * either the static module class itself (`StaticModule`) or a dynamic module configuration object (`DynamicModule`).
  *
- * `ModuleManager` also stores module-level DI injectors, manages application-scoped providers, and propagates module mixins.
+ * `ModuleManager` also stores module-level DI injectors, manages application-scoped providers, and propagates module aspects.
  */
 export class ModuleManager {
   protected injectorPerModMap = new Map<ModRefId, Injector>();
@@ -42,9 +42,9 @@ export class ModuleManager {
    * Represents the module dependency graph.
    *
    * It maps `ModRefId` to a `Set` of `ModRefId` of its child modules
-   * (modules that it imports, exports, or includes via specialized module mixins).
+   * (modules that it imports, exports, or includes via specialized module aspects).
    * This graph is built during the module scanning phase and is subsequently used
-   * for recursive traversal, such as propagating parent module mixins to child modules.
+   * for recursive traversal, such as propagating parent module aspects to child modules.
    */
   protected get childrenMap() {
     return this.#childrenMap;
@@ -101,11 +101,11 @@ export class ModuleManager {
   /**
    * Recursively normalizes and registers metadata for a specified static or dynamic module reference.
    *
-   * Traverses module dependencies (`imports`, `exports`, and modules discovered via specialized module mixins such as `appends`
+   * Traverses module dependencies (`imports`, `exports`, and modules discovered via specialized module aspects such as `appends`
    * or `controllers`), builds the module dependency graph (`this.childrenMap`), accumulates global providers into `providersPerApp`,
    * and stores normalized metadata.
    *
-   * Only processes each module's own decorators. Cross-module mixin propagation is handled
+   * Only processes each module's own decorators. Cross-module aspect propagation is handled
    * separately in {@link finalizeRootScan} after the entire module tree has been scanned.
    */
   protected scanModule(modRefId: ModRefId | ForwardRefFn<ModRefId>) {
@@ -135,8 +135,8 @@ export class ModuleManager {
 
   protected getModulesToScan(normalizedModuleMeta: NormalizedModuleMeta): ModRefId[] {
     const importsOrExports: ModRefId[] = [];
-    normalizedModuleMeta.moduleMixinMap.forEach((moduleMixin, decoratorId) => {
-      const meta = normalizedModuleMeta.normalizedMixinMetaMap.get(decoratorId);
+    normalizedModuleMeta.moduleAspectMap.forEach((moduleMixin, decoratorId) => {
+      const meta = normalizedModuleMeta.normalizedAspectMetaMap.get(decoratorId);
       if (meta) {
         importsOrExports.push(...moduleMixin.getModulesToScan(meta));
       }
@@ -171,7 +171,7 @@ export class ModuleManager {
   }
 
   /**
-   * Identifies module mixins containing `hostMixinOptions` and applies them to their respective host modules.
+   * Identifies module aspects containing `hostAspectOptions` and applies them to their respective host modules.
    * Runs recursively to scan any newly added dependencies triggered by these options.
    */
   protected applyHostMixinOptions() {
@@ -181,10 +181,10 @@ export class ModuleManager {
       const modulesToScan = new Set<ModRefId>();
 
       this.normalizedMetaMap.forEach((meta) => {
-        meta.moduleMixinMap.forEach((moduleMixin, decoratorId) => {
-          if (moduleMixin.hostModule && moduleMixin.hostMixinOptions) {
+        meta.moduleAspectMap.forEach((moduleMixin, decoratorId) => {
+          if (moduleMixin.hostModule && moduleMixin.hostAspectOptions) {
             const hostMeta = this.normalizedMetaMap.get(moduleMixin.hostModule);
-            if (hostMeta && !hostMeta.moduleMixinMap.has(decoratorId)) {
+            if (hostMeta && !hostMeta.moduleAspectMap.has(decoratorId)) {
               hasNewModules = this.applyHostMixinAndGatherDependencies(hostMeta, decoratorId, moduleMixin, modulesToScan);
             }
           }
@@ -198,11 +198,11 @@ export class ModuleManager {
   protected applyHostMixinAndGatherDependencies(
     hostMeta: NormalizedModuleMeta,
     decoratorId: AnyFn,
-    moduleMixin: ModuleMixinHandler,
+    moduleMixin: ModuleAspectHandler,
     modulesToScan: Set<ModRefId>,
   ): boolean {
-    const newModuleMixin = moduleMixin.clone(moduleMixin.hostMixinOptions);
-    hostMeta.moduleMixinMap.set(decoratorId, newModuleMixin);
+    const newModuleMixin = moduleMixin.clone(moduleMixin.hostAspectOptions);
+    hostMeta.moduleAspectMap.set(decoratorId, newModuleMixin);
     try {
       this.moduleNormalizer.applyHostMixinOptions(hostMeta, decoratorId, newModuleMixin);
     } catch (err: any) {
@@ -210,8 +210,8 @@ export class ModuleManager {
     }
 
     const importsOrExports: (DynamicModule | StaticModule)[] = [];
-    hostMeta.moduleMixinMap.forEach((mixin, dec) => {
-      const mixinMeta = hostMeta.normalizedMixinMetaMap.get(dec);
+    hostMeta.moduleAspectMap.forEach((mixin, dec) => {
+      const mixinMeta = hostMeta.normalizedAspectMetaMap.get(dec);
       if (mixinMeta) {
         importsOrExports.push(...mixin.getModulesToScan(mixinMeta));
       }
@@ -247,13 +247,13 @@ export class ModuleManager {
   /**
    * Top-down traversal of the module dependency graph.
    *
-   * Propagates parent module mixins to child modules that:
-   * - Are dynamic modules with `mixinOptions` but no own mixin decorator for that decorator.
-   * - Are static modules without any own mixin decorators (inheriting full parent context).
+   * Propagates parent module aspects to child modules that:
+   * - Are dynamic modules with `aspectOptions` but no own aspect decorator for that decorator.
+   * - Are static modules without any own aspect decorators (inheriting full parent context).
    *
-   * Modules with their own mixin decorators keep them and do not inherit from the parent.
+   * Modules with their own aspect decorators keep them and do not inherit from the parent.
    */
-  protected propagateMixinsTopDown(startModule: ModRefId, parentMixins: AllModuleMixinsMap = new Map(), visited = new Set<ModRefId>()) {
+  protected propagateMixinsTopDown(startModule: ModRefId, parentMixins: AllModuleAspectsMap = new Map(), visited = new Set<ModRefId>()) {
     if (visited.has(startModule)) {
       return;
     }
@@ -264,20 +264,20 @@ export class ModuleManager {
       return;
     }
 
-    // Build the active mixin context: parent's mixins + current module's own mixins.
-    const activeMixins: AllModuleMixinsMap = new Map(parentMixins);
-    meta.moduleMixinMap.forEach((moduleMixin, decoratorId) => {
+    // Build the active aspect context: parent's aspects + current module's own aspects.
+    const activeMixins: AllModuleAspectsMap = new Map(parentMixins);
+    meta.moduleAspectMap.forEach((moduleMixin, decoratorId) => {
       activeMixins.set(decoratorId, moduleMixin);
     });
 
-    // Apply mixins for dynamic modules imported with mixinOptions.
+    // Apply aspects for dynamic modules imported with aspectOptions.
     this.applyMixinsForDynamicModule(meta, activeMixins);
 
-    // Inherit parent mixins for static modules without own decorators.
+    // Inherit parent aspects for static modules without own decorators.
     this.inheritParentMixins(meta, activeMixins);
 
     // After applying/inheriting, rebuild activeMixins to include newly added entries.
-    meta.moduleMixinMap.forEach((moduleMixin, decoratorId) => {
+    meta.moduleAspectMap.forEach((moduleMixin, decoratorId) => {
       activeMixins.set(decoratorId, moduleMixin);
     });
 
@@ -291,12 +291,12 @@ export class ModuleManager {
   }
 
   /**
-   * Post-order (bottom-up) traversal that accumulates `allModuleMixinsMap` for each module.
+   * Post-order (bottom-up) traversal that accumulates `allModuleAspectsMap` for each module.
    *
-   * After this pass, each module's `allModuleMixinsMap` contains the union of the module's
-   * own mixins and all mixins found in descendant modules.
-   * Also creates read-only `normalizedMixinMetaMap` entries for mixins that are in
-   * `allModuleMixinsMap` but not in `moduleMixinMap`.
+   * After this pass, each module's `allModuleAspectsMap` contains the union of the module's
+   * own aspects and all aspects found in descendant modules.
+   * Also creates read-only `normalizedAspectMetaMap` entries for aspects that are in
+   * `allModuleAspectsMap` but not in `moduleAspectMap`.
    */
   protected accumulateMixinsBottomUp(startModule: ModRefId, visited = new Set<ModRefId>()) {
     if (visited.has(startModule)) {
@@ -316,23 +316,23 @@ export class ModuleManager {
         this.accumulateMixinsBottomUp(child, visited);
       }
 
-      // Now add children's mixins to the current module's allModuleMixinsMap.
+      // Now add children's aspects to the current module's allModuleAspectsMap.
       for (const child of children) {
         const childMeta = this.normalizedMetaMap.get(child);
-        childMeta?.allModuleMixinsMap.forEach((mixin, decoratorId) => {
-          if (!meta.allModuleMixinsMap.has(decoratorId)) {
-            meta.allModuleMixinsMap.set(decoratorId, mixin);
+        childMeta?.allModuleAspectsMap.forEach((mixin, decoratorId) => {
+          if (!meta.allModuleAspectsMap.has(decoratorId)) {
+            meta.allModuleAspectsMap.set(decoratorId, mixin);
           }
         });
       }
     }
 
-    // Create read-only normalizedMixinMetaMap entries for accumulated (non-own) mixins.
-    meta.allModuleMixinsMap.forEach((mixin, decoratorId) => {
-      if (!meta.moduleMixinMap.has(decoratorId) && !meta.normalizedMixinMetaMap.has(decoratorId)) {
+    // Create read-only normalizedAspectMetaMap entries for accumulated (non-own) aspects.
+    meta.allModuleAspectsMap.forEach((mixin, decoratorId) => {
+      if (!meta.moduleAspectMap.has(decoratorId) && !meta.normalizedAspectMetaMap.has(decoratorId)) {
         const readOnlyMeta = mixin.clone().normalize(meta);
         if (readOnlyMeta) {
-          meta.normalizedMixinMetaMap.set(decoratorId, readOnlyMeta);
+          meta.normalizedAspectMetaMap.set(decoratorId, readOnlyMeta);
         }
       }
     });
@@ -457,13 +457,13 @@ export class ModuleManager {
   }
 
   /**
-   * For dynamic modules imported with `mixinOptions`, clones the corresponding
-   * mixin from the parent's context and registers it on the module.
-   * This ensures the mixin's `normalize()` can read dynamic options (path, guards, etc.).
+   * For dynamic modules imported with `aspectOptions`, clones the corresponding
+   * aspect from the parent's context and registers it on the module.
+   * This ensures the aspect's `normalize()` can read dynamic options (path, guards, etc.).
    */
-  protected applyMixinsForDynamicModule(meta: NormalizedModuleMeta, parentMixins: AllModuleMixinsMap) {
-    (meta.modRefId as DynamicModule).mixinOptions?.forEach((params, decoratorId) => {
-      if (!meta.moduleMixinMap.has(decoratorId)) {
+  protected applyMixinsForDynamicModule(meta: NormalizedModuleMeta, parentMixins: AllModuleAspectsMap) {
+    (meta.modRefId as DynamicModule).aspectOptions?.forEach((params, decoratorId) => {
+      if (!meta.moduleAspectMap.has(decoratorId)) {
         const parentMixin = parentMixins.get(decoratorId);
         if (parentMixin) {
           try {
@@ -477,12 +477,12 @@ export class ModuleManager {
   }
 
   /**
-   * For modules without any own mixin decorators, inherits all mixins from the parent.
+   * For modules without any own aspect decorators, inherits all aspects from the parent.
    * Respects `inheritsMixins` and `isExternal` flags.
    */
-  protected inheritParentMixins(meta: NormalizedModuleMeta, parentMixins: AllModuleMixinsMap) {
+  protected inheritParentMixins(meta: NormalizedModuleMeta, parentMixins: AllModuleAspectsMap) {
     const inheritsMixins = meta.inheritsMixins ?? !meta.isExternal;
-    if (!inheritsMixins || meta.moduleMixinMap.size > 0) {
+    if (!inheritsMixins || meta.moduleAspectMap.size > 0) {
       return;
     }
     parentMixins.forEach((mixin, decoratorId) => {

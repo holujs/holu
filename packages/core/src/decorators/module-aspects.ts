@@ -6,41 +6,41 @@ import type { DynamicModuleOptions, ModRefId, StaticModule } from './module-deco
 import type { AnyFn, Provider } from '#di/top/types-and-models.js';
 import type { DynamicModule, FeatureModuleOptions } from '#decorators/module-decorator-options.js';
 import { AppModuleMixins, type AppProviders } from '#types/metadata-per-mod.js';
-import { type NormalizedModuleMeta, getProxyForMixinMeta, BaseNormalizedModuleMeta } from '#init/normalized-meta.js';
+import { type NormalizedModuleMeta, createAspectMetaProxy, BaseNormalizedModuleMeta } from '#init/normalized-meta.js';
 import type { ForwardRefFn } from '#di/forward-ref.js';
 import type { rootModule } from '#decorators/root-module.js';
 import type { featureModule } from '#decorators/feature-module.js';
 import type { ShallowModulesImporter } from '#init/shallow-modules-importer.js';
 
-export type AllModuleMixinsMap = Map<MixinDecorator<any, any, any>, Omit<ModuleMixinHandler, 'moduleOptions'>>;
+export type AllModuleAspectsMap = Map<ModuleAspectDecorator<any, any, any>, Omit<ModuleAspectHandler, 'moduleOptions'>>;
 
 /**
- * A base class for creating module mixins. They carry metadata attached by corresponding decorators
+ * A base class for creating module aspects. They carry metadata attached by corresponding decorators
  * to supplement base decorators like {@link featureModule} or {@link rootModule}.
  */
-export class ModuleMixinHandler<T1 extends StaticMixinOptions = StaticMixinOptions> {
+export class ModuleAspectHandler<T1 extends StaticAspectOptions = StaticAspectOptions> {
   /**
-   * If you want your mixin decorator to also play the role of a base module, substitute the appropriate role.
+   * If you want your aspect decorator to also play the role of a base module, substitute the appropriate role.
    */
   declare moduleRole?: 'root' | 'feature';
   /**
-   * The host module that provides the core functionality for this mixin.
-   * If specified, it will be automatically imported wherever this mixin decorator is applied.
+   * The host module that provides the core functionality for this aspect.
+   * If specified, it will be automatically imported wherever this aspect decorator is applied.
    */
   declare hostModule?: StaticModule;
 
   /**
    * Options intended for the host module.
    *
-   * If you decorate the host module with its own mixin decorator and set {@link hostModule},
+   * If you decorate the host module with its own aspect decorator and set {@link hostModule},
    * it creates a circular dependency. To avoid this, do not decorate the host module directly.
-   * Instead, pass its mixin options here:
+   * Instead, pass its aspect options here:
    *
    * ```ts
-   * override hostMixinOptions: YourMetadataType = { one: 1, two: 2 };
+   * override hostAspectOptions: YourMetadataType = { one: 1, two: 2 };
    * ```
    */
-  declare hostMixinOptions?: T1;
+  declare hostAspectOptions?: T1;
 
   constructor(public moduleOptions: T1) {
     this.moduleOptions ??= {} as T1;
@@ -54,13 +54,13 @@ export class ModuleMixinHandler<T1 extends StaticMixinOptions = StaticMixinOptio
   }
 
   /**
-   * Normalizes the metadata from the current decorator. It is then inserted into {@link NormalizedModuleMeta.normalizedMixinMetaMap | normalizedModuleMeta.normalizedMixinMetaMap}.
+   * Normalizes the metadata from the current decorator. It is then inserted into {@link NormalizedModuleMeta.normalizedAspectMetaMap | normalizedModuleMeta.normalizedAspectMetaMap}.
    *
    * @param normalizedModuleMeta Normalized metadata that is passed
    * to the {@link featureModule} or {@link rootModule} decorator.
    */
   normalize(normalizedModuleMeta: NormalizedModuleMeta): BaseNormalizedModuleMeta {
-    return getProxyForMixinMeta(normalizedModuleMeta, BaseNormalizedModuleMeta);
+    return createAspectMetaProxy(normalizedModuleMeta, BaseNormalizedModuleMeta);
   }
 
   /**
@@ -119,9 +119,9 @@ export class ModuleMixinHandler<T1 extends StaticMixinOptions = StaticMixinOptio
   }
 }
 
-export interface NormalizedMixinMetaMap {
-  set<T extends BaseNormalizedModuleMeta>(decorator: MixinDecorator<any, any, T>, meta: T): this;
-  get<T extends BaseNormalizedModuleMeta>(decorator: MixinDecorator<any, any, T>): T | undefined;
+export interface NormalizedAspectMetaMap {
+  set<T extends BaseNormalizedModuleMeta>(decorator: ModuleAspectDecorator<any, any, T>, meta: T): this;
+  get<T extends BaseNormalizedModuleMeta>(decorator: ModuleAspectDecorator<any, any, T>): T | undefined;
   forEach<T extends BaseNormalizedModuleMeta>(
     callbackfn: (meta: T, decorator: AnyFn, map: Map<AnyFn, T>) => void,
     thisArg?: any,
@@ -139,9 +139,9 @@ export interface NormalizedMixinMetaMap {
   [Symbol.iterator](): any;
 }
 
-export interface DynamicMixinOptionsMap {
-  set<T extends AnyObj>(decorator: MixinDecorator<any, T, any>, params: T): this;
-  get<T extends AnyObj>(decorator: MixinDecorator<any, T, any>): T | undefined;
+export interface DynamicAspectOptionsMap {
+  set<T extends AnyObj>(decorator: ModuleAspectDecorator<any, T, any>, params: T): this;
+  get<T extends AnyObj>(decorator: ModuleAspectDecorator<any, T, any>): T | undefined;
   forEach<T extends AnyObj>(callbackfn: (params: T, decorator: AnyFn, map: Map<AnyFn, T>) => void, thisArg?: any): void;
   /**
    * Returns an iterable of keys in the map
@@ -152,31 +152,31 @@ export interface DynamicMixinOptionsMap {
   /**
    * @returns boolean indicating whether an element with the specified key exists or not.
    */
-  has(key: MixinDecorator<any, any, any>): boolean;
+  has(key: ModuleAspectDecorator<any, any, any>): boolean;
 }
 
 /**
- * Use this interface to type module mixin decorators.
+ * Use this interface to type module aspect decorators.
  *
- * Mixin decorators allow you to add custom metadata to Holu modules. This metadata is then
+ * Aspect decorators allow you to add custom metadata to Holu modules. This metadata is then
  * processed by extensions during the application initialization phase.
  *
  * Type parameters:
  * - `T`: Options passed when using the decorator statically (e.g., `@myMixin({ ... })`).
- * - `DynamicMixinOptions`: Options passed when applying the mixin dynamically.
- * - `NormalizedMixinMeta`: The normalized metadata type resulting from `ModuleMixinHandler.normalize()`.
+ * - `DynamicAspectOptions`: Options passed when applying the aspect dynamically.
+ * - `NormalizedAspectMeta`: The normalized metadata type resulting from `ModuleAspectHandler.normalize()`.
  *
- * For a complete guide, see the [Mixin Decorators documentation](http://holujs.github.io/en/deep-dive/module-mixins/).
+ * For a complete guide, see the [Aspect Decorators documentation](http://holujs.github.io/en/deep-dive/module-aspects/).
  *
  * ### Example
  *
  * ```ts
- * import { makeClassDecorator, MixinDecorator } from '@holu/core';
+ * import { makeClassDecorator, ModuleAspectDecorator } from '@holu/core';
  *
- * export const myMixin: MixinDecorator<StaticOpts, DynamicOpts, NormalizedMeta> = makeClassDecorator(getModuleMixin);
+ * export const myMixin: ModuleAspectDecorator<StaticOpts, DynamicOpts, NormalizedMeta> = makeClassDecorator(getModuleMixin);
  * ```
  */
-export interface MixinDecorator<T extends StaticMixinOptions, DynamicMixinOptions, NormalizedMixinMeta> {
+export interface ModuleAspectDecorator<T extends StaticAspectOptions, DynamicAspectOptions, NormalizedAspectMeta> {
   (data?: T): any;
 }
 
@@ -196,6 +196,6 @@ export interface DynamicModuleWrapper {
  * where an extended type of dynamic modules can be passed.
  */
 // prettier-ignore
-export interface StaticMixinOptions<T extends DynamicModuleOptions = DynamicModuleOptions> extends Omit<FeatureModuleOptions, 'imports'> {
+export interface StaticAspectOptions<T extends DynamicModuleOptions = DynamicModuleOptions> extends Omit<FeatureModuleOptions, 'imports'> {
   imports?: (((DynamicModuleWrapper | DynamicModule) & T) | StaticModule | ForwardRefFn<ModRefId>)[];
 }

@@ -2,23 +2,23 @@ import { DecoratorMeta } from '#di/top/decorator-and-value.js';
 import type { AnyObj, RequireProps } from '#types/mix.js';
 import type { DynamicModule } from '#decorators/module-decorator-options.js';
 import { FeatureModuleOptions } from '#decorators/module-decorator-options.js';
-import { ModuleMixinHandler } from '#decorators/module-mixins.js';
+import { ModuleAspectHandler } from '#decorators/module-aspects.js';
 import { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { RootModuleOptions } from './root-module.js';
 import { Reflector } from '#di/reflector.js';
 
 function checkModuleRole(arg: any, expectedRole: 'root' | 'feature', ExpectedClass: any): boolean {
   if (arg instanceof DecoratorMeta) {
-    if (arg.value instanceof ModuleMixinHandler) {
+    if (arg.value instanceof ModuleAspectHandler) {
       return arg.value.moduleRole === expectedRole;
     }
     return arg.value instanceof ExpectedClass;
   } else if (arg instanceof NormalizedModuleMeta) {
-    if (arg.staticModuleOptions instanceof ModuleMixinHandler) {
+    if (arg.staticModuleOptions instanceof ModuleAspectHandler) {
       return arg.staticModuleOptions.moduleRole === expectedRole;
     }
     return arg.staticModuleOptions instanceof ExpectedClass;
-  } else if (arg instanceof ModuleMixinHandler) {
+  } else if (arg instanceof ModuleAspectHandler) {
     return arg.moduleRole === expectedRole;
   }
   const decoratorMeta = Reflector.getClassLevelMeta(arg);
@@ -56,13 +56,13 @@ export function isModuleDecorator(arg?: any) {
   return isRootModule(arg) || isFeatureModule(arg);
 }
 
-export function isModuleWithModuleMixin(metadata?: ModuleMixinHandler<AnyObj>): metadata is ModuleMixinHandler<AnyObj>;
-export function isModuleWithModuleMixin(arg?: DecoratorMeta): arg is Required<DecoratorMeta<ModuleMixinHandler<AnyObj>>>;
+export function isModuleWithModuleMixin(metadata?: ModuleAspectHandler<AnyObj>): metadata is ModuleAspectHandler<AnyObj>;
+export function isModuleWithModuleMixin(arg?: DecoratorMeta): arg is Required<DecoratorMeta<ModuleAspectHandler<AnyObj>>>;
 export function isModuleWithModuleMixin(arg?: any): boolean {
   if (arg instanceof DecoratorMeta) {
-    return arg.value instanceof ModuleMixinHandler;
+    return arg.value instanceof ModuleAspectHandler;
   } else {
-    return arg instanceof ModuleMixinHandler;
+    return arg instanceof ModuleAspectHandler;
   }
 }
 

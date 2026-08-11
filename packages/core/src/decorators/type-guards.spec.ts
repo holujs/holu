@@ -3,7 +3,7 @@ import { DecoratorMeta } from '#di/top/decorator-and-value.js';
 import { featureModule } from '#decorators/feature-module.js';
 import { rootModule, RootModuleOptions } from '#decorators/root-module.js';
 import { FeatureModuleOptions, DynamicModule } from '#decorators/module-decorator-options.js';
-import { ModuleMixinHandler } from '#decorators/module-mixins.js';
+import { ModuleAspectHandler } from '#decorators/module-aspects.js';
 import { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import {
   isFeatureModule,
@@ -55,14 +55,14 @@ describe('type guards', () => {
       expect(isFeatureModule(metadata)).toBe(true);
     });
 
-    it('returns false for DecoratorMeta with ModuleMixinHandler when moduleRole is not feature', () => {
-      const moduleMixin = new ModuleMixinHandler({});
+    it('returns false for DecoratorMeta with ModuleAspectHandler when moduleRole is not feature', () => {
+      const moduleMixin = new ModuleAspectHandler({});
       const decorMeta = new DecoratorMeta(featureModule, moduleMixin);
       expect(isFeatureModule(decorMeta)).toBe(false);
     });
 
-    it('returns true for DecoratorMeta with ModuleMixinHandler when moduleRole is feature', () => {
-      const moduleMixin = new ModuleMixinHandler({});
+    it('returns true for DecoratorMeta with ModuleAspectHandler when moduleRole is feature', () => {
+      const moduleMixin = new ModuleAspectHandler({});
       moduleMixin.moduleRole = 'feature';
       const decorMeta = new DecoratorMeta(featureModule, moduleMixin);
       expect(isFeatureModule(decorMeta)).toBe(true);
@@ -86,29 +86,29 @@ describe('type guards', () => {
       expect(isFeatureModule(normalizedModuleMeta)).toBe(false);
     });
 
-    it('returns false for NormalizedModuleMeta with ModuleMixinHandler when moduleRole is not feature', () => {
-      const moduleMixin = new ModuleMixinHandler({});
+    it('returns false for NormalizedModuleMeta with ModuleAspectHandler when moduleRole is not feature', () => {
+      const moduleMixin = new ModuleAspectHandler({});
       const normalizedModuleMeta = new NormalizedModuleMeta();
       normalizedModuleMeta.staticModuleOptions = moduleMixin;
       expect(isFeatureModule(normalizedModuleMeta)).toBe(false);
     });
 
-    it('returns true for NormalizedModuleMeta with ModuleMixinHandler when moduleRole is feature', () => {
-      const moduleMixin = new ModuleMixinHandler({});
+    it('returns true for NormalizedModuleMeta with ModuleAspectHandler when moduleRole is feature', () => {
+      const moduleMixin = new ModuleAspectHandler({});
       moduleMixin.moduleRole = 'feature';
       const normalizedModuleMeta = new NormalizedModuleMeta();
       normalizedModuleMeta.staticModuleOptions = moduleMixin;
       expect(isFeatureModule(normalizedModuleMeta)).toBe(true);
     });
 
-    it('returns true for direct ModuleMixinHandler instance when moduleRole is feature', () => {
-      const moduleMixin = new ModuleMixinHandler({});
+    it('returns true for direct ModuleAspectHandler instance when moduleRole is feature', () => {
+      const moduleMixin = new ModuleAspectHandler({});
       moduleMixin.moduleRole = 'feature';
       expect(isFeatureModule(moduleMixin)).toBe(true);
     });
 
-    it('returns false for direct ModuleMixinHandler instance when moduleRole is not feature', () => {
-      const moduleMixin = new ModuleMixinHandler({});
+    it('returns false for direct ModuleAspectHandler instance when moduleRole is not feature', () => {
+      const moduleMixin = new ModuleAspectHandler({});
       expect(isFeatureModule(moduleMixin)).toBe(false);
     });
 
@@ -145,14 +145,14 @@ describe('type guards', () => {
       expect(isRootModule(metadata)).toBe(true);
     });
 
-    it('returns false for DecoratorMeta with ModuleMixinHandler when moduleRole is not root', () => {
-      const moduleMixin = new ModuleMixinHandler({});
+    it('returns false for DecoratorMeta with ModuleAspectHandler when moduleRole is not root', () => {
+      const moduleMixin = new ModuleAspectHandler({});
       const decorMeta = new DecoratorMeta(rootModule, moduleMixin);
       expect(isRootModule(decorMeta)).toBe(false);
     });
 
-    it('returns true for DecoratorMeta with ModuleMixinHandler when moduleRole is root', () => {
-      const moduleMixin = new ModuleMixinHandler({});
+    it('returns true for DecoratorMeta with ModuleAspectHandler when moduleRole is root', () => {
+      const moduleMixin = new ModuleAspectHandler({});
       moduleMixin.moduleRole = 'root';
       const decorMeta = new DecoratorMeta(rootModule, moduleMixin);
       expect(isRootModule(decorMeta)).toBe(true);
@@ -174,29 +174,29 @@ describe('type guards', () => {
       expect(isRootModule(normalizedModuleMeta)).toBe(false);
     });
 
-    it('returns false for NormalizedModuleMeta with ModuleMixinHandler when moduleRole is not root', () => {
-      const moduleMixin = new ModuleMixinHandler({});
+    it('returns false for NormalizedModuleMeta with ModuleAspectHandler when moduleRole is not root', () => {
+      const moduleMixin = new ModuleAspectHandler({});
       const normalizedModuleMeta = new NormalizedModuleMeta();
       normalizedModuleMeta.staticModuleOptions = moduleMixin;
       expect(isRootModule(normalizedModuleMeta)).toBe(false);
     });
 
-    it('returns true for NormalizedModuleMeta with ModuleMixinHandler when moduleRole is root', () => {
-      const moduleMixin = new ModuleMixinHandler({});
+    it('returns true for NormalizedModuleMeta with ModuleAspectHandler when moduleRole is root', () => {
+      const moduleMixin = new ModuleAspectHandler({});
       moduleMixin.moduleRole = 'root';
       const normalizedModuleMeta = new NormalizedModuleMeta();
       normalizedModuleMeta.staticModuleOptions = moduleMixin;
       expect(isRootModule(normalizedModuleMeta)).toBe(true);
     });
 
-    it('returns true for direct ModuleMixinHandler instance when moduleRole is root', () => {
-      const moduleMixin = new ModuleMixinHandler({});
+    it('returns true for direct ModuleAspectHandler instance when moduleRole is root', () => {
+      const moduleMixin = new ModuleAspectHandler({});
       moduleMixin.moduleRole = 'root';
       expect(isRootModule(moduleMixin)).toBe(true);
     });
 
-    it('returns false for direct ModuleMixinHandler instance when moduleRole is not root', () => {
-      const moduleMixin = new ModuleMixinHandler({});
+    it('returns false for direct ModuleAspectHandler instance when moduleRole is not root', () => {
+      const moduleMixin = new ModuleAspectHandler({});
       expect(isRootModule(moduleMixin)).toBe(false);
     });
 
@@ -243,19 +243,19 @@ describe('type guards', () => {
   });
 
   describe('isModuleWithModuleMixin()', () => {
-    it('returns true for DecoratorMeta wrapping ModuleMixinHandler', () => {
-      const moduleMixin = new ModuleMixinHandler({});
+    it('returns true for DecoratorMeta wrapping ModuleAspectHandler', () => {
+      const moduleMixin = new ModuleAspectHandler({});
       const decorMeta = new DecoratorMeta(featureModule, moduleMixin);
       expect(isModuleWithModuleMixin(decorMeta)).toBe(true);
     });
 
-    it('returns false for DecoratorMeta not wrapping ModuleMixinHandler', () => {
+    it('returns false for DecoratorMeta not wrapping ModuleAspectHandler', () => {
       const decorMeta = new DecoratorMeta(featureModule, new FeatureModuleOptions());
       expect(isModuleWithModuleMixin(decorMeta)).toBe(false);
     });
 
-    it('returns true for direct ModuleMixinHandler instance', () => {
-      const moduleMixin = new ModuleMixinHandler({});
+    it('returns true for direct ModuleAspectHandler instance', () => {
+      const moduleMixin = new ModuleAspectHandler({});
       expect(isModuleWithModuleMixin(moduleMixin)).toBe(true);
     });
 

@@ -6,7 +6,7 @@ import type { AnyFn, Provider } from '#di/top/types-and-models.js';
 import type { DynamicModule, FeatureModuleOptions } from '#decorators/module-decorator-options.js';
 import type { ForwardRefFn } from '#di/forward-ref.js';
 import type { ExtensionClass } from '#extension/extension-types.js';
-import type { StaticMixinOptions, ModuleMixinHandler } from '#decorators/module-mixins.js';
+import type { StaticAspectOptions, ModuleAspectHandler } from '#decorators/module-aspects.js';
 import type { ProviderBuilder } from '#utils/providers.js';
 import type { ModuleManager } from '#init/module-manager.js';
 import { normalizeExtensionConfig } from '#extension/extension-providers-and-configs.js';
@@ -64,8 +64,8 @@ export class ModuleNormalizer {
   /**
    * Returns normalized module metadata.
    *
-   * Only processes the module's own decorators. Cross-module mixin propagation
-   * (for dynamic modules with `mixinOptions` or static modules without own decorators)
+   * Only processes the module's own decorators. Cross-module aspect propagation
+   * (for dynamic modules with `aspectOptions` or static modules without own decorators)
    * is handled separately by {@link ModuleManager} after the scan phase completes.
    */
   normalize(modRefId: ModRefId, systemLogMediator: SystemLogMediator) {
@@ -90,7 +90,7 @@ export class ModuleNormalizer {
 
     this.checkReexportModules();
 
-    // Phase 2: Process mixin decorators applied directly to the current module.
+    // Phase 2: Process aspect decorators applied directly to the current module.
     this.callModuleMixinFromCurrentModule();
 
     this.quickCheckMeta(staticModuleOptions);
@@ -119,7 +119,7 @@ export class ModuleNormalizer {
     normalizedModuleMeta.declaredInDir = decoratorMeta?.declaredInDir || '.';
     normalizedModuleMeta.modRefId = modRefId;
     decoratorsMeta.filter(isModuleWithModuleMixin).forEach(({ decoratorId, value }) => {
-      normalizedModuleMeta.moduleMixinMap.set(decoratorId, value);
+      normalizedModuleMeta.moduleAspectMap.set(decoratorId, value);
     });
     return normalizedModuleMeta;
   }
@@ -158,7 +158,7 @@ export class ModuleNormalizer {
   }
 
   protected normalizeProvidersAndResolvedCollisions(
-    staticModuleOptions: StaticMixinOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
+    staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
   ) {
     this.normalizeProviders(staticModuleOptions);
     this.normalizeResolvedCollisions(staticModuleOptions);
@@ -175,7 +175,7 @@ export class ModuleNormalizer {
   }
 
   protected normalizeResolvedCollisions(
-    staticModuleOptions: StaticMixinOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
+    staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
   ) {
     (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
       const resolvedCollisionKey = `resolvedCollisionsPer${level}` as const;
@@ -278,7 +278,7 @@ export class ModuleNormalizer {
   }
 
   protected throwIfResolvingNormalizedProvider(
-    staticModuleOptions: StaticMixinOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
+    staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
   ) {
     const resolvedCollisionsPerLevel: [any, ModRefId | ForwardRefFn<StaticModule | DynamicModule>][] = [];
     (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
@@ -369,7 +369,7 @@ export class ModuleNormalizer {
     });
   }
 
-  applyHostMixinOptions(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleMixin: ModuleMixinHandler) {
+  applyHostMixinOptions(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleMixin: ModuleAspectHandler) {
     this.normalizedModuleMeta = normalizedModuleMeta;
     this.fetchMixinOptions(decoratorId, moduleMixin.moduleOptions);
     this.callModuleMixin(decoratorId, moduleMixin);
@@ -379,7 +379,7 @@ export class ModuleNormalizer {
    * Ensures the host module (if any) is added to `importedStaticModules` for the current module,
    * unless the current module itself is the host module.
    */
-  protected ensureHostModuleImported(moduleMixin: ModuleMixinHandler): void {
+  protected ensureHostModuleImported(moduleMixin: ModuleAspectHandler): void {
     const { hostModule } = moduleMixin;
     if (
       hostModule &&
@@ -391,24 +391,24 @@ export class ModuleNormalizer {
   }
 
   /**
-   * Registers a cloned module mixin on the given module: adds it to `allModuleMixinsMap`
-   * and `moduleMixinMap`, ensures the host module is imported, normalizes the mixin
-   * and stores the result in `normalizedMixinMetaMap`.
+   * Registers a cloned module aspect on the given module: adds it to `allModuleAspectsMap`
+   * and `moduleAspectMap`, ensures the host module is imported, normalizes the aspect
+   * metadata, and applies it to the module's `normalizedAspectMetaMap`.
    *
-   * This is the single entry point used by {@link ModuleManager} to register a mixin
+   * This is the single entry point used by {@link ModuleManager} to register an aspect
    * on a module during the post-scan propagation phase.
    */
-  registerMixinOnModule(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleMixin: ModuleMixinHandler): void {
+  registerMixinOnModule(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleMixin: ModuleAspectHandler): void {
     this.normalizedModuleMeta = normalizedModuleMeta;
-    normalizedModuleMeta.allModuleMixinsMap.set(decoratorId, moduleMixin);
+    normalizedModuleMeta.allModuleAspectsMap.set(decoratorId, moduleMixin);
     this.ensureHostModuleImported(moduleMixin);
     this.callModuleMixin(decoratorId, moduleMixin);
-    normalizedModuleMeta.moduleMixinMap.set(decoratorId, moduleMixin);
+    normalizedModuleMeta.moduleAspectMap.set(decoratorId, moduleMixin);
   }
 
   protected callModuleMixinFromCurrentModule() {
-    this.normalizedModuleMeta.moduleMixinMap.forEach((moduleMixin, decoratorId) => {
-      this.normalizedModuleMeta.allModuleMixinsMap.set(decoratorId, moduleMixin);
+    this.normalizedModuleMeta.moduleAspectMap.forEach((moduleMixin, decoratorId) => {
+      this.normalizedModuleMeta.allModuleAspectsMap.set(decoratorId, moduleMixin);
       this.ensureHostModuleImported(moduleMixin);
       this.fetchMixinOptions(decoratorId, moduleMixin.moduleOptions);
       this.callModuleMixin(decoratorId, moduleMixin);
@@ -436,17 +436,17 @@ export class ModuleNormalizer {
     }) as Exclude<T, ForwardRefFn>[];
   }
 
-  protected fetchMixinOptions(decoratorId: AnyFn, mixinOptions: StaticMixinOptions) {
-    this.fetchMixinImports(decoratorId, mixinOptions);
-    this.fetchMixinExports(mixinOptions);
-    this.normalizeExtensions(mixinOptions);
-    this.normalizeProvidersAndResolvedCollisions(mixinOptions);
-    this.normalizeExports(mixinOptions, 'Static exports');
+  protected fetchMixinOptions(decoratorId: AnyFn, aspectOptions: StaticAspectOptions) {
+    this.fetchMixinImports(decoratorId, aspectOptions);
+    this.fetchMixinExports(aspectOptions);
+    this.normalizeExtensions(aspectOptions);
+    this.normalizeProvidersAndResolvedCollisions(aspectOptions);
+    this.normalizeExports(aspectOptions, 'Static exports');
   }
 
-  protected fetchMixinImports(decoratorId: AnyFn, mixinOptions: StaticMixinOptions) {
-    if (mixinOptions.imports) {
-      this.resolveAllForwardRefs(mixinOptions.imports).forEach((imp) => {
+  protected fetchMixinImports(decoratorId: AnyFn, aspectOptions: StaticAspectOptions) {
+    if (aspectOptions.imports) {
+      this.resolveAllForwardRefs(aspectOptions.imports).forEach((imp) => {
         if (isDynamicModule(imp)) {
           const params = { ...imp };
           this.mergeMixinDynamicOptions(decoratorId, params, imp);
@@ -466,13 +466,13 @@ export class ModuleNormalizer {
 
   protected mergeMixinDynamicOptions(decoratorId: AnyFn, params: AnyObj, dynamicModule: DynamicModule) {
     delete params.module;
-    delete params.mixinOptions;
-    dynamicModule.mixinOptions ??= new Map();
-    if (dynamicModule.mixinOptions.has(decoratorId)) {
-      const existingParams = dynamicModule.mixinOptions.get(decoratorId)!;
-      dynamicModule.mixinOptions.set(decoratorId, this.mergeObjects(params, existingParams));
+    delete params.aspectOptions;
+    dynamicModule.aspectOptions ??= new Map();
+    if (dynamicModule.aspectOptions.has(decoratorId)) {
+      const existingParams = dynamicModule.aspectOptions.get(decoratorId)!;
+      dynamicModule.aspectOptions.set(decoratorId, this.mergeObjects(params, existingParams));
     } else {
-      dynamicModule.mixinOptions.set(decoratorId, params);
+      dynamicModule.aspectOptions.set(decoratorId, params);
     }
     if (!this.normalizedModuleMeta.importedDynamicModules.includes(dynamicModule)) {
       this.normalizedModuleMeta.importedDynamicModules.push(dynamicModule);
@@ -481,7 +481,7 @@ export class ModuleNormalizer {
 
   protected mergeObjects(dstn: AnyObj, src: AnyObj) {
     objectKeys(src).forEach((prop) => {
-      if (prop == 'mixinOptions' || prop == 'module') {
+      if (prop == 'aspectOptions' || prop == 'module') {
         // ignore
       } else if (Array.isArray(src[prop])) {
         if (src[prop].length) {
@@ -498,9 +498,9 @@ export class ModuleNormalizer {
     return dstn;
   }
 
-  protected fetchMixinExports(mixinOptions: StaticMixinOptions) {
-    if (mixinOptions.exports) {
-      this.resolveAllForwardRefs(mixinOptions.exports).forEach((exp) => {
+  protected fetchMixinExports(aspectOptions: StaticAspectOptions) {
+    if (aspectOptions.exports) {
+      this.resolveAllForwardRefs(aspectOptions.exports).forEach((exp) => {
         if (isDynamicModule(exp)) {
           if (!this.normalizedModuleMeta.exportedDynamicModules.includes(exp)) {
             this.normalizedModuleMeta.exportedDynamicModules.push(exp);
@@ -518,10 +518,10 @@ export class ModuleNormalizer {
     }
   }
 
-  protected callModuleMixin(decoratorId: AnyFn, moduleMixin: ModuleMixinHandler) {
+  protected callModuleMixin(decoratorId: AnyFn, moduleMixin: ModuleAspectHandler) {
     const meta = moduleMixin.normalize(this.normalizedModuleMeta);
     if (meta) {
-      this.normalizedModuleMeta.normalizedMixinMetaMap.set(decoratorId, meta);
+      this.normalizedModuleMeta.normalizedAspectMetaMap.set(decoratorId, meta);
     }
   }
 
@@ -532,7 +532,7 @@ export class ModuleNormalizer {
   checkEmptyMeta(normalizedModuleMeta: NormalizedModuleMeta) {
     if (
       !isRootModule(normalizedModuleMeta) &&
-      !normalizedModuleMeta.moduleMixinMap.size &&
+      !normalizedModuleMeta.moduleAspectMap.size &&
       !normalizedModuleMeta.exportedProvidersPerMod.length &&
       !normalizedModuleMeta.exportedMultiProvidersPerMod.length &&
       !normalizedModuleMeta.exportedStaticModules.length &&

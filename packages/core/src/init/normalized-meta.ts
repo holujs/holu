@@ -3,7 +3,7 @@ import type { ModRefId, StaticModule } from '#decorators/module-decorator-option
 import type { Class, Provider } from '#di/top/types-and-models.js';
 import type { DynamicModule } from '../decorators/module-decorator-options.js';
 import type { BaseExtensionConfig, ExtensionConfig } from '#extension/extension-providers-and-configs.js';
-import type { NormalizedMixinMetaMap, ModuleMixinHandler, AllModuleMixinsMap, MixinDecorator } from '#decorators/module-mixins.js';
+import type { NormalizedAspectMetaMap, ModuleAspectHandler, AllModuleAspectsMap, ModuleAspectDecorator } from '#decorators/module-aspects.js';
 import type { ExtensionClass } from '#extension/extension-types.js';
 import type { ExtensionGroupToken } from '#di/key-registry.js';
 import type { MultiProvider } from '#di/utils.js';
@@ -112,11 +112,11 @@ export class BaseNormalizedModuleMeta<A extends AnyObj = AnyObj> {
 
 /**
  * Creates a {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy | Proxy}
- * instance to forward property value assignments from the `MixinMeta` instance to the {@link NormalizedModuleMeta} instance. Here,
- * `MixinMeta` refers to the extended interface of normalized data that provides module mixins. This is done to simplify
- * synchronization between {@link NormalizedModuleMeta} and the metadata from mixin decorators.
+ * instance to forward property value assignments from the `AspectMeta` instance to the {@link NormalizedModuleMeta} instance. Here,
+ * `AspectMeta` refers to the extended interface of normalized data that provides module aspects. This is done to simplify
+ * synchronization between {@link NormalizedModuleMeta} and the metadata from aspect decorators.
  */
-export function getProxyForMixinMeta<T extends BaseNormalizedModuleMeta>(
+export function createAspectMetaProxy<T extends BaseNormalizedModuleMeta>(
   normalizedModuleMeta: NormalizedModuleMeta,
   MixinMetaClass: Class<T>,
 ): T {
@@ -173,21 +173,21 @@ export class NormalizedModuleMeta<
   /**
    * @experimental
    *
-   * Indicates whether this module inherits mixins from parent modules.
+   * Indicates whether this module inherits aspects from parent modules.
    */
   inheritsMixins?: boolean;
   /**
-   * Contains instances of `ModuleMixinHandler` collected from current module.
+   * Contains instances of `ModuleAspectHandler` collected from current module.
    */
-  moduleMixinMap = new Map<MixinDecorator<any, any, any>, ModuleMixinHandler>();
+  moduleAspectMap = new Map<ModuleAspectDecorator<any, any, any>, ModuleAspectHandler>();
   /**
-   * Contains normalized mixins metadata collected from current module.
+   * Contains normalized aspects metadata collected from current module.
    */
-  normalizedMixinMetaMap: NormalizedMixinMetaMap = new Map();
+  normalizedAspectMetaMap: NormalizedAspectMetaMap = new Map();
   /**
-   * List of unique module mixins found in the current module and all imported modules.
+   * List of unique module aspects found in the current module and all imported modules.
    */
-  allModuleMixinsMap: AllModuleMixinsMap = new Map();
+  allModuleAspectsMap: AllModuleAspectsMap = new Map();
   /**
    * The mapping between an extension specified in {@link BaseExtensionConfig.groups | ExtensionConfig.groups}
    * and the extension group token assigned to it.
@@ -257,26 +257,26 @@ export class NormalizedModuleMeta<
 
     copy.extensionGroupTokensMap = new Map(copy.extensionGroupTokensMap);
     copy.exportedExtensionGroupTokensMap = new Map(copy.exportedExtensionGroupTokensMap);
-    copy.normalizedMixinMetaMap = new Map();
-    copy.moduleMixinMap = new Map();
-    this.moduleMixinMap.forEach((moduleMixin, decoratorId) => {
+    copy.normalizedAspectMetaMap = new Map();
+    copy.moduleAspectMap = new Map();
+    this.moduleAspectMap.forEach((moduleMixin, decoratorId) => {
       const clonedMixin = moduleMixin.clone(moduleMixin.moduleOptions);
-      copy.moduleMixinMap.set(decoratorId, clonedMixin);
+      copy.moduleAspectMap.set(decoratorId, clonedMixin);
       const meta = clonedMixin.normalize(copy);
       if (meta) {
-        copy.normalizedMixinMetaMap.set(decoratorId, meta);
+        copy.normalizedAspectMetaMap.set(decoratorId, meta);
       }
     });
-    copy.allModuleMixinsMap = new Map();
-    this.allModuleMixinsMap.forEach((moduleMixin, decoratorId) => {
+    copy.allModuleAspectsMap = new Map();
+    this.allModuleAspectsMap.forEach((moduleMixin, decoratorId) => {
       const clonedMixin = (
-        copy.moduleMixinMap.has(decoratorId) ? copy.moduleMixinMap.get(decoratorId) : moduleMixin.clone()
-      ) as ModuleMixinHandler;
-      copy.allModuleMixinsMap.set(decoratorId, clonedMixin);
-      if (!copy.moduleMixinMap.has(decoratorId)) {
+        copy.moduleAspectMap.has(decoratorId) ? copy.moduleAspectMap.get(decoratorId) : moduleMixin.clone()
+      ) as ModuleAspectHandler;
+      copy.allModuleAspectsMap.set(decoratorId, clonedMixin);
+      if (!copy.moduleAspectMap.has(decoratorId)) {
         const meta = clonedMixin.normalize(copy);
         if (meta) {
-          copy.normalizedMixinMetaMap.set(decoratorId, meta);
+          copy.normalizedAspectMetaMap.set(decoratorId, meta);
         }
       }
     });

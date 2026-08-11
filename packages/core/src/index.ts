@@ -17,13 +17,13 @@ export { defaultProvidersPerApp } from '#init/default-providers-per-app.js';
 export { OnModuleInit, BeforeShutdown, OnShutdown, SHUTDOWN_SIGNALS } from '#init/hooks.js';
 export { featureModule } from '#decorators/feature-module.js';
 export {
-  ModuleMixinHandler,
-  MixinDecorator,
-  NormalizedMixinMetaMap,
-  DynamicMixinOptionsMap,
-  AllModuleMixinsMap,
-  StaticMixinOptions,
-} from '#decorators/module-mixins.js';
+  ModuleAspectHandler,
+  ModuleAspectDecorator,
+  NormalizedAspectMetaMap,
+  DynamicAspectOptionsMap,
+  AllModuleAspectsMap,
+  StaticAspectOptions,
+} from '#decorators/module-aspects.js';
 export { rootModule, RootModuleOptions } from '#decorators/root-module.js';
 export { defaultExtensionProviders } from '#extension/default-extensions-providers.js';
 export {
@@ -40,7 +40,7 @@ export { normalizeExtensionConfig } from './extension/extension-providers-and-co
 export { isExtensionProvider, isExtensionConfig } from '#extension/type-guards.js';
 export { ModuleInfo } from '#types/module-extract.js';
 export { ExtensionStatistics } from '#extension/counter.js';
-export { NormalizedModuleMeta, BaseNormalizedModuleMeta, getProxyForMixinMeta } from '#init/normalized-meta.js';
+export { NormalizedModuleMeta, BaseNormalizedModuleMeta, createAspectMetaProxy } from '#init/normalized-meta.js';
 export { ProvidersByLevel } from '#types/providers-metadata.js';
 export { ConsoleLogger } from '#logger/console-logger.js';
 export { ExtensionContext } from '#extension/extensions-context.js';

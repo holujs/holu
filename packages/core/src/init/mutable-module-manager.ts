@@ -272,14 +272,14 @@ export class MutableModuleManager extends ModuleManager {
     }
 
     const activeMixins = new Map(parentMixins);
-    meta.moduleMixinMap.forEach((moduleMixin, decoratorId) => {
+    meta.moduleAspectMap.forEach((moduleMixin, decoratorId) => {
       activeMixins.set(decoratorId, moduleMixin);
     });
 
     this.applyMixinsForDynamicModule(meta, activeMixins);
     this.inheritParentMixins(meta, activeMixins);
 
-    meta.moduleMixinMap.forEach((moduleMixin, decoratorId) => {
+    meta.moduleAspectMap.forEach((moduleMixin, decoratorId) => {
       activeMixins.set(decoratorId, moduleMixin);
     });
 
@@ -313,19 +313,19 @@ export class MutableModuleManager extends ModuleManager {
 
       for (const child of children) {
         const childMeta = this.normalizedMetaMap.get(child) || this.state.snapshotMap.get(child);
-        childMeta?.allModuleMixinsMap.forEach((mixin, decoratorId) => {
-          if (!meta.allModuleMixinsMap.has(decoratorId)) {
-            meta.allModuleMixinsMap.set(decoratorId, mixin);
+        childMeta?.allModuleAspectsMap.forEach((mixin, decoratorId) => {
+          if (!meta.allModuleAspectsMap.has(decoratorId)) {
+            meta.allModuleAspectsMap.set(decoratorId, mixin);
           }
         });
       }
     }
 
-    meta.allModuleMixinsMap.forEach((mixin, decoratorId) => {
-      if (!meta.moduleMixinMap.has(decoratorId) && !meta.normalizedMixinMetaMap.has(decoratorId)) {
+    meta.allModuleAspectsMap.forEach((mixin, decoratorId) => {
+      if (!meta.moduleAspectMap.has(decoratorId) && !meta.normalizedAspectMetaMap.has(decoratorId)) {
         const readOnlyMeta = mixin.clone().normalize(meta);
         if (readOnlyMeta) {
-          meta.normalizedMixinMetaMap.set(decoratorId, readOnlyMeta);
+          meta.normalizedAspectMetaMap.set(decoratorId, readOnlyMeta);
         }
       }
     });
