@@ -9,7 +9,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "18-trpc-server@workspace:examples/18-trpc-server"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     "@trpc/client": "npm:^11.18.0"
     "@trpc/server": "npm:^11.18.0"
     jest: "npm:^30.4.2"
@@ -1188,9 +1188,9 @@ __metadata:
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/body-parser": ^0.1.0
-    "@holu/core": ^0.1.0
-    "@holu/rest": ^0.1.0
+    "@holu/body-parser": ^0.2.1
+    "@holu/core": ^0.2.1
+    "@holu/rest": ^0.2.1
   languageName: unknown
   linkType: soft
 
@@ -1203,25 +1203,12 @@ __metadata:
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/core": ^0.1.0
-    "@holu/rest": ^0.1.0
+    "@holu/core": ^0.2.1
+    "@holu/rest": ^0.2.1
   languageName: unknown
   linkType: soft
 
-"@holu/cli@npm:^0.1.0":
-  version: 0.1.3
-  resolution: "@holu/cli@npm:0.1.3"
-  dependencies:
-    commander: "npm:^15.0.0"
-  peerDependencies:
-    typescript: ">=5.0.0"
-  bin:
-    holu: dist/holu.js
-  checksum: 10c0/72f88b1611fd4d09f904d5ef8b2f84010defe06b726b809d13824021c5fdb0a9066b923da489cd3ed5f0ed7e985b266fdb4b101c61ceb8a93b585cd893671ff9
-  languageName: node
-  linkType: hard
-
-"@holu/cli@workspace:packages/cli":
+"@holu/cli@npm:^0.2.1, @holu/cli@workspace:packages/cli":
   version: 0.0.0-use.local
   resolution: "@holu/cli@workspace:packages/cli"
   dependencies:
@@ -1258,8 +1245,8 @@ __metadata:
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/core": ^0.1.0
-    "@holu/rest": ^0.1.0
+    "@holu/core": ^0.2.1
+    "@holu/rest": ^0.2.1
   languageName: unknown
   linkType: soft
 
@@ -1271,7 +1258,7 @@ __metadata:
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
     "@apollo/server": ^5.0.0
-    "@holu/core": ^0.1.0
+    "@holu/core": ^0.2.1
     graphql: ^16.11.0
   languageName: unknown
   linkType: soft
@@ -1283,8 +1270,8 @@ __metadata:
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/core": ^0.1.0
-    "@holu/rest": ^0.1.0
+    "@holu/core": ^0.2.1
+    "@holu/rest": ^0.2.1
   languageName: unknown
   linkType: soft
 
@@ -1296,7 +1283,7 @@ __metadata:
     jsonwebtoken: "npm:^9.0.3"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/core": ^0.1.0
+    "@holu/core": ^0.2.1
   languageName: unknown
   linkType: soft
 
@@ -1309,9 +1296,9 @@ __metadata:
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/core": ^0.1.0
-    "@holu/openapi": ^0.1.0
-    "@holu/rest": ^0.1.0
+    "@holu/core": ^0.2.1
+    "@holu/openapi": ^0.2.1
+    "@holu/rest": ^0.2.1
   languageName: unknown
   linkType: soft
 
@@ -1333,8 +1320,8 @@ __metadata:
     yaml: "npm:^2.9.0"
     yaml-loader: "npm:^0.9.0"
   peerDependencies:
-    "@holu/core": ^0.1.0
-    "@holu/rest": ^0.1.0
+    "@holu/core": ^0.2.1
+    "@holu/rest": ^0.2.1
   languageName: unknown
   linkType: soft
 
@@ -1345,8 +1332,8 @@ __metadata:
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/core": ^0.1.0
-    "@holu/rest": ^0.1.0
+    "@holu/core": ^0.2.1
+    "@holu/rest": ^0.2.1
   languageName: unknown
   linkType: soft
 
@@ -1357,8 +1344,8 @@ __metadata:
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/core": ^0.1.0
-    "@holu/rest": ^0.1.0
+    "@holu/core": ^0.2.1
+    "@holu/rest": ^0.2.1
   languageName: unknown
   linkType: soft
 
@@ -1372,7 +1359,7 @@ __metadata:
     trek-router: "npm:^1.2.0"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/core": ^0.1.0
+    "@holu/core": ^0.2.1
   languageName: unknown
   linkType: soft
 
@@ -1384,7 +1371,7 @@ __metadata:
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/core": ^0.1.0
+    "@holu/core": ^0.2.1
   languageName: unknown
   linkType: soft
 
@@ -1397,8 +1384,8 @@ __metadata:
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/core": ^0.1.0
-    "@holu/rest": ^0.1.0
+    "@holu/core": ^0.2.1
+    "@holu/rest": ^0.2.1
   languageName: unknown
   linkType: soft
 
@@ -1410,8 +1397,8 @@ __metadata:
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/core": ^0.1.0
-    "@holu/rest": ^0.1.0
+    "@holu/core": ^0.2.1
+    "@holu/rest": ^0.2.1
   languageName: unknown
   linkType: soft
 
@@ -1422,8 +1409,8 @@ __metadata:
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/core": ^0.1.0
-    "@holu/rest": ^0.1.0
+    "@holu/core": ^0.2.1
+    "@holu/rest": ^0.2.1
   languageName: unknown
   linkType: soft
 
@@ -1434,8 +1421,8 @@ __metadata:
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/core": ^0.1.0
-    "@holu/rest": ^0.1.0
+    "@holu/core": ^0.2.1
+    "@holu/rest": ^0.2.1
   languageName: unknown
   linkType: soft
 
@@ -1447,7 +1434,7 @@ __metadata:
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/core": ^0.1.0
+    "@holu/core": ^0.2.1
     "@trpc/server": ^11.5.0
   languageName: unknown
   linkType: soft
@@ -1460,7 +1447,7 @@ __metadata:
     typeorm: "npm:^1.1.0"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/core": ^0.1.0
+    "@holu/core": ^0.2.1
     typeorm: ^1.0.0
   languageName: unknown
   linkType: soft
@@ -1472,8 +1459,8 @@ __metadata:
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/core": ^0.1.0
-    "@holu/rest": ^0.1.0
+    "@holu/core": ^0.2.1
+    "@holu/rest": ^0.2.1
   languageName: unknown
   linkType: soft
 
@@ -7351,7 +7338,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example00@workspace:examples/00-standalone-application"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7361,7 +7348,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example01@workspace:examples/01-hello-world"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7371,7 +7358,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example02@workspace:examples/02-http-error-handler"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7381,7 +7368,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example03@workspace:examples/03-route-guards"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7391,7 +7378,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example04@workspace:examples/04-logger"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     "@types/bunyan": "npm:^1.8.11"
     bunyan: "npm:^1.8.15"
     jest: "npm:^30.4.2"
@@ -7405,7 +7392,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example05@workspace:examples/05-nested-routes"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7415,7 +7402,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example06@workspace:examples/06-body-parser"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7425,7 +7412,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example07@workspace:examples/07-dynamically-composing-modules"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7435,7 +7422,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example08@workspace:examples/08-http-interceptors"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7445,7 +7432,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example09@workspace:examples/09-one-extension"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7455,7 +7442,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example10@workspace:examples/10-openapi"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7465,7 +7452,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example11@workspace:examples/11-override-core-log-messages"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7475,7 +7462,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example12@workspace:examples/12-testing"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7485,7 +7472,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example13@workspace:examples/13-module-encapsulation"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7495,7 +7482,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example14@workspace:examples/14-auth-jwt"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7505,7 +7492,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example15@workspace:examples/15-i18n"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7515,7 +7502,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example16@workspace:examples/16-openapi-validation"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7525,7 +7512,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example17@workspace:examples/17-cors"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7535,7 +7522,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example18-client@workspace:examples/18-trpc-client"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     "@trpc/client": "npm:^11.18.0"
     "@trpc/server": "npm:^11.18.0"
     jest: "npm:^30.4.2"
@@ -7552,7 +7539,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example19@workspace:examples/19-session-cookie"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7562,7 +7549,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example20@workspace:examples/20-authjs"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7572,7 +7559,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example21@workspace:examples/21-sentry"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7582,7 +7569,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example22@workspace:examples/22-schedule"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   languageName: unknown
@@ -7592,7 +7579,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example23@workspace:examples/23-typeorm"
   dependencies:
-    "@holu/cli": "npm:^0.1.0"
+    "@holu/cli": "npm:^0.2.1"
     jest: "npm:^30.4.2"
     mysql2: "npm:^3.23.1"
     typeorm: "npm:^1.1.0"
@@ -15639,7 +15626,7 @@ __metadata:
     jest: "npm:^30.4.2"
     typescript-7: "npm:typescript@^7.0.2"
   peerDependencies:
-    "@holu/core": ^0.1.0
+    "@holu/core": ^0.2.1
   languageName: unknown
   linkType: soft
 

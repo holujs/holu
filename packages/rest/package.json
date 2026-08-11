@@ -1,7 +1,7 @@
 {
   "name": "@holu/rest",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": "Костя Третяк <ktretiak.in.ua@gmail.com>",
   "homepage": "https://holujs.github.io/en/",
   "description": "Rest module for Holu applications",
@@ -64,7 +64,7 @@
     "typescript-7": "npm:typescript@^7.0.2"
   },
   "peerDependencies": {
-    "@holu/core": "^0.1.0"
+    "@holu/core": "^0.2.1"
   },
   "gitHead": "eaf8f20b4e75e38c7a51fd1c3174b691cea756fa",
   "publishConfig": {

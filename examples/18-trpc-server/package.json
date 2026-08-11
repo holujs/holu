@@ -33,7 +33,7 @@
     "#message/*": "./dist/app/modules/message/*"
   },
   "devDependencies": {
-    "@holu/cli": "^0.1.0",
+    "@holu/cli": "^0.2.1",
     "jest": "^30.4.2",
     "npm-run-all": "^4.1.5",
     "start-server-and-test": "^3.0.11",

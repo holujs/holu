@@ -1,7 +1,7 @@
 {
   "name": "@holu/trpc",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/holujs/holu.git"
@@ -50,7 +50,7 @@
   "author": "",
   "license": "MIT",
   "peerDependencies": {
-    "@holu/core": "^0.1.0",
+    "@holu/core": "^0.2.1",
     "@trpc/server": "^11.5.0"
   },
   "devDependencies": {

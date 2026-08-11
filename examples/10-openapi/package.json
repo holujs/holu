@@ -20,7 +20,7 @@
     "#service/*": "./dist/app/modules/service/*"
   },
   "devDependencies": {
-    "@holu/cli": "^0.1.0",
+    "@holu/cli": "^0.2.1",
     "jest": "^30.4.2",
     "typescript-7": "npm:typescript@^7.0.2"
   }

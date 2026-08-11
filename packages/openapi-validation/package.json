@@ -1,7 +1,7 @@
 {
   "name": "@holu/openapi-validation",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/holujs/holu.git"
@@ -33,9 +33,9 @@
     "ajv": "^8.20.0"
   },
   "peerDependencies": {
-    "@holu/core": "^0.1.0",
-    "@holu/openapi": "^0.1.0",
-    "@holu/rest": "^0.1.0"
+    "@holu/core": "^0.2.1",
+    "@holu/openapi": "^0.2.1",
+    "@holu/rest": "^0.2.1"
   },
   "devDependencies": {
     "jest": "^30.4.2",
