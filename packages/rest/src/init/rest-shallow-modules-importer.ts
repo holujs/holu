@@ -8,15 +8,15 @@ import {
   isRootModule,
   getModule,
   getLastProviders,
-  getProxyForMixinMeta,
+  createAspectMetaProxy,
 } from '@holu/core';
 import { ProvidersCollision, LevelCollisionNotFound, AppCollisionNotFound } from '@holu/core/errors';
 
 import type { ModuleScopedGuard } from '#interceptors/guard.js';
 import type { RestModRefId } from '#init/rest-mixin-meta.js';
-import { RestMixinMeta } from '#init/rest-mixin-meta.js';
+import { RestAspectMeta } from '#init/rest-mixin-meta.js';
 import type { Level, RestAppProviders } from '#types/types.js';
-import { mixinRest, RestModuleMixinHandler } from '#decorators/rest-module-mixins.js';
+import { aspectRest, RestModuleMixinHandler } from '#decorators/rest-module-aspects.js';
 import type { ImportModulesShallowConfig, RestImportedProvider, RestShallowModuleImports } from './types.js';
 import { ModuleIncludesInImportsAndAppends } from '#errors';
 import { ModuleMustHaveControllers } from '#services/rest-errors.js';
@@ -35,7 +35,7 @@ export class RestShallowModulesImporter {
   protected prefixPerMod: string;
   protected guardsPerMod: ModuleScopedGuard[];
   protected normalizedModuleMeta: NormalizedModuleMeta;
-  protected meta: RestMixinMeta;
+  protected meta: RestAspectMeta;
 
   /**
    * AppProviders.
@@ -84,7 +84,7 @@ export class RestShallowModulesImporter {
     this.normalizedModuleMeta = normalizedModuleMeta;
     this.meta = this.getMixinMeta(normalizedModuleMeta);
     this.appProviders = appProviders;
-    this.restGlProviders = appProviders.mixinValueMap.get(mixinRest) as RestAppProviders;
+    this.restGlProviders = appProviders.mixinValueMap.get(aspectRest) as RestAppProviders;
     this.prefixPerMod = prefixPerMod || '';
     this.moduleName = normalizedModuleMeta.name;
     this.guardsPerMod = guardsPerMod || [];
@@ -106,11 +106,11 @@ export class RestShallowModulesImporter {
     });
   }
 
-  protected getMixinMeta(normalizedModuleMeta: NormalizedModuleMeta): RestMixinMeta {
-    let meta = normalizedModuleMeta.normalizedMixinMetaMap.get(mixinRest);
+  protected getMixinMeta(normalizedModuleMeta: NormalizedModuleMeta): RestAspectMeta {
+    let meta = normalizedModuleMeta.normalizedAspectMetaMap.get(aspectRest);
     if (!meta) {
-      meta = getProxyForMixinMeta(normalizedModuleMeta, RestMixinMeta);
-      normalizedModuleMeta.normalizedMixinMetaMap.set(mixinRest, meta);
+      meta = createAspectMetaProxy(normalizedModuleMeta, RestAspectMeta);
+      normalizedModuleMeta.normalizedAspectMetaMap.set(aspectRest, meta);
     }
     return meta;
   }
@@ -152,7 +152,7 @@ export class RestShallowModulesImporter {
     }
   }
 
-  protected getPrefixAndGuards(modRefId: RestModRefId, meta: RestMixinMeta, isImport?: boolean) {
+  protected getPrefixAndGuards(modRefId: RestModRefId, meta: RestAspectMeta, isImport?: boolean) {
     let prefixPerMod: string;
     let guardsPerMod: ModuleScopedGuard[] = [];
     const { absolutePath } = meta.params;
@@ -202,7 +202,7 @@ export class RestShallowModulesImporter {
     const moduleName = getDebugClassName(modRefId2) || '""';
     const tokenName = token2.name || token2;
     const normalizedModuleMeta2 = this.moduleManager.getNormalizedModuleMeta(modRefId2);
-    const meta2 = normalizedModuleMeta2?.normalizedMixinMetaMap.get(mixinRest);
+    const meta2 = normalizedModuleMeta2?.normalizedAspectMetaMap.get(aspectRest);
     if (!normalizedModuleMeta2) {
       throw new AppCollisionNotFound(this.moduleName, moduleName, level, tokenName);
     }
@@ -214,7 +214,7 @@ export class RestShallowModulesImporter {
     return { module2: modRefId2, providers };
   }
 
-  protected checkImportsAndAppends(normalizedModuleMeta: NormalizedModuleMeta, meta1: RestMixinMeta) {
+  protected checkImportsAndAppends(normalizedModuleMeta: NormalizedModuleMeta, meta1: RestAspectMeta) {
     meta1.appendsModules.concat(meta1.appendsWithOpts as any[]).forEach((modRefId) => {
       const appendedNormalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta(modRefId, true);
       const meta2 = this.getMixinMeta(appendedNormalizedModuleMeta);

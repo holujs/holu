@@ -1,10 +1,10 @@
-import type { AnyObj, StaticModule, Class, AnyFn, StaticMixinOptions, DynamicModuleOptions, ForwardRefFn } from '@holu/core';
+import type { AnyObj, StaticModule, Class, AnyFn, StaticAspectOptions, DynamicModuleOptions, ForwardRefFn } from '@holu/core';
 import type { GuardItem } from '#interceptors/guard.js';
 
 /**
- * Metadata for the `mixinRest` decorator, which adds REST metadata to a `featureModule` or `rootModule`.
+ * Metadata for the `aspectRest` decorator, which adds REST metadata to a `featureModule` or `rootModule`.
  */
-export interface RestStaticOptions extends StaticMixinOptions<RestDynamicOptions> {
+export interface RestStaticOptions extends StaticAspectOptions<RestDynamicOptions> {
   /**
    * List of modules that contain controllers. Providers from these modules
    * are not imported into the current module. If the current module has a prefix path,
@@ -49,7 +49,7 @@ export interface BaseRestAppendOptions<T extends AnyObj = AnyObj> {
   id?: string;
   module: StaticModule<T> | ForwardRefFn<StaticModule<T>>;
   guards?: GuardItem[];
-  mixinOptions?: Map<AnyFn, any>;
+  aspectOptions?: Map<AnyFn, any>;
 }
 
 export interface RestAppendPathOptions<T extends AnyObj = AnyObj> extends BaseRestAppendOptions<T> {

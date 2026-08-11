@@ -9,7 +9,7 @@ import { RouteMeta } from '#types/route-data.js';
 import { GuardItem, ModuleScopedGuard } from '#interceptors/guard.js';
 import { RequestScopedControllerOptions } from '#types/controller.js';
 import { AppOptions } from '#types/app-options.js';
-import { mixinRest } from '#decorators/rest-module-mixins.js';
+import { aspectRest } from '#decorators/rest-module-aspects.js';
 import { RestResolvedModuleMeta } from '#init/types.js';
 import { FailedValidationOfRoute } from '#errors';
 
@@ -23,7 +23,7 @@ export class RestRouteExtension implements Extension<RouteExtensionMeta> {
   ) {}
 
   async stage1() {
-    const restResolvedModuleMeta = this.resolvedModuleMeta.deepImportedModules.get(mixinRest)!;
+    const restResolvedModuleMeta = this.resolvedModuleMeta.deepImportedModules.get(aspectRest)!;
     this.routeExtensionMeta = new RouteExtensionMeta();
     this.routeExtensionMeta.meta = restResolvedModuleMeta.meta;
     const { path: prefixPerApp } = this.appOptions;

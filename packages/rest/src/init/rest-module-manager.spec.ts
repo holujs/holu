@@ -14,7 +14,7 @@ import {
   DynamicModuleWithMixinOptions,
   ModRefId,
   ForwardRefFn,
-  AllModuleMixinsMap,
+  AllModuleAspectsMap,
 } from '@holu/core';
 import {
   UnknownExport,
@@ -26,9 +26,9 @@ import {
 } from '@holu/core/errors';
 
 import { controller } from '../types/controller.js';
-import { mixinRest, restRootModule } from '#decorators/rest-module-mixins.js';
+import { aspectRest, restRootModule } from '#decorators/rest-module-aspects.js';
 import { RestAppendOptions } from './rest-mixin-raw-meta.js';
-import { RestMixinMeta } from './rest-mixin-meta.js';
+import { RestAspectMeta } from './rest-mixin-meta.js';
 import { CanActivate, guard } from '#interceptors/guard.js';
 import { RequestContext } from '#services/request-context.js';
 import { RestModule } from './rest.module.js';
@@ -52,7 +52,7 @@ describe('ModuleManager', () => {
   function getMixinMeta(moduleId: ModuleId) {
     const normalizedModuleMeta = mock.getNormalizedModuleMeta(moduleId);
     // console.log(normalizedModuleMeta);
-    return normalizedModuleMeta?.normalizedMixinMetaMap.get(mixinRest);
+    return normalizedModuleMeta?.normalizedAspectMetaMap.get(aspectRest);
   }
 
   beforeEach(() => {
@@ -82,7 +82,7 @@ describe('ModuleManager', () => {
       })
       class Module1 {}
 
-      @mixinRest({ appends: [{ path: 'v1', module: Module1 }] })
+      @aspectRest({ appends: [{ path: 'v1', module: Module1 }] })
       @featureModule()
       class Module2 {}
 
@@ -116,7 +116,7 @@ describe('ModuleManager', () => {
       @controller()
       class Controller1 {}
 
-      @mixinRest({ controllers: [Controller1] })
+      @aspectRest({ controllers: [Controller1] })
       @featureModule()
       class Module1 {}
 
@@ -124,7 +124,7 @@ describe('ModuleManager', () => {
     });
   });
 
-  it('populate in mixinRest providers per a module and per an application', () => {
+  it('populate in aspectRest providers per a module and per an application', () => {
     class Service1 {}
     class Service2 {}
     class Service3 {}
@@ -132,7 +132,7 @@ describe('ModuleManager', () => {
     class Service5 {}
     class Service6 {}
 
-    @mixinRest({
+    @aspectRest({
       providersPerApp: [Service3],
       providersPerMod: [Service4],
     })
@@ -142,7 +142,7 @@ describe('ModuleManager', () => {
     })
     class Module1 {}
 
-    @mixinRest({
+    @aspectRest({
       imports: [Module1],
       providersPerApp: [Service5],
       providersPerMod: [Service6],
@@ -160,13 +160,13 @@ describe('ModuleManager', () => {
     expect(rootNormalizedModuleMeta?.providersPerApp).toEqual([Service5]);
     expect(rootNormalizedModuleMeta?.providersPerMod.includes(Service6)).toBeTruthy();
 
-    const mod1MixinMeta = normalizedModuleMeta1?.normalizedMixinMetaMap.get(mixinRest);
+    const mod1MixinMeta = normalizedModuleMeta1?.normalizedAspectMetaMap.get(aspectRest);
     expect(mod1MixinMeta?.providersPerApp).toEqual(normalizedModuleMeta1?.providersPerApp);
     expect(mod1MixinMeta?.providersPerMod).toEqual(normalizedModuleMeta1?.providersPerMod);
     expect(mod1MixinMeta?.providersPerMod.includes(Service2)).toBeTruthy();
     expect(mod1MixinMeta?.providersPerMod.includes(Service4)).toBeTruthy();
 
-    const rootMixinMeta = rootNormalizedModuleMeta?.normalizedMixinMetaMap.get(mixinRest);
+    const rootMixinMeta = rootNormalizedModuleMeta?.normalizedAspectMetaMap.get(aspectRest);
     expect(rootMixinMeta?.providersPerApp).toEqual(rootNormalizedModuleMeta?.providersPerApp);
     expect(rootMixinMeta?.providersPerMod).toEqual(rootNormalizedModuleMeta?.providersPerMod);
     expect(rootMixinMeta?.providersPerMod.includes(Service6)).toBeTruthy();
@@ -181,7 +181,7 @@ describe('ModuleManager', () => {
     expect(mock.normalizedMetaMap.get(AppModule)).toBeDefined();
   });
 
-  it('empty root module with mixinRest decorator', () => {
+  it('empty root module with aspectRest decorator', () => {
     @restRootModule()
     class AppModule {}
 
@@ -205,7 +205,7 @@ describe('ModuleManager', () => {
     @injectable()
     class Provider1 {}
 
-    @mixinRest({ providersPerRou: [], providersPerReq: [Provider1] })
+    @aspectRest({ providersPerRou: [], providersPerReq: [Provider1] })
     @rootModule()
     class AppModule {}
 
@@ -236,13 +236,13 @@ describe('ModuleManager', () => {
     @controller()
     class Controller1 {}
 
-    @mixinRest({ controllers: [Controller1] })
+    @aspectRest({ controllers: [Controller1] })
     @featureModule()
     class Module1 {}
 
     const dynamicModule: DynamicModule = { module: Module1 };
 
-    @mixinRest({ imports: [dynamicModule], exports: [dynamicModule] })
+    @aspectRest({ imports: [dynamicModule], exports: [dynamicModule] })
     @featureModule()
     class Module2 {}
 
@@ -276,7 +276,7 @@ describe('ModuleManager', () => {
     @controller()
     class Controller1 {}
 
-    @mixinRest({ controllers: [Controller1] })
+    @aspectRest({ controllers: [Controller1] })
     @featureModule()
     class Module1 {
       static withOpts(): DynamicModule<Module1> {
@@ -288,7 +288,7 @@ describe('ModuleManager', () => {
 
     const dynamicModule = Module1.withOpts();
 
-    @mixinRest({ controllers: [Controller1] })
+    @aspectRest({ controllers: [Controller1] })
     @featureModule({
       imports: [dynamicModule],
       exports: [Module1],
@@ -303,11 +303,11 @@ describe('ModuleManager', () => {
     @controller()
     class Controller1 {}
 
-    @mixinRest({ controllers: [Controller1] })
+    @aspectRest({ controllers: [Controller1] })
     @featureModule()
     class Module1 {}
 
-    @mixinRest({ controllers: [Controller1] })
+    @aspectRest({ controllers: [Controller1] })
     @featureModule({ exports: [Module1] })
     class Module2 {}
 
@@ -328,7 +328,7 @@ describe('ModuleManager', () => {
     @injectable()
     class Provider1 {}
 
-    @mixinRest({ providersPerReq: [Provider1] })
+    @aspectRest({ providersPerReq: [Provider1] })
     @featureModule({ exports: [{ token: Provider1, useClass: Provider1 }] })
     class Module2 {}
 
@@ -364,7 +364,7 @@ describe('ModuleManager', () => {
     class Controller1 {}
 
     const fn = () => module4WithOpts;
-    @mixinRest({ controllers: [Controller1] })
+    @aspectRest({ controllers: [Controller1] })
     @featureModule({ imports: [forwardRef(fn)] })
     class Module1 {}
 
@@ -374,7 +374,7 @@ describe('ModuleManager', () => {
     @injectable()
     class Provider1 {}
 
-    @mixinRest({ providersPerRou: [Provider1], exports: [Provider1] })
+    @aspectRest({ providersPerRou: [Provider1], exports: [Provider1] })
     @featureModule({
       imports: [Module1],
       providersPerMod: [Provider0],
@@ -382,7 +382,7 @@ describe('ModuleManager', () => {
     })
     class Module2 {}
 
-    @mixinRest({ controllers: [Controller1] })
+    @aspectRest({ controllers: [Controller1] })
     @featureModule()
     class Module4 {
       static withOpts(providersPerMod: Provider[]): DynamicModule<Module4> {
@@ -398,7 +398,7 @@ describe('ModuleManager', () => {
 
     const module4WithOpts = Module4.withOpts([Provider2]);
 
-    @mixinRest({ controllers: [] })
+    @aspectRest({ controllers: [] })
     @rootModule({
       imports: [Module1, Module2],
       providersPerApp: [],
@@ -411,12 +411,12 @@ describe('ModuleManager', () => {
     expect(mock.normalizedMetaMap.size).toBe(6);
     expect(getMixinMeta(Module1)?.controllers).toEqual([Controller1]);
 
-    expect(mock.normalizedMetaMap.get(Module2)?.normalizedMixinMetaMap.get(mixinRest)?.providersPerRou).toEqual([Provider1]);
-    expect(mock.normalizedMetaMap.get(Module2)?.normalizedMixinMetaMap.get(mixinRest)?.exportedProvidersPerRou).toEqual([Provider1]);
+    expect(mock.normalizedMetaMap.get(Module2)?.normalizedAspectMetaMap.get(aspectRest)?.providersPerRou).toEqual([Provider1]);
+    expect(mock.normalizedMetaMap.get(Module2)?.normalizedAspectMetaMap.get(aspectRest)?.exportedProvidersPerRou).toEqual([Provider1]);
 
     expect(getMixinMeta('root')?.importedStaticModules).toEqual([Module1, Module2, RestModule]);
 
-    const mixinMeta = mock.normalizedMetaMap.get(module4WithOpts)?.normalizedMixinMetaMap.get(mixinRest);
+    const mixinMeta = mock.normalizedMetaMap.get(module4WithOpts)?.normalizedAspectMetaMap.get(aspectRest);
     expect(mixinMeta?.importedStaticModules).toEqual([RestModule]);
   });
 
@@ -441,26 +441,26 @@ describe('ModuleManager', () => {
     @controller()
     class Controller2 {}
 
-    @mixinRest({ controllers: [Controller1] })
+    @aspectRest({ controllers: [Controller1] })
     @featureModule()
     class Module1 {
       static withOpts(): DynamicModuleWithMixinOptions<Module1> {
         return {
           module: this,
-          mixinOptions: new Map(),
+          aspectOptions: new Map(),
         };
       }
     }
 
-    @mixinRest({ controllers: [Controller2] })
+    @aspectRest({ controllers: [Controller2] })
     @featureModule()
     class Module2 {}
 
     const dynamicModule = Module1.withOpts();
-    dynamicModule.mixinOptions.set(mixinRest, { path: 'module1', guards: [Guard1] });
+    dynamicModule.aspectOptions.set(aspectRest, { path: 'module1', guards: [Guard1] });
     const appendsWithOpts: RestAppendOptions = { path: 'module2', module: Module2, guards: [Guard2] };
 
-    @mixinRest({ appends: [appendsWithOpts] })
+    @aspectRest({ appends: [appendsWithOpts] })
     @rootModule({ imports: [dynamicModule] })
     class AppModule {}
 
@@ -486,11 +486,11 @@ describe('ModuleManager', () => {
     })
     class Module3 {}
 
-    const expectedMeta3 = new RestMixinMeta();
+    const expectedMeta3 = new RestAspectMeta();
     delete (expectedMeta3 as any).extensionConfigs;
     delete (expectedMeta3 as any).exportedExtensionConfigs;
 
-    const expectedMeta1 = new RestMixinMeta();
+    const expectedMeta1 = new RestAspectMeta();
     delete (expectedMeta1 as any).extensionConfigs;
     delete (expectedMeta1 as any).exportedExtensionConfigs;
 
@@ -516,11 +516,11 @@ describe('ModuleManager', () => {
     })
     class Module3 {}
 
-    const expectedMeta3 = new RestMixinMeta();
+    const expectedMeta3 = new RestAspectMeta();
     delete (expectedMeta3 as any).extensionConfigs;
     delete (expectedMeta3 as any).exportedExtensionConfigs;
 
-    const expectedMeta1 = new RestMixinMeta();
+    const expectedMeta1 = new RestAspectMeta();
     delete (expectedMeta1 as any).extensionConfigs;
     delete (expectedMeta1 as any).exportedExtensionConfigs;
 
@@ -542,7 +542,7 @@ describe('ModuleManager', () => {
       Provider3,
     ];
 
-    @mixinRest({ providersPerReq, exports: [Provider2, Provider1, Provider3] })
+    @aspectRest({ providersPerReq, exports: [Provider2, Provider1, Provider3] })
     @featureModule()
     class Module1 {}
 
@@ -551,7 +551,7 @@ describe('ModuleManager', () => {
     })
     class AppModule {}
 
-    const expectedMeta1 = {} as RestMixinMeta;
+    const expectedMeta1 = {} as RestAspectMeta;
     expectedMeta1.importedStaticModules = [RestModule];
     expectedMeta1.exportedProvidersPerReq = [Provider3];
     expectedMeta1.providersPerReq = providersPerReq;

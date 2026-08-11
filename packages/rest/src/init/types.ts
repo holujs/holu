@@ -10,7 +10,7 @@ import type {
 } from '@holu/core';
 
 import type { ModuleScopedGuard } from '#interceptors/guard.js';
-import type { RestModRefId, RestMixinMeta } from '#init/rest-mixin-meta.js';
+import type { RestModRefId, RestAspectMeta } from '#init/rest-mixin-meta.js';
 
 export class RestImportedProvider<T extends Provider = Provider> {
   modRefId: RestModRefId;
@@ -27,10 +27,10 @@ export class RestShallowModuleImports {
   prefixPerMod: string;
   guardsPerMod: ModuleScopedGuard[];
   /**
-   * Snapshot of `RestMixinMeta`. If you modify any array in this object,
+   * Snapshot of `RestAspectMeta`. If you modify any array in this object,
    * the original array will remain unchanged.
    */
-  meta: RestMixinMeta;
+  meta: RestAspectMeta;
   applyControllers?: boolean;
 }
 
@@ -54,7 +54,7 @@ export class RestProvidersByLevel {
 
 export class RestResolvedModuleMeta {
   normalizedModuleMeta: NormalizedModuleMeta;
-  meta: RestMixinMeta;
+  meta: RestAspectMeta;
   guardsPerMod: ModuleScopedGuard[];
   prefixPerMod: string;
   applyControllers?: boolean;

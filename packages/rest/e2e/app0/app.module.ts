@@ -1,5 +1,5 @@
 import { rootModule, ProviderBuilder, ctx, LoggerConfig } from '@holu/core';
-import { QUERY_PARAMS, PATH_PARAMS, controller, route, RestModule, RequestContext, mixinRest } from '@holu/rest';
+import { QUERY_PARAMS, PATH_PARAMS, controller, route, RestModule, RequestContext, aspectRest } from '@holu/rest';
 
 import { Interceptor1 } from './interceptor1.js';
 
@@ -39,7 +39,7 @@ export class RouteScopedController {
   }
 }
 
-@mixinRest({ controllers: [RequestScopedController, RouteScopedController] })
+@aspectRest({ controllers: [RequestScopedController, RouteScopedController] })
 @rootModule({
   imports: [RestModule],
   providersPerApp: new ProviderBuilder().useValue(LoggerConfig, { level: 'info' }),

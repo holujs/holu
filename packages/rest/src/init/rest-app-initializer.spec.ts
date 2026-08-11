@@ -17,7 +17,7 @@ import {
 } from '@holu/core';
 import { RestAppInitializer } from './rest-app-initializer.js';
 import { Router } from '../services/router.js';
-import { mixinRest } from '#decorators/rest-module-mixins.js';
+import { aspectRest } from '#decorators/rest-module-aspects.js';
 
 function getImportedTokens(map: Map<any, ImportedProvider<Provider>> | undefined) {
   return [...(map || [])].map(([key]) => key);
@@ -56,7 +56,7 @@ describe('RestAppInitializer', () => {
     class Module0 {}
 
     const obj1 = { token: Provider1, useClass: Provider1 };
-    @mixinRest({ controllers: [Ctrl] })
+    @aspectRest({ controllers: [Ctrl] })
     @featureModule({
       providersPerMod: [obj1, Provider2],
       exports: [Provider1],
@@ -73,11 +73,11 @@ describe('RestAppInitializer', () => {
       }
     }
 
-    @mixinRest({ providersPerReq: [Provider5, Provider6, Provider7], exports: [Provider5, Provider6, Provider7] })
+    @aspectRest({ providersPerReq: [Provider5, Provider6, Provider7], exports: [Provider5, Provider6, Provider7] })
     @featureModule({})
     class Module3 {}
 
-    @mixinRest({ providersPerReq: [Provider8, Provider9], exports: [Provider8, Provider9] })
+    @aspectRest({ providersPerReq: [Provider8, Provider9], exports: [Provider8, Provider9] })
     @featureModule()
     class Module4 {}
 
@@ -87,8 +87,8 @@ describe('RestAppInitializer', () => {
     class Module5 {}
 
     const module2WithOpts: DynamicModule = Module2.withOpts();
-    const module3WithOpts: DynamicModuleWithMixinOptions = { module: Module3, mixinOptions: new Map() };
-    module3WithOpts.mixinOptions.set(mixinRest, { path: 'one' });
+    const module3WithOpts: DynamicModuleWithMixinOptions = { module: Module3, aspectOptions: new Map() };
+    module3WithOpts.aspectOptions.set(aspectRest, { path: 'one' });
     const module4WithOpts: DynamicModule = { module: Module4 };
     @rootModule({
       imports: [Module0, Module1, module2WithOpts, Module5, module3WithOpts, module4WithOpts],
@@ -215,7 +215,7 @@ describe('RestAppInitializer', () => {
     @controller()
     class Controller1 {}
 
-    @mixinRest({ controllers: [Controller1] })
+    @aspectRest({ controllers: [Controller1] })
     @featureModule()
     class Module7 {}
 

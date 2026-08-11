@@ -7,17 +7,17 @@ import {
   isDynamicModule,
   isClassProvider,
   isTokenProvider,
-  getProxyForMixinMeta,
+  createAspectMetaProxy,
   isRootModule,
 } from '@holu/core';
 import { ForbiddenNormalizedExport, EmptyModuleMeta } from '@holu/core/errors';
 
 import type { RestAppendOptions, RestStaticOptions } from '#init/rest-mixin-raw-meta.js';
 import type { RestModRefId } from '#init/rest-mixin-meta.js';
-import { RestMixinMeta } from '#init/rest-mixin-meta.js';
+import { RestAspectMeta } from '#init/rest-mixin-meta.js';
 import { isAppendsWithOptions, isControllerDecorator } from '#types/type.guards.js';
 import type { GuardItem, NormalizedGuard } from '#interceptors/guard.js';
-import { mixinRest } from '#decorators/rest-module-mixins.js';
+import { aspectRest } from '#decorators/rest-module-aspects.js';
 import { ControllerDoesNotHaveDecorator, DuplicateOfControllers, InvalidGuard } from '#errors';
 
 /**
@@ -25,11 +25,11 @@ import { ControllerDoesNotHaveDecorator, DuplicateOfControllers, InvalidGuard } 
  */
 export class RestModuleNormalizer {
   protected normalizedModuleMeta: NormalizedModuleMeta;
-  protected meta: RestMixinMeta;
+  protected meta: RestAspectMeta;
 
   normalize(normalizedModuleMeta: NormalizedModuleMeta, moduleOptions: RestStaticOptions) {
     this.normalizedModuleMeta = normalizedModuleMeta;
-    const meta = getProxyForMixinMeta(normalizedModuleMeta, RestMixinMeta);
+    const meta = createAspectMetaProxy(normalizedModuleMeta, RestAspectMeta);
     this.meta = meta;
     if (moduleOptions.controllers) {
       this.meta.controllers.push(...moduleOptions.controllers);
@@ -53,7 +53,7 @@ export class RestModuleNormalizer {
     } else if (!isDynamicModule(modRefId)) {
       return;
     }
-    const params = modRefId.mixinOptions?.get(mixinRest);
+    const params = modRefId.aspectOptions?.get(aspectRest);
 
     if (params) {
       if (params.absolutePath !== undefined) {
@@ -75,10 +75,10 @@ export class RestModuleNormalizer {
       if (isAppendsWithOptions(ap)) {
         const params = { ...ap } as Partial<RestAppendOptions>;
         delete params.module;
-        if (ap.mixinOptions) {
-          ap.mixinOptions.set(mixinRest, params);
+        if (ap.aspectOptions) {
+          ap.aspectOptions.set(aspectRest, params);
         } else {
-          ap.mixinOptions = new Map([[mixinRest, params]]);
+          ap.aspectOptions = new Map([[aspectRest, params]]);
         }
         this.meta.appendsWithOpts.push(ap);
       } else {

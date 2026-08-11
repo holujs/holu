@@ -1,7 +1,7 @@
 import type { Class, NormalizedModuleMeta } from '@holu/core';
 import { Reflector } from '@holu/core';
 import type { RequestContext } from '#services/request-context.js';
-import type { RestMixinMeta } from '#init/rest-mixin-meta.js';
+import type { RestAspectMeta } from '#init/rest-mixin-meta.js';
 
 export const guard = Reflector.makeClassDecorator((data?: never) => data);
 
@@ -17,6 +17,6 @@ export interface NormalizedGuard {
 }
 
 export interface ModuleScopedGuard extends NormalizedGuard {
-  meta: RestMixinMeta;
+  meta: RestAspectMeta;
   normalizedModuleMeta: NormalizedModuleMeta;
 }

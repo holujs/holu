@@ -1,5 +1,5 @@
-import type { ModRefId, NormalizedModuleMeta, MixinDecorator, Provider, ForwardRefFn, StaticModule } from '@holu/core';
-import { Reflector, ModuleMixinHandler } from '@holu/core';
+import type { ModRefId, NormalizedModuleMeta, ModuleAspectDecorator, Provider, ForwardRefFn, StaticModule } from '@holu/core';
+import { Reflector, ModuleAspectHandler } from '@holu/core';
 
 import type { RestStaticOptions, RestDynamicOptions } from '#init/rest-mixin-raw-meta.js';
 import { RestModuleNormalizer } from '#init/rest-module-normalizer.js';
@@ -10,50 +10,50 @@ import type {
   ImportModulesShallowConfig,
   RestShallowModuleImports,
 } from '#init/types.js';
-import type { RestModRefId, RestMixinMeta } from '#init/rest-mixin-meta.js';
+import type { RestModRefId, RestAspectMeta } from '#init/rest-mixin-meta.js';
 import type { RestAppProviders } from '#types/types.js';
 import { RestModule } from '#init/rest.module.js';
 import { RestDeepModulesImporter } from '#init/rest-deep-modules-importer.js';
 
-export const mixinRest: MixinDecorator<RestStaticOptions, RestDynamicOptions, RestMixinMeta> = Reflector.makeClassDecorator(
+export const aspectRest: ModuleAspectDecorator<RestStaticOptions, RestDynamicOptions, RestAspectMeta> = Reflector.makeClassDecorator(
   transformMixinMeta,
-  'mixinRest',
+  'aspectRest',
 );
-export const restRootModule: MixinDecorator<
+export const restRootModule: ModuleAspectDecorator<
   RestStaticOptions & { resolvedCollisionsPerApp?: [any, ModRefId | ForwardRefFn<StaticModule>][] },
   RestDynamicOptions,
-  RestMixinMeta
-> = Reflector.makeClassDecorator(transformRootMeta, 'restRootModule', mixinRest);
-export const restModule: MixinDecorator<RestStaticOptions, RestDynamicOptions, RestMixinMeta> = Reflector.makeClassDecorator(
+  RestAspectMeta
+> = Reflector.makeClassDecorator(transformRootMeta, 'restRootModule', aspectRest);
+export const restModule: ModuleAspectDecorator<RestStaticOptions, RestDynamicOptions, RestAspectMeta> = Reflector.makeClassDecorator(
   transformFeatureMeta,
   'restModule',
-  mixinRest,
+  aspectRest,
 );
 
-export function transformMixinMeta(data?: RestStaticOptions): ModuleMixinHandler<RestStaticOptions> {
+export function transformMixinMeta(data?: RestStaticOptions): ModuleAspectHandler<RestStaticOptions> {
   const metadata = Object.assign({}, data);
   return new RestModuleMixinHandler(metadata);
 }
-export function transformRootMeta(data?: RestStaticOptions): ModuleMixinHandler<RestStaticOptions> {
+export function transformRootMeta(data?: RestStaticOptions): ModuleAspectHandler<RestStaticOptions> {
   const metadata = Object.assign({}, data);
   const moduleMixin = new RestModuleMixinHandler(metadata);
   moduleMixin.moduleRole = 'root';
   return moduleMixin;
 }
-export function transformFeatureMeta(data?: RestStaticOptions): ModuleMixinHandler<RestStaticOptions> {
+export function transformFeatureMeta(data?: RestStaticOptions): ModuleAspectHandler<RestStaticOptions> {
   const metadata = transformRootMeta(data);
   metadata.moduleRole = 'feature';
   return metadata;
 }
 
-export class RestModuleMixinHandler extends ModuleMixinHandler<RestStaticOptions> {
+export class RestModuleMixinHandler extends ModuleAspectHandler<RestStaticOptions> {
   override hostModule = RestModule;
 
-  override normalize(normalizedModuleMeta: NormalizedModuleMeta): RestMixinMeta {
+  override normalize(normalizedModuleMeta: NormalizedModuleMeta): RestAspectMeta {
     return new RestModuleNormalizer().normalize(normalizedModuleMeta, this.moduleOptions);
   }
 
-  override getModulesToScan(meta?: RestMixinMeta): RestModRefId[] {
+  override getModulesToScan(meta?: RestAspectMeta): RestModRefId[] {
     return meta?.appendsModules.concat(meta?.appendsWithOpts as any[]) || [];
   }
 
@@ -69,7 +69,7 @@ export class RestModuleMixinHandler extends ModuleMixinHandler<RestStaticOptions
     return new RestDeepModulesImporter(config).importModulesDeep();
   }
 
-  override getProvidersToOverride(meta: RestMixinMeta): Provider[][] {
+  override getProvidersToOverride(meta: RestAspectMeta): Provider[][] {
     return [meta.providersPerRou, meta.providersPerReq];
   }
 }

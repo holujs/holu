@@ -3,9 +3,9 @@ import { rootModule } from '@holu/core';
 import { Controller1 } from './controllers.js';
 import { ServicePerApp, ServicePerMod, ServicePerReq, ServicePerRou } from './services.js';
 import { RestModule } from '#init/rest.module.js';
-import { mixinRest } from '#decorators/rest-module-mixins.js';
+import { aspectRest } from '#decorators/rest-module-aspects.js';
 
-@mixinRest({
+@aspectRest({
   imports: [RestModule],
   providersPerApp: [ServicePerApp],
   providersPerMod: [ServicePerMod],

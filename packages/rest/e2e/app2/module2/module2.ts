@@ -3,7 +3,7 @@ import { featureModule } from '@holu/core';
 import { route } from '#decorators/route.js';
 import { RestModule } from '#init/rest.module.js';
 import { controller } from '#types/controller.js';
-import { mixinRest } from '#decorators/rest-module-mixins.js';
+import { aspectRest } from '#decorators/rest-module-aspects.js';
 
 @controller()
 class Controller2 {
@@ -13,7 +13,7 @@ class Controller2 {
   }
 }
 
-@mixinRest({ controllers: [Controller2] })
+@aspectRest({ controllers: [Controller2] })
 @featureModule({
   imports: [RestModule],
 })

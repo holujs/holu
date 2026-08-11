@@ -6,7 +6,7 @@ import { Module1 } from './module1/module1.js';
 import { Module2 } from './module2/module2.js';
 import { Module3 } from './module3/module3.js';
 import { controller } from '#types/controller.js';
-import { mixinRest } from '#decorators/rest-module-mixins.js';
+import { aspectRest } from '#decorators/rest-module-aspects.js';
 
 @controller()
 class Controller0 {
@@ -16,7 +16,7 @@ class Controller0 {
   }
 }
 
-@mixinRest({
+@aspectRest({
   appends: [Module2, { path: 'module2', module: Module2 }],
   controllers: [Controller0],
   imports: [

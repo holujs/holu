@@ -22,7 +22,7 @@ import {
 
 import { CanActivate, guard } from '#interceptors/guard.js';
 import { RequestContext } from '#services/request-context.js';
-import { mixinRest, restModule, restRootModule } from '#decorators/rest-module-mixins.js';
+import { aspectRest, restModule, restRootModule } from '#decorators/rest-module-aspects.js';
 import { RestResolvedModuleMeta } from './types.js';
 import { RestDynamicOptions } from './rest-mixin-raw-meta.js';
 
@@ -55,7 +55,7 @@ describe('DeepModulesImporter', () => {
   }
 
   function getRestResolvedModuleMeta(rootModule: StaticModule) {
-    return getResolvedModuleMeta(rootModule).get(rootModule)?.deepImportedModules.get(mixinRest);
+    return getResolvedModuleMeta(rootModule).get(rootModule)?.deepImportedModules.get(aspectRest);
   }
 
   beforeEach(() => {
@@ -70,7 +70,7 @@ describe('DeepModulesImporter', () => {
     class Service5 {}
     class Service6 {}
 
-    @mixinRest({
+    @aspectRest({
       providersPerApp: [Service3],
       providersPerMod: [Service4],
     })
@@ -80,7 +80,7 @@ describe('DeepModulesImporter', () => {
     })
     class Module1 {}
 
-    @mixinRest({
+    @aspectRest({
       imports: [Module1],
       providersPerApp: [Service5],
       providersPerMod: [Service6],
@@ -98,24 +98,24 @@ describe('DeepModulesImporter', () => {
     expect(rootNormalizedModuleMeta?.providersPerApp.includes(Service5)).toBeTruthy();
     expect(rootNormalizedModuleMeta?.providersPerMod.includes(Service6)).toBeTruthy();
 
-    const mod1MixinMeta = mod1NormalizedModuleMeta?.normalizedMixinMetaMap.get(mixinRest);
+    const mod1MixinMeta = mod1NormalizedModuleMeta?.normalizedAspectMetaMap.get(aspectRest);
     expect(mod1NormalizedModuleMeta?.providersPerApp).toBe(mod1MixinMeta?.providersPerApp);
     expect(mod1NormalizedModuleMeta?.providersPerMod).toBe(mod1MixinMeta?.providersPerMod);
     expect(mod1MixinMeta?.providersPerApp).toEqual([Service1, Service3]);
     expect(mod1MixinMeta?.providersPerMod.includes(Service2)).toBeTruthy();
     expect(mod1MixinMeta?.providersPerMod.includes(Service4)).toBeTruthy();
 
-    const rootMixinMeta = rootNormalizedModuleMeta?.normalizedMixinMetaMap.get(mixinRest);
+    const rootMixinMeta = rootNormalizedModuleMeta?.normalizedAspectMetaMap.get(aspectRest);
     expect(rootNormalizedModuleMeta?.providersPerApp).toBe(rootMixinMeta?.providersPerApp);
     expect(rootNormalizedModuleMeta?.providersPerMod).toBe(rootMixinMeta?.providersPerMod);
     expect(rootMixinMeta?.providersPerApp.includes(Service5)).toBeTruthy();
     expect(rootMixinMeta?.providersPerMod.includes(Service6)).toBeTruthy();
   });
 
-  it('reexport module that has mixinRest decorator', () => {
+  it('reexport module that has aspectRest decorator', () => {
     class Service1 {}
 
-    @mixinRest({ providersPerReq: [Service1], exports: [Service1] })
+    @aspectRest({ providersPerReq: [Service1], exports: [Service1] })
     @featureModule()
     class Module1 {}
 
@@ -126,16 +126,16 @@ describe('DeepModulesImporter', () => {
     class AppModule {}
 
     const map = getResolvedModuleMeta(AppModule);
-    const rootMod = map.get(AppModule)?.deepImportedModules.get(mixinRest)!;
-    const mod2 = map.get(Module2)?.deepImportedModules.get(mixinRest)!;
+    const rootMod = map.get(AppModule)?.deepImportedModules.get(aspectRest)!;
+    const mod2 = map.get(Module2)?.deepImportedModules.get(aspectRest)!;
     expect(rootMod?.meta.providersPerReq.includes(Service1)).toBeTruthy();
     expect(mod2?.meta.providersPerReq.includes(Service1)).toBeTruthy();
   });
 
-  it('root module without mixinRest decorator imports Module1 that has mixinRest decorator', () => {
+  it('root module without aspectRest decorator imports Module1 that has aspectRest decorator', () => {
     class Provider1 {}
 
-    @mixinRest({
+    @aspectRest({
       providersPerRou: [Provider1],
       exports: [Provider1],
     })
@@ -149,31 +149,31 @@ describe('DeepModulesImporter', () => {
     expect(restResolvedModuleMeta?.meta.providersPerRou.includes(Provider1)).toBeTruthy();
   });
 
-  it('root module with mixinRest decorator exports Provider2 and imports Module1 that has not mixinRest decorator', () => {
+  it('root module with aspectRest decorator exports Provider2 and imports Module1 that has not aspectRest decorator', () => {
     class Provider1 {}
     class Provider2 {}
 
     @featureModule({ providersPerApp: [Provider1] })
     class Module1 {}
 
-    @mixinRest({ providersPerReq: [Provider2], exports: [Provider2] })
+    @aspectRest({ providersPerReq: [Provider2], exports: [Provider2] })
     @rootModule({ imports: [Module1] })
     class AppModule {}
 
     const map = getResolvedModuleMeta(AppModule);
-    const mod1 = map.get(Module1)?.deepImportedModules.get(mixinRest)!;
+    const mod1 = map.get(Module1)?.deepImportedModules.get(aspectRest)!;
     expect(mod1).toBeDefined();
     expect(mod1.meta.providersPerReq.includes(Provider2)).toBeTruthy();
   });
 
-  it('root module without mixinRest decorator exports Module2 that has mixinRest and imports Module1 also that has not mixinRest', () => {
+  it('root module without aspectRest decorator exports Module2 that has aspectRest and imports Module1 also that has not aspectRest', () => {
     class Provider1 {}
     class Provider2 {}
 
     @featureModule({ providersPerApp: [Provider1] })
     class Module1 {}
 
-    @mixinRest({ providersPerReq: [Provider2], exports: [Provider2] })
+    @aspectRest({ providersPerReq: [Provider2], exports: [Provider2] })
     @featureModule({ providersPerApp: [Provider1] })
     class Module2 {}
 
@@ -181,12 +181,12 @@ describe('DeepModulesImporter', () => {
     class AppModule {}
 
     const map = getResolvedModuleMeta(AppModule);
-    const mod1 = map.get(Module1)?.deepImportedModules.get(mixinRest)!;
+    const mod1 = map.get(Module1)?.deepImportedModules.get(aspectRest)!;
     expect(mod1).toBeDefined();
     expect(mod1.meta.providersPerReq.includes(Provider2)).toBeTruthy();
   });
 
-  it('root module with mixinRest decorator imports Module1 that has params, but has not mixinRest decorator', () => {
+  it('root module with aspectRest decorator imports Module1 that has params, but has not aspectRest decorator', () => {
     class Provider1 {}
     class Guard1 implements CanActivate {
       async canActivate(ctx: RequestContext, params?: any[]) {
@@ -208,13 +208,13 @@ describe('DeepModulesImporter', () => {
       module: Module1,
     };
 
-    @mixinRest({ imports: [dynamicModule] })
+    @aspectRest({ imports: [dynamicModule] })
     @rootModule()
     class AppModule {}
 
     const map = getResolvedModuleMeta(AppModule);
-    const rootMod = map.get(AppModule)?.deepImportedModules.get(mixinRest)!;
-    const mod1 = map.get(dynamicModule)?.deepImportedModules.get(mixinRest)!;
+    const rootMod = map.get(AppModule)?.deepImportedModules.get(aspectRest)!;
+    const mod1 = map.get(dynamicModule)?.deepImportedModules.get(aspectRest)!;
     expect(mod1.prefixPerMod).toBe('test-prefix');
     expect(mod1.guardsPerMod[0].guard).toBe(Guard1);
     expect(mod1.guardsPerMod[0].meta).toBe(rootMod.meta);
@@ -225,7 +225,7 @@ describe('DeepModulesImporter', () => {
     class Provider1 {}
     class Provider2 {}
 
-    @mixinRest({
+    @aspectRest({
       imports: [forwardRef(() => Module3)],
       providersPerReq: [Provider1],
       exports: [Provider1],
@@ -233,11 +233,11 @@ describe('DeepModulesImporter', () => {
     @featureModule()
     class Module1 {}
 
-    @mixinRest({ imports: [Module1], exports: [Module1] })
+    @aspectRest({ imports: [Module1], exports: [Module1] })
     @featureModule()
     class Module2 {}
 
-    @mixinRest({
+    @aspectRest({
       imports: [Module2],
       providersPerRou: [Provider2],
       exports: [Provider2],
@@ -249,8 +249,8 @@ describe('DeepModulesImporter', () => {
     class AppModule {}
 
     const map = getResolvedModuleMeta(AppModule);
-    const mod1 = map.get(Module1)?.deepImportedModules.get(mixinRest)!;
-    const mod3 = map.get(Module3)?.deepImportedModules.get(mixinRest)!;
+    const mod1 = map.get(Module1)?.deepImportedModules.get(aspectRest)!;
+    const mod3 = map.get(Module3)?.deepImportedModules.get(aspectRest)!;
     expect(mod1.meta.providersPerRou.includes(Provider2));
     expect(mod3.meta.providersPerRou.includes(Provider1));
   });
@@ -264,7 +264,7 @@ describe('DeepModulesImporter', () => {
     class Service2 {
       constructor(public service1: Service1) {}
     }
-    @mixinRest({ providersPerRou: [Service2], exports: [Service2] })
+    @aspectRest({ providersPerRou: [Service2], exports: [Service2] })
     @featureModule()
     class Module2 {}
 
@@ -344,7 +344,7 @@ describe('DeepModulesImporter', () => {
       constructor(public service3: Service3) {}
     }
 
-    @mixinRest({ providersPerRou: [Service2, Service3, Service4], exports: [Service4] })
+    @aspectRest({ providersPerRou: [Service2, Service3, Service4], exports: [Service4] })
     @featureModule({
       imports: [Module1],
     })
@@ -366,7 +366,7 @@ describe('DeepModulesImporter', () => {
       constructor(@inject(forwardRef(() => Service4)) public service4: any) {}
     }
 
-    @mixinRest({ providersPerRou: [Service1], exports: [Service1] })
+    @aspectRest({ providersPerRou: [Service1], exports: [Service1] })
     @featureModule({
       imports: [forwardRef(() => Module2)],
     })
@@ -387,7 +387,7 @@ describe('DeepModulesImporter', () => {
       constructor(public service3: Service3) {}
     }
 
-    @mixinRest({ providersPerRou: [Service2, Service3, Service4], exports: [Service4] })
+    @aspectRest({ providersPerRou: [Service2, Service3, Service4], exports: [Service4] })
     @featureModule({
       imports: [Module1],
     })
@@ -522,11 +522,11 @@ describe('DeepModulesImporter', () => {
       }
     }
 
-    @mixinRest({ providersPerRou: [Service1], exports: [Service1] })
+    @aspectRest({ providersPerRou: [Service1], exports: [Service1] })
     @featureModule()
     class Module1 {}
 
-    @mixinRest({ providersPerRou: [Service2], exports: [Service2] })
+    @aspectRest({ providersPerRou: [Service2], exports: [Service2] })
     @rootModule({ imports: [Module1] })
     class AppModule {}
 
@@ -580,7 +580,7 @@ describe('DeepModulesImporter', () => {
 
     const resolvedModuleMetaMap = getResolvedModuleMeta(AppModule);
     const mod1 = resolvedModuleMetaMap.get(mod1WithOpts);
-    const restResolvedModuleMeta = mod1?.deepImportedModules.get(mixinRest) as RestResolvedModuleMeta;
+    const restResolvedModuleMeta = mod1?.deepImportedModules.get(aspectRest) as RestResolvedModuleMeta;
     expect(restResolvedModuleMeta.guardsPerMod.at(0)?.guard).toBe(BearerGuard1);
 
     // Guards per a module must have ref to host module normalizedModuleMeta.

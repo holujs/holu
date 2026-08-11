@@ -10,7 +10,7 @@ import {
 } from '@holu/core';
 
 import { Router } from '#services/router.js';
-import { restModule, restRootModule } from '#decorators/rest-module-mixins.js';
+import { restModule, restRootModule } from '#decorators/rest-module-aspects.js';
 
 describe('extensions e2e', () => {
   @injectable()
