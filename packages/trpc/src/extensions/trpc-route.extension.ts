@@ -2,7 +2,7 @@ import { injectable, Extension, ResolvedModuleMeta, type Class, Reflector, Provi
 import { inspect } from 'node:util';
 
 import { TrpcResolvedModuleMeta } from '#init/trpc-deep-modules-importer.js';
-import { mixinTrpcModule } from '#decorators/trpc-module-mixins.js';
+import { mixinTrpcModule } from '#decorators/trpc-module-aspects.js';
 import { TrpcRouteMetadata } from '#decorators/trpc-route.js';
 import { ControllerOptions } from '#decorators/trpc-controller.js';
 import { RouteExtensionMeta } from '#types/types.js';

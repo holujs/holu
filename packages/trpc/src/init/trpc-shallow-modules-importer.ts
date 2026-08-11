@@ -1,13 +1,13 @@
 import type { ModRefId, ModuleManager, NormalizedModuleMeta, AppProviders } from '@holu/core';
-import { isDynamicModule, getProxyForMixinMeta } from '@holu/core';
+import { isDynamicModule, createAspectMetaProxy } from '@holu/core';
 
 import type {
   ImportModulesShallowConfig,
   TrpcAppProviders,
   TrpcModRefId,
   TrpcShallowModuleImports,
-} from '#decorators/trpc-module-mixins.js';
-import { mixinTrpcModule, TrpcModuleMixinHandler, TrpcMixinMeta } from '#decorators/trpc-module-mixins.js';
+} from '#decorators/trpc-module-aspects.js';
+import { mixinTrpcModule, TrpcModuleMixinHandler, TrpcAspectMeta } from '#decorators/trpc-module-aspects.js';
 import type { ModuleScopedGuard } from '#interceptors/trpc-guard.js';
 
 /**
@@ -23,7 +23,7 @@ export class TrpcShallowModulesImporter {
   protected moduleName: string;
   protected guardsPerMod: ModuleScopedGuard[];
   protected normalizedModuleMeta: NormalizedModuleMeta;
-  protected meta: TrpcMixinMeta;
+  protected meta: TrpcAspectMeta;
 
   /**
    * AppProviders.
@@ -86,11 +86,11 @@ export class TrpcShallowModulesImporter {
     });
   }
 
-  protected getMixinMeta(normalizedModuleMeta: NormalizedModuleMeta): TrpcMixinMeta {
-    let meta = normalizedModuleMeta.normalizedMixinMetaMap.get(mixinTrpcModule);
+  protected getMixinMeta(normalizedModuleMeta: NormalizedModuleMeta): TrpcAspectMeta {
+    let meta = normalizedModuleMeta.normalizedAspectMetaMap.get(mixinTrpcModule);
     if (!meta) {
-      meta = getProxyForMixinMeta(normalizedModuleMeta, TrpcMixinMeta);
-      normalizedModuleMeta.normalizedMixinMetaMap.set(mixinTrpcModule, meta);
+      meta = createAspectMetaProxy(normalizedModuleMeta, TrpcAspectMeta);
+      normalizedModuleMeta.normalizedAspectMetaMap.set(mixinTrpcModule, meta);
     }
     return meta;
   }
@@ -118,7 +118,7 @@ export class TrpcShallowModulesImporter {
     }
   }
 
-  protected getPrefixAndGuards(modRefId: TrpcModRefId, meta: TrpcMixinMeta, isImport?: boolean) {
+  protected getPrefixAndGuards(modRefId: TrpcModRefId, meta: TrpcAspectMeta, isImport?: boolean) {
     let guardsPerMod: ModuleScopedGuard[] = [];
     const hasModuleParams = isDynamicModule(modRefId);
     if (hasModuleParams || !isImport) {

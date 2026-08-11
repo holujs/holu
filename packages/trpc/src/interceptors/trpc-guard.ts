@@ -1,5 +1,5 @@
 import type { Class, NormalizedModuleMeta } from '@holu/core';
-import type { TrpcMixinMeta } from '#decorators/trpc-module-mixins.js';
+import type { TrpcAspectMeta } from '#decorators/trpc-module-aspects.js';
 import type { TrpcOpts } from '#types/types.js';
 
 export interface TrpcCanActivate {
@@ -14,6 +14,6 @@ export interface NormalizedGuard {
 }
 
 export interface ModuleScopedGuard extends NormalizedGuard {
-  meta: TrpcMixinMeta;
+  meta: TrpcAspectMeta;
   normalizedModuleMeta: NormalizedModuleMeta;
 }

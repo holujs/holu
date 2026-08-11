@@ -9,8 +9,8 @@ import type {
 } from '@holu/core';
 import { ModuleInfo } from '@holu/core';
 
-import type { DeepModulesImporterConfig, TrpcMixinMeta } from '#decorators/trpc-module-mixins.js';
-import type { TrpcShallowModuleImports } from '#decorators/trpc-module-mixins.js';
+import type { DeepModulesImporterConfig, TrpcAspectMeta } from '#decorators/trpc-module-aspects.js';
+import type { TrpcShallowModuleImports } from '#decorators/trpc-module-aspects.js';
 import type { ModuleScopedGuard } from '#interceptors/trpc-guard.js';
 
 /**
@@ -19,7 +19,7 @@ import type { ModuleScopedGuard } from '#interceptors/trpc-guard.js';
 
 export class TrpcResolvedModuleMeta {
   normalizedModuleMeta: NormalizedModuleMeta;
-  meta: TrpcMixinMeta;
+  meta: TrpcAspectMeta;
   guardsPerMod: ModuleScopedGuard[];
 }
 

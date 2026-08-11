@@ -9,7 +9,7 @@ import type { Http2ServerRequest, Http2ServerResponse } from 'http2';
 
 import type { HttpModule } from '#types/http-module.js';
 import type { ServerOptions } from '#types/server-options.js';
-import type { TrpcMixinMeta, TrpcModRefId } from '#decorators/trpc-module-mixins.js';
+import type { TrpcAspectMeta, TrpcModRefId } from '#decorators/trpc-module-aspects.js';
 import type { ModuleScopedGuard } from '#interceptors/trpc-guard.js';
 import type { ControllerMeta } from './controller-metadata.js';
 import type { TrpcHttpInterceptor } from '#interceptors/tokens-and-types.js';
@@ -84,7 +84,7 @@ export type RedirectStatusCodes = 300 | 301 | 302 | 303 | 307 | 308;
 
 export class RouteExtensionMeta {
   normalizedModuleMeta: NormalizedModuleMeta;
-  meta: TrpcMixinMeta;
+  meta: TrpcAspectMeta;
   controllersMeta: ControllerMeta[];
   guardsPerMod: ModuleScopedGuard[];
 }

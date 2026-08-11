@@ -1,9 +1,9 @@
 import type { Class, NormalizedModuleMeta } from '@holu/core';
-import { isFeatureModule, Reflector, getDuplicates, getProxyForMixinMeta } from '@holu/core';
+import { isFeatureModule, Reflector, getDuplicates, createAspectMetaProxy } from '@holu/core';
 import { EmptyModuleMeta } from '@holu/core/errors';
 
-import type { TrpcStaticOptions } from '#decorators/trpc-module-mixins.js';
-import { TrpcMixinMeta } from '#decorators/trpc-module-mixins.js';
+import type { TrpcStaticOptions } from '#decorators/trpc-module-aspects.js';
+import { TrpcAspectMeta } from '#decorators/trpc-module-aspects.js';
 import { ControllerDoesNotHaveDecorator, DuplicateOfControllers, InvalidGuard } from '../error/trpc-errors.js';
 import type { NormalizedGuard } from '#interceptors/trpc-guard.js';
 import { isControllerDecorator } from '#types/type.guards.js';
@@ -13,11 +13,11 @@ import { isControllerDecorator } from '#types/type.guards.js';
  */
 export class TrpcModuleNormalizer {
   protected normalizedModuleMeta: NormalizedModuleMeta;
-  protected meta: TrpcMixinMeta;
+  protected meta: TrpcAspectMeta;
 
   normalize(normalizedModuleMeta: NormalizedModuleMeta, moduleOptions: TrpcStaticOptions) {
     this.normalizedModuleMeta = normalizedModuleMeta;
-    const meta = getProxyForMixinMeta(normalizedModuleMeta, TrpcMixinMeta);
+    const meta = createAspectMetaProxy(normalizedModuleMeta, TrpcAspectMeta);
     this.meta = meta;
     if (moduleOptions.controllers) {
       this.meta.controllers.push(...moduleOptions.controllers);
