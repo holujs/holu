@@ -1,6 +1,6 @@
 import { XOasObject } from '@ts-stack/openapi-spec';
-import { featureModule, DynamicMixinOptionsMap, DynamicModule, ProviderBuilder } from '@holu/core';
-import { DispatcherExtension, RestRouteExtension, mixinRest } from '@holu/rest';
+import { featureModule, DynamicAspectOptionsMap, DynamicModule, ProviderBuilder } from '@holu/core';
+import { DispatcherExtension, RestRouteExtension, aspectRest } from '@holu/rest';
 
 import { OpenapiCompilerExtension } from './extensions/openapi-compiler.extension.js';
 import { OpenapiRouteExtension } from './extensions/openapi-routes.extension.js';
@@ -9,7 +9,7 @@ import { SwaggerOAuthOptions } from './swagger-ui/o-auth-options.js';
 import { OasExtensionConfig } from './types/oas-extension-options.js';
 import { OpenapiLogMediator } from '#services/openapi-log-mediator.js';
 
-@mixinRest({
+@aspectRest({
   providersPerMod: [OpenapiLogMediator],
   extensions: [
     { extension: OpenapiRouteExtension, groups: [RestRouteExtension], export: true },
@@ -38,15 +38,15 @@ export class OpenapiModule {
       swaggerOAuthOptions,
     };
 
-    const mixinOptions: DynamicMixinOptionsMap = new Map();
+    const aspectOptions: DynamicAspectOptionsMap = new Map();
     if (absolutePath !== undefined) {
-      mixinOptions.set(mixinRest, { absolutePath });
+      aspectOptions.set(aspectRest, { absolutePath });
     }
 
     return {
       module: this,
       providersPerApp: new ProviderBuilder().useValue<OasExtensionConfig>(OasExtensionConfig, oasExtensionConfig),
-      mixinOptions,
+      aspectOptions,
     };
   }
 }
