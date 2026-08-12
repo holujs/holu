@@ -88,10 +88,10 @@ export class ModuleNormalizer {
       this.normalizeExports(modRefId, 'Dynamic exports');
     }
 
-    this.checkReexportModules();
+    this.assertReexportedModulesAreImported();
 
     // Phase 2: Process aspect decorators applied directly to the current module.
-    this.callModuleAspectFromCurrentModule();
+    this.processOwnModuleAspects();
 
     this.quickCheckMeta(staticModuleOptions);
     return normalizedModuleMeta;
@@ -277,7 +277,7 @@ export class ModuleNormalizer {
     });
   }
 
-  protected throwIfResolvingNormalizedProvider(
+  protected assertResolvedCollisionTokensOnly(
     staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
   ) {
     const resolvedCollisionsPerLevel: [any, ModRefId | ForwardRefFn<StaticModule | DynamicModule>][] = [];
@@ -309,7 +309,7 @@ export class ModuleNormalizer {
         extensionClassOrConfig = { extension: extensionClassOrConfig } as BaseExtensionConfig;
       }
       const normalizedExtensionConfig = normalizeExtensionConfig(extensionClassOrConfig);
-      normalizedExtensionConfig.providers.forEach((p) => this.checkStageMethodsForExtension(p));
+      normalizedExtensionConfig.providers.forEach((p) => this.assertValidExtensionProvider(p));
       if (normalizedExtensionConfig.config) {
         this.normalizedModuleMeta.extensionConfigs.push(normalizedExtensionConfig.config);
       }
@@ -332,7 +332,7 @@ export class ModuleNormalizer {
     });
   }
 
-  protected checkStageMethodsForExtension(extensionsProvider: Provider) {
+  protected assertValidExtensionProvider(extensionsProvider: Provider) {
     const np = normalizeProviders([extensionsProvider])[0];
     let ExtensionCls: ExtensionClass | undefined;
     if (isClassProvider(np)) {
@@ -354,7 +354,7 @@ export class ModuleNormalizer {
     }
   }
 
-  protected checkReexportModules() {
+  protected assertReexportedModulesAreImported() {
     if (isRootModule(this.normalizedModuleMeta)) {
       // Allow exporting from the root module without importing.
       return;
@@ -371,8 +371,8 @@ export class ModuleNormalizer {
 
   applyHostAspectOptions(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleAspect: ModuleAspectHandler) {
     this.normalizedModuleMeta = normalizedModuleMeta;
-    this.fetchAspectOptions(decoratorId, moduleAspect.moduleOptions);
-    this.callModuleAspect(decoratorId, moduleAspect);
+    this.applyAspectModuleOptions(decoratorId, moduleAspect.moduleOptions);
+    this.normalizeAspectMeta(decoratorId, moduleAspect);
   }
 
   /**
@@ -402,16 +402,16 @@ export class ModuleNormalizer {
     this.normalizedModuleMeta = normalizedModuleMeta;
     normalizedModuleMeta.allModuleAspectsMap.set(decoratorId, moduleAspect);
     this.ensureHostModuleImported(moduleAspect);
-    this.callModuleAspect(decoratorId, moduleAspect);
+    this.normalizeAspectMeta(decoratorId, moduleAspect);
     normalizedModuleMeta.moduleAspectMap.set(decoratorId, moduleAspect);
   }
 
-  protected callModuleAspectFromCurrentModule() {
+  protected processOwnModuleAspects() {
     this.normalizedModuleMeta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
       this.normalizedModuleMeta.allModuleAspectsMap.set(decoratorId, moduleAspect);
       this.ensureHostModuleImported(moduleAspect);
-      this.fetchAspectOptions(decoratorId, moduleAspect.moduleOptions);
-      this.callModuleAspect(decoratorId, moduleAspect);
+      this.applyAspectModuleOptions(decoratorId, moduleAspect.moduleOptions);
+      this.normalizeAspectMeta(decoratorId, moduleAspect);
     });
   }
 
@@ -436,25 +436,25 @@ export class ModuleNormalizer {
     }) as Exclude<T, ForwardRefFn>[];
   }
 
-  protected fetchAspectOptions(decoratorId: AnyFn, aspectOptions: StaticAspectOptions) {
-    this.fetchAspectImports(decoratorId, aspectOptions);
-    this.fetchAspectExports(aspectOptions);
+  protected applyAspectModuleOptions(decoratorId: AnyFn, aspectOptions: StaticAspectOptions) {
+    this.applyAspectImports(decoratorId, aspectOptions);
+    this.applyAspectModuleExports(aspectOptions);
     this.normalizeExtensions(aspectOptions);
     this.normalizeProvidersAndResolvedCollisions(aspectOptions);
     this.normalizeExports(aspectOptions, 'Static exports');
   }
 
-  protected fetchAspectImports(decoratorId: AnyFn, aspectOptions: StaticAspectOptions) {
+  protected applyAspectImports(decoratorId: AnyFn, aspectOptions: StaticAspectOptions) {
     if (aspectOptions.imports) {
       this.resolveAllForwardRefs(aspectOptions.imports).forEach((imp) => {
         if (isDynamicModule(imp)) {
           const params = { ...imp };
-          this.mergeAspectDynamicOptions(decoratorId, params, imp);
+          this.mergeAspectOptionsIntoDynamicModule(decoratorId, params, imp);
         } else if (isDynamicModuleWrapper(imp)) {
           const params = { ...imp } as { dynamicModule?: DynamicModule };
-          this.mergeObjects(params, imp.dynamicModule);
+          this.mergeAspectOptionObjects(params, imp.dynamicModule);
           delete params.dynamicModule;
-          this.mergeAspectDynamicOptions(decoratorId, params, imp.dynamicModule);
+          this.mergeAspectOptionsIntoDynamicModule(decoratorId, params, imp.dynamicModule);
         } else {
           if (!this.normalizedModuleMeta.importedStaticModules.includes(imp)) {
             this.normalizedModuleMeta.importedStaticModules.push(imp);
@@ -464,13 +464,13 @@ export class ModuleNormalizer {
     }
   }
 
-  protected mergeAspectDynamicOptions(decoratorId: AnyFn, params: AnyObj, dynamicModule: DynamicModule) {
+  protected mergeAspectOptionsIntoDynamicModule(decoratorId: AnyFn, params: AnyObj, dynamicModule: DynamicModule) {
     delete params.module;
     delete params.aspectOptions;
     dynamicModule.aspectOptions ??= new Map();
     if (dynamicModule.aspectOptions.has(decoratorId)) {
       const existingParams = dynamicModule.aspectOptions.get(decoratorId)!;
-      dynamicModule.aspectOptions.set(decoratorId, this.mergeObjects(params, existingParams));
+      dynamicModule.aspectOptions.set(decoratorId, this.mergeAspectOptionObjects(params, existingParams));
     } else {
       dynamicModule.aspectOptions.set(decoratorId, params);
     }
@@ -479,7 +479,7 @@ export class ModuleNormalizer {
     }
   }
 
-  protected mergeObjects(dstn: AnyObj, src: AnyObj) {
+  protected mergeAspectOptionObjects(dstn: AnyObj, src: AnyObj) {
     objectKeys(src).forEach((prop) => {
       if (prop == 'aspectOptions' || prop == 'module') {
         // ignore
@@ -498,7 +498,7 @@ export class ModuleNormalizer {
     return dstn;
   }
 
-  protected fetchAspectExports(aspectOptions: StaticAspectOptions) {
+  protected applyAspectModuleExports(aspectOptions: StaticAspectOptions) {
     if (aspectOptions.exports) {
       this.resolveAllForwardRefs(aspectOptions.exports).forEach((exp) => {
         if (isDynamicModule(exp)) {
@@ -518,7 +518,7 @@ export class ModuleNormalizer {
     }
   }
 
-  protected callModuleAspect(decoratorId: AnyFn, moduleAspect: ModuleAspectHandler) {
+  protected normalizeAspectMeta(decoratorId: AnyFn, moduleAspect: ModuleAspectHandler) {
     const meta = moduleAspect.normalize(this.normalizedModuleMeta);
     if (meta) {
       this.normalizedModuleMeta.normalizedAspectMetaMap.set(decoratorId, meta);
@@ -526,7 +526,7 @@ export class ModuleNormalizer {
   }
 
   protected quickCheckMeta(staticModuleOptions: RootModuleOptions) {
-    this.throwIfResolvingNormalizedProvider(staticModuleOptions);
+    this.assertResolvedCollisionTokensOnly(staticModuleOptions);
   }
 
   checkEmptyMeta(normalizedModuleMeta: NormalizedModuleMeta) {
