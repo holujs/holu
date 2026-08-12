@@ -1145,7 +1145,7 @@ describe('resolve', () => {
     expect(resolvedProvider.resolvedFactories.length).toEqual(1);
   });
 
-  it('should throw when mixing multi providers with regular providers', () => {
+  it('should throw when aspectg multi providers with regular providers', () => {
     expect(() => {
       Injector.resolve([{ token: Engine, useClass: BrokenEngine, multi: true }, Engine]);
     }).toThrow(/Cannot mix multi providers and regular providers/);

@@ -5,7 +5,7 @@ import type { AnyObj } from '#types/mix.js';
 import type { DynamicModuleOptions, ModRefId, StaticModule } from './module-decorator-options.js';
 import type { AnyFn, Provider } from '#di/top/types-and-models.js';
 import type { DynamicModule, FeatureModuleOptions } from '#decorators/module-decorator-options.js';
-import { AppModuleMixins, type AppProviders } from '#types/metadata-per-mod.js';
+import { AppModuleAspects, type AppProviders } from '#types/metadata-per-mod.js';
 import { type NormalizedModuleMeta, createAspectMetaProxy, BaseNormalizedModuleMeta } from '#init/normalized-meta.js';
 import type { ForwardRefFn } from '#di/forward-ref.js';
 import type { rootModule } from '#decorators/root-module.js';
@@ -81,7 +81,7 @@ export class ModuleAspectHandler<T1 extends StaticAspectOptions = StaticAspectOp
     appProviders: AppProviders;
     normalizedModuleMeta: NormalizedModuleMeta;
   }) {
-    return new AppModuleMixins();
+    return new AppModuleAspects();
   }
 
   /**
@@ -162,7 +162,7 @@ export interface DynamicAspectOptionsMap {
  * processed by extensions during the application initialization phase.
  *
  * Type parameters:
- * - `T`: Options passed when using the decorator statically (e.g., `@myMixin({ ... })`).
+ * - `T`: Options passed when using the decorator statically (e.g., `@myAspect({ ... })`).
  * - `DynamicAspectOptions`: Options passed when applying the aspect dynamically.
  * - `NormalizedAspectMeta`: The normalized metadata type resulting from `ModuleAspectHandler.normalize()`.
  *
@@ -173,7 +173,7 @@ export interface DynamicAspectOptionsMap {
  * ```ts
  * import { makeClassDecorator, ModuleAspectDecorator } from '@holu/core';
  *
- * export const myMixin: ModuleAspectDecorator<StaticOpts, DynamicOpts, NormalizedMeta> = makeClassDecorator(getModuleMixin);
+ * export const myAspect: ModuleAspectDecorator<StaticOpts, DynamicOpts, NormalizedMeta> = makeClassDecorator(getModuleAspect);
  * ```
  */
 export interface ModuleAspectDecorator<T extends StaticAspectOptions, DynamicAspectOptions, NormalizedAspectMeta> {

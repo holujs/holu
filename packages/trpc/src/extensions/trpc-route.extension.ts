@@ -2,7 +2,7 @@ import { injectable, Extension, ResolvedModuleMeta, type Class, Reflector, Provi
 import { inspect } from 'node:util';
 
 import { TrpcResolvedModuleMeta } from '#init/trpc-deep-modules-importer.js';
-import { mixinTrpcModule } from '#decorators/trpc-module-aspects.js';
+import { aspectTrpcModule } from '#decorators/trpc-module-aspects.js';
 import { TrpcRouteMetadata } from '#decorators/trpc-route.js';
 import { ControllerOptions } from '#decorators/trpc-controller.js';
 import { RouteExtensionMeta } from '#types/types.js';
@@ -21,7 +21,7 @@ export class TrpcRouteExtension implements Extension<RouteExtensionMeta> {
   constructor(protected resolvedModuleMeta: ResolvedModuleMeta<TrpcResolvedModuleMeta>) {}
 
   async stage1() {
-    const trpcResolvedModuleMeta = this.resolvedModuleMeta.deepImportedModules.get(mixinTrpcModule)!;
+    const trpcResolvedModuleMeta = this.resolvedModuleMeta.deepImportedModules.get(aspectTrpcModule)!;
     this.routeExtensionMeta = new RouteExtensionMeta();
     this.routeExtensionMeta.meta = trpcResolvedModuleMeta.meta;
     this.routeExtensionMeta.normalizedModuleMeta = this.resolvedModuleMeta.normalizedModuleMeta;

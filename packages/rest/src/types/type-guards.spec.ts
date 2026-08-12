@@ -6,7 +6,7 @@ import { HttpHandler, HttpInterceptor } from '#interceptors/tokens-and-types.js'
 import { CanActivate } from '#interceptors/guard.js';
 import { controller } from './controller.js';
 import { RequestContext } from '#services/request-context.js';
-import { RestAppendOptions } from '#init/rest-mixin-raw-meta.js';
+import { RestAppendOptions } from '#init/rest-aspect-raw-meta.js';
 
 describe('type guards', () => {
   describe('isController()', () => {

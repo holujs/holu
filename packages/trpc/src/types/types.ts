@@ -1,5 +1,5 @@
 import type { AnyFn, AnyObj, NormalizedModuleMeta, ModRefId, Override, Provider } from '@holu/core';
-import { BaseAppOptions, AppModuleMixins, InjectionToken, createInjectionSymbol } from '@holu/core';
+import { BaseAppOptions, AppModuleAspects, InjectionToken, createInjectionSymbol } from '@holu/core';
 import type { AnyRouter } from '@trpc/server';
 import type { initTRPC } from '@trpc/server';
 import type { CreateHTTPHandlerOptions } from '@trpc/server/adapters/standalone';
@@ -63,7 +63,7 @@ type GetRouterConfig<T> = {
   [K in keyof T]: T[K] extends AnyFn<any, infer R> ? CtrlOrModuleFn<R> : GetRouterConfig<T[K]>;
 };
 type CtrlOrModuleFn<F> = F extends AnyFn ? F : GetRouterConfig<F>;
-export class TrpcAppProviders extends AppModuleMixins {
+export class TrpcAppProviders extends AppModuleAspects {
   importedProvidersPerMod = new Map<any, TrpcImportedProvider>();
   importedProvidersPerRou = new Map<any, TrpcImportedProvider>();
   importedProvidersPerReq = new Map<any, TrpcImportedProvider>();

@@ -16,7 +16,7 @@ The initialization process begins when the application invokes `moduleManager.sc
 
 1. **Root Module Normalization**: Decorator options of the root module are passed to `ModuleNormalizer`, which validates them and forms initial normalized metadata.
 2. **Recursive Dependency Traversal**: `ModuleManager` traverses all modules specified in `imports` and `exports` arrays, building the complete application module map.
-3. **Aspect Decorator Execution**: If a module uses extended aspect decorators (such as `@restModule` or custom `@mixin*`), corresponding module aspects are executed to normalize extended metadata.
+3. **Aspect Decorator Execution**: If a module uses extended aspect decorators (such as `@restModule` or custom `@aspect*`), corresponding module aspects are executed to normalize extended metadata.
 4. **Validation and Integrity Checking**: Module imports and exports are verified for correctness and configuration conflicts.
 
 ## Dynamic Module Manipulation {#dynamic-module-manipulation}

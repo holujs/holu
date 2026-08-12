@@ -2,7 +2,7 @@ import type { AnyObj, Class, DecoratorMeta, ModRefId } from '@holu/core';
 
 import { route } from '#decorators/route.js';
 import type { HttpInterceptor } from '#interceptors/tokens-and-types.js';
-import type { RestAppendOptions, RestDynamicOptions } from '#init/rest-mixin-raw-meta.js';
+import type { RestAppendOptions, RestDynamicOptions } from '#init/rest-aspect-raw-meta.js';
 import type { ControllerOptions } from './controller.js';
 import { controller } from './controller.js';
 import type { Http2SecureServerOptions, ServerOptions } from './server-options.js';

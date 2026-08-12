@@ -452,7 +452,7 @@ describe('ModuleManager', () => {
     });
   });
 
-  describe('module mixins propagation', () => {
+  describe('module aspects propagation', () => {
     @featureModule()
     class HostModule1 {}
     @featureModule()
@@ -462,45 +462,45 @@ describe('ModuleManager', () => {
     @featureModule()
     class HostModule4 {}
 
-    class ModuleMixin1 extends ModuleAspectHandler<any> {
+    class ModuleAspect1 extends ModuleAspectHandler<any> {
       override hostModule = HostModule1;
       override hostAspectOptions = { one: 1 };
     }
 
-    class ModuleMixin2 extends ModuleAspectHandler<any> {
+    class ModuleAspect2 extends ModuleAspectHandler<any> {
       override hostModule = HostModule2;
       override hostAspectOptions = { two: 2 };
     }
 
-    class ModuleMixin3 extends ModuleAspectHandler<any> {
+    class ModuleAspect3 extends ModuleAspectHandler<any> {
       override hostModule = HostModule3;
       override hostAspectOptions = { three: 3 };
     }
 
-    class ModuleMixin4 extends ModuleAspectHandler<any> {
+    class ModuleAspect4 extends ModuleAspectHandler<any> {
       override hostModule = HostModule4;
       override hostAspectOptions = { four: 4 };
     }
 
-    it('should propagate allModuleAspectsMap so that they only contain module mixins imported into the current module', () => {
-      const mixinSome1: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleMixin1(data));
-      const mixinSome2: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleMixin2(data));
-      const mixinSome3: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleMixin3(data));
-      const mixinSome4: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleMixin4(data));
+    it('should propagate allModuleAspectsMap so that they only contain module aspects imported into the current module', () => {
+      const aspectSome1: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleAspect1(data));
+      const aspectSome2: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleAspect2(data));
+      const aspectSome3: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleAspect3(data));
+      const aspectSome4: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleAspect4(data));
 
-      @mixinSome1({ name: '1' })
+      @aspectSome1({ name: '1' })
       @featureModule()
       class Module1 {}
 
-      @mixinSome2({ name: '2' })
+      @aspectSome2({ name: '2' })
       @featureModule({ imports: [Module1], providersPerApp: [Service1] })
       class Module2 {}
 
-      @mixinSome3({ name: '3' })
+      @aspectSome3({ name: '3' })
       @featureModule({ imports: [Module2], providersPerApp: [Service1] })
       class Module3 {}
 
-      @mixinSome4({ name: '4' })
+      @aspectSome4({ name: '4' })
       @rootModule({ imports: [Module3], providersPerApp: [Service1] })
       class Module4 {}
 
@@ -517,25 +517,25 @@ describe('ModuleManager', () => {
       expect(mock.getNormalizedModuleMeta(HostModule4, true).modRefId).toBe(HostModule4);
 
       expect(mod1.allModuleAspectsMap.size).toBe(1);
-      expect(mod1.allModuleAspectsMap.get(mixinSome1)?.hostModule).toBe(HostModule1);
+      expect(mod1.allModuleAspectsMap.get(aspectSome1)?.hostModule).toBe(HostModule1);
 
       expect(mod2.allModuleAspectsMap.size).toBe(2);
-      expect(mod2.allModuleAspectsMap.get(mixinSome1)?.hostModule).toBe(HostModule1);
-      expect(mod2.allModuleAspectsMap.get(mixinSome2)?.hostModule).toBe(HostModule2);
+      expect(mod2.allModuleAspectsMap.get(aspectSome1)?.hostModule).toBe(HostModule1);
+      expect(mod2.allModuleAspectsMap.get(aspectSome2)?.hostModule).toBe(HostModule2);
 
       expect(mod3.allModuleAspectsMap.size).toBe(3);
-      expect(mod3.allModuleAspectsMap.get(mixinSome1)?.hostModule).toBe(HostModule1);
-      expect(mod3.allModuleAspectsMap.get(mixinSome2)?.hostModule).toBe(HostModule2);
-      expect(mod3.allModuleAspectsMap.get(mixinSome3)?.hostModule).toBe(HostModule3);
+      expect(mod3.allModuleAspectsMap.get(aspectSome1)?.hostModule).toBe(HostModule1);
+      expect(mod3.allModuleAspectsMap.get(aspectSome2)?.hostModule).toBe(HostModule2);
+      expect(mod3.allModuleAspectsMap.get(aspectSome3)?.hostModule).toBe(HostModule3);
 
       expect(mod4.allModuleAspectsMap.size).toBe(4);
-      expect(mod4.allModuleAspectsMap.get(mixinSome1)?.hostModule).toBe(HostModule1);
-      expect(mod4.allModuleAspectsMap.get(mixinSome2)?.hostModule).toBe(HostModule2);
-      expect(mod4.allModuleAspectsMap.get(mixinSome3)?.hostModule).toBe(HostModule3);
-      expect(mod4.allModuleAspectsMap.get(mixinSome4)?.hostModule).toBe(HostModule4);
+      expect(mod4.allModuleAspectsMap.get(aspectSome1)?.hostModule).toBe(HostModule1);
+      expect(mod4.allModuleAspectsMap.get(aspectSome2)?.hostModule).toBe(HostModule2);
+      expect(mod4.allModuleAspectsMap.get(aspectSome3)?.hostModule).toBe(HostModule3);
+      expect(mod4.allModuleAspectsMap.get(aspectSome4)?.hostModule).toBe(HostModule4);
     });
 
-    it('should handle Module1 not having an annotation with mixinSome, but imported in AppModule with this decorator', () => {
+    it('should handle Module1 not having an annotation with aspectSome, but imported in AppModule with this decorator', () => {
       interface MyDynamicOptions extends DynamicModuleOptions {
         path?: string;
       }
@@ -546,18 +546,18 @@ describe('ModuleManager', () => {
       interface AspectMeta extends BaseNormalizedModuleMeta {
         path?: string;
       }
-      class ModuleMixin1 extends ModuleAspectHandler<RootModuleOptions> {
+      class ModuleAspect1 extends ModuleAspectHandler<RootModuleOptions> {
         override normalize({ modRefId }: NormalizedModuleMeta): AspectMeta {
           if (isDynamicModule(modRefId)) {
-            const params = modRefId.aspectOptions?.get(mixinSome);
+            const params = modRefId.aspectOptions?.get(aspectSome);
             return { path: params?.path } as AspectMeta;
           }
           return {} as AspectMeta;
         }
       }
 
-      const mixinSome: ModuleAspectDecorator<RootModuleOptions, MyDynamicOptions, AspectMeta> = Reflector.makeClassDecorator(
-        (d) => new ModuleMixin1(d),
+      const aspectSome: ModuleAspectDecorator<RootModuleOptions, MyDynamicOptions, AspectMeta> = Reflector.makeClassDecorator(
+        (d) => new ModuleAspect1(d),
       );
 
       @featureModule({ providersPerApp: [{ token: 'token1', useValue: 'value1' }] })
@@ -565,16 +565,16 @@ describe('ModuleManager', () => {
 
       const dynamicModule: DynamicModule = { module: Module1 };
 
-      @mixinSome({ one: 'some-here', imports: [{ dynamicModule: dynamicModule, path: 'some-prefix' }] })
+      @aspectSome({ one: 'some-here', imports: [{ dynamicModule: dynamicModule, path: 'some-prefix' }] })
       @rootModule()
       class AppModule {}
 
       mock.scanRootModule(AppModule);
       const mod1 = mock.getNormalizedModuleMeta(dynamicModule)!;
-      expect(mod1.normalizedAspectMetaMap.get(mixinSome)).toEqual({ path: 'some-prefix' });
+      expect(mod1.normalizedAspectMetaMap.get(aspectSome)).toEqual({ path: 'some-prefix' });
     });
 
-    it('should handle static Module1 not having an annotation with mixinSome, but imported in AppModule with this decorator', () => {
+    it('should handle static Module1 not having an annotation with aspectSome, but imported in AppModule with this decorator', () => {
       interface MyDynamicOptions extends DynamicModuleOptions {
         path?: string;
       }
@@ -589,7 +589,7 @@ describe('ModuleManager', () => {
       @featureModule()
       class HostModule1 {}
 
-      class ModuleMixin1 extends ModuleAspectHandler<RootModuleOptions> {
+      class ModuleAspect1 extends ModuleAspectHandler<RootModuleOptions> {
         override hostModule = HostModule1;
         override normalize({ modRefId }: NormalizedModuleMeta): AspectMeta {
           return { path: 'static-default' } as AspectMeta;
@@ -599,21 +599,21 @@ describe('ModuleManager', () => {
       @featureModule({ providersPerApp: [{ token: 'token1', useValue: 'value1' }] })
       class Module1 {}
 
-      const mixinSome: ModuleAspectDecorator<RootModuleOptions, { path?: string }, AspectMeta> = Reflector.makeClassDecorator(
-        (d) => new ModuleMixin1(d),
+      const aspectSome: ModuleAspectDecorator<RootModuleOptions, { path?: string }, AspectMeta> = Reflector.makeClassDecorator(
+        (d) => new ModuleAspect1(d),
       );
 
-      @mixinSome({ one: 'some-here', imports: [Module1] })
+      @aspectSome({ one: 'some-here', imports: [Module1] })
       @rootModule()
       class AppModule {}
 
       mock.scanRootModule(AppModule);
       const mod1 = mock.getNormalizedModuleMeta(Module1)!;
-      expect(mod1.normalizedAspectMetaMap.get(mixinSome)).toEqual({ path: 'static-default' });
+      expect(mod1.normalizedAspectMetaMap.get(aspectSome)).toEqual({ path: 'static-default' });
       expect(mod1.importedStaticModules.includes(HostModule1)).toBe(true);
     });
 
-    it('should not propagate context hooks when inheritsMixins is false for static Module1', () => {
+    it('should not propagate context hooks when inheritsAspects is false for static Module1', () => {
       interface MyDynamicOptions extends DynamicModuleOptions {
         path?: string;
       }
@@ -627,30 +627,30 @@ describe('ModuleManager', () => {
       @featureModule()
       class HostModule1 {}
 
-      class ModuleMixin1 extends ModuleAspectHandler<RootModuleOptions> {
+      class ModuleAspect1 extends ModuleAspectHandler<RootModuleOptions> {
         override hostModule = HostModule1;
         override normalize({ modRefId }: NormalizedModuleMeta): AspectMeta {
           return { path: 'static-default' } as AspectMeta;
         }
       }
 
-      const mixinSome: ModuleAspectDecorator<RootModuleOptions, { path?: string }, AspectMeta> = Reflector.makeClassDecorator(
-        (d) => new ModuleMixin1(d),
+      const aspectSome: ModuleAspectDecorator<RootModuleOptions, { path?: string }, AspectMeta> = Reflector.makeClassDecorator(
+        (d) => new ModuleAspect1(d),
       );
 
       @featureModule({
-        inheritsMixins: false,
+        inheritsAspects: false,
         providersPerApp: [{ token: 'token1', useValue: 'value1' }],
       })
       class Module1 {}
 
-      @mixinSome({ one: 'some-here', imports: [Module1] })
+      @aspectSome({ one: 'some-here', imports: [Module1] })
       @rootModule()
       class AppModule {}
 
       mock.scanRootModule(AppModule);
       const mod1 = mock.getNormalizedModuleMeta(Module1)!;
-      expect(mod1.normalizedAspectMetaMap.has(mixinSome)).toBe(false);
+      expect(mod1.normalizedAspectMetaMap.has(aspectSome)).toBe(false);
       expect(mod1.importedStaticModules.includes(HostModule1)).toBe(false);
     });
 
@@ -664,23 +664,23 @@ describe('ModuleManager', () => {
       interface DecoratorOptions1 extends StaticAspectOptions<MyDynamicOptions1> {
         one?: string;
       }
-      interface MixinMeta1 {
-        paramsForMixinMeta1?: any;
+      interface AspectMeta1 {
+        paramsForAspectMeta1?: any;
       }
       interface DecoratorOptions2 extends StaticAspectOptions<MyDynamicOptions2> {
         three?: string;
       }
-      interface MixinMeta2 {
-        paramsForMixinMeta2?: any;
+      interface AspectMeta2 {
+        paramsForAspectMeta2?: any;
       }
-      class ModuleMixin1 extends ModuleAspectHandler<DecoratorOptions1> {}
-      class ModuleMixin2 extends ModuleAspectHandler<DecoratorOptions2> {}
+      class ModuleAspect1 extends ModuleAspectHandler<DecoratorOptions1> {}
+      class ModuleAspect2 extends ModuleAspectHandler<DecoratorOptions2> {}
 
-      const mixinSome1: ModuleAspectDecorator<DecoratorOptions1, {}, MixinMeta1> = Reflector.makeClassDecorator(
-        (d) => new ModuleMixin1(d),
+      const aspectSome1: ModuleAspectDecorator<DecoratorOptions1, {}, AspectMeta1> = Reflector.makeClassDecorator(
+        (d) => new ModuleAspect1(d),
       );
-      const mixinSome2: ModuleAspectDecorator<DecoratorOptions2, {}, MixinMeta2> = Reflector.makeClassDecorator(
-        (d) => new ModuleMixin2(d),
+      const aspectSome2: ModuleAspectDecorator<DecoratorOptions2, {}, AspectMeta2> = Reflector.makeClassDecorator(
+        (d) => new ModuleAspect2(d),
       );
 
       @featureModule({ providersPerApp: [{ token: 'token1', useValue: 'value1' }] })
@@ -696,16 +696,16 @@ describe('ModuleManager', () => {
       const dynamicModule2: DynamicModule = { module: Module2 };
       const dynamicModule3: DynamicModule = { module: Module3 };
 
-      @mixinSome1({
+      @aspectSome1({
         imports: [
-          { dynamicModule: dynamicModule1, one: 'mixinSome1-1' },
-          { dynamicModule: dynamicModule3, one: 'mixinSome1-3' },
+          { dynamicModule: dynamicModule1, one: 'aspectSome1-1' },
+          { dynamicModule: dynamicModule3, one: 'aspectSome1-3' },
         ],
       })
-      @mixinSome2({
+      @aspectSome2({
         imports: [
-          { dynamicModule: dynamicModule2, three: 'mixinSome2-2' },
-          { dynamicModule: dynamicModule3, three: 'mixinSome2-3' },
+          { dynamicModule: dynamicModule2, three: 'aspectSome2-2' },
+          { dynamicModule: dynamicModule3, three: 'aspectSome2-3' },
         ],
       })
       @rootModule()
@@ -716,12 +716,12 @@ describe('ModuleManager', () => {
       function getParams(dynamicModule: DynamicModule) {
         return [...(dynamicModule.aspectOptions?.values() || [])];
       }
-      expect(getParams(dynamicModule1)).toEqual([{ one: 'mixinSome1-1' }]);
-      expect(getParams(dynamicModule2)).toEqual([{ three: 'mixinSome2-2' }]);
-      expect(getParams(dynamicModule3)).toEqual([{ three: 'mixinSome2-3' }, { one: 'mixinSome1-3' }]);
+      expect(getParams(dynamicModule1)).toEqual([{ one: 'aspectSome1-1' }]);
+      expect(getParams(dynamicModule2)).toEqual([{ three: 'aspectSome2-2' }]);
+      expect(getParams(dynamicModule3)).toEqual([{ three: 'aspectSome2-3' }, { one: 'aspectSome1-3' }]);
     });
 
-    it('should successfully apply hostAspectOptions to a host module even if it is imported before the mixin module', () => {
+    it('should successfully apply hostAspectOptions to a host module even if it is imported before the aspect module', () => {
       @featureModule()
       class HostModule {}
 
@@ -729,7 +729,7 @@ describe('ModuleManager', () => {
         customProp?: string;
       }
 
-      class MixinHandler1 extends ModuleAspectHandler<any> {
+      class AspectHandler1 extends ModuleAspectHandler<any> {
         override hostModule = HostModule;
         override hostAspectOptions = { customProp: 'works' };
 
@@ -738,43 +738,43 @@ describe('ModuleManager', () => {
         }
       }
 
-      const mixinSome: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new MixinHandler1(d));
+      const aspectSome: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new AspectHandler1(d));
 
-      @mixinSome()
+      @aspectSome()
       @featureModule()
-      class MixinModule {}
+      class AspectModule {}
 
       // Notice the order: HostModule is imported FIRST.
-      @rootModule({ imports: [HostModule, MixinModule] })
+      @rootModule({ imports: [HostModule, AspectModule] })
       class AppModule {}
 
       mock.scanRootModule(AppModule);
 
       const hostMeta = mock.getNormalizedModuleMeta(HostModule);
-      expect(hostMeta?.moduleAspectMap.has(mixinSome)).toBe(true);
-      const moduleMixinHandler = hostMeta?.moduleAspectMap.get(mixinSome);
-      expect(moduleMixinHandler?.moduleOptions).toEqual({ customProp: 'works' });
+      expect(hostMeta?.moduleAspectMap.has(aspectSome)).toBe(true);
+      const moduleAspectHandler = hostMeta?.moduleAspectMap.get(aspectSome);
+      expect(moduleAspectHandler?.moduleOptions).toEqual({ customProp: 'works' });
     });
     it('should accumulate the exact same allModuleAspectsMap in the parent regardless of import order', () => {
-      class ModuleMixin1 extends ModuleAspectHandler<any> {
+      class ModuleAspect1 extends ModuleAspectHandler<any> {
         override normalize(normalizedModuleMeta: NormalizedModuleMeta) {
           return normalizedModuleMeta;
         }
       }
-      class ModuleMixin2 extends ModuleAspectHandler<any> {
+      class ModuleAspect2 extends ModuleAspectHandler<any> {
         override normalize(normalizedModuleMeta: NormalizedModuleMeta) {
           return normalizedModuleMeta;
         }
       }
 
-      const mixinDec1: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new ModuleMixin1(d));
-      const mixinDec2: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new ModuleMixin2(d));
+      const aspectDec1: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new ModuleAspect1(d));
+      const aspectDec2: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new ModuleAspect2(d));
 
-      @mixinDec1()
+      @aspectDec1()
       @featureModule()
       class ModuleA {}
 
-      @mixinDec2()
+      @aspectDec2()
       @featureModule()
       class ModuleB {}
 
@@ -793,12 +793,12 @@ describe('ModuleManager', () => {
       const meta2 = mock2.getNormalizedModuleMeta(AppModuleOrder2);
 
       expect(meta1!.allModuleAspectsMap.size).toBe(2);
-      expect(meta1!.allModuleAspectsMap.has(mixinDec1)).toBe(true);
-      expect(meta1!.allModuleAspectsMap.has(mixinDec2)).toBe(true);
+      expect(meta1!.allModuleAspectsMap.has(aspectDec1)).toBe(true);
+      expect(meta1!.allModuleAspectsMap.has(aspectDec2)).toBe(true);
 
       expect(meta2!.allModuleAspectsMap.size).toBe(2);
-      expect(meta2!.allModuleAspectsMap.has(mixinDec1)).toBe(true);
-      expect(meta2!.allModuleAspectsMap.has(mixinDec2)).toBe(true);
+      expect(meta2!.allModuleAspectsMap.has(aspectDec1)).toBe(true);
+      expect(meta2!.allModuleAspectsMap.has(aspectDec2)).toBe(true);
     });
   });
 });

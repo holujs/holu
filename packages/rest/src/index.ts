@@ -11,7 +11,7 @@ export {
   BaseRestAppendOptions,
   RestStaticOptions,
   RestDynamicOptions,
-} from './init/rest-mixin-raw-meta.js';
+} from './init/rest-aspect-raw-meta.js';
 export { RouteParam, RouteExtensionMeta, RedirectStatusCodes } from './types/types.js';
 export { RestShallowModuleImports, RestResolvedModuleMeta } from '#init/types.js';
 export { RestModule } from './init/rest.module.js';
@@ -20,7 +20,7 @@ export { RestRouteExtension } from './extensions/rest-route.extension.js';
 export { DispatcherExtension } from './extensions/dispatcher.extension.js';
 export { InterceptorExtension } from './extensions/use-interceptor.extension.js';
 export { aspectRest, restRootModule, restModule } from './decorators/rest-module-aspects.js';
-export { RestAspectMeta } from './init/rest-mixin-meta.js';
+export { RestAspectMeta } from './init/rest-aspect-meta.js';
 export { route, DecoratorRouteMeta } from './decorators/route.js';
 export {
   isRoute,

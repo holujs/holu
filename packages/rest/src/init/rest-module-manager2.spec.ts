@@ -11,7 +11,7 @@ import {
 import { CanActivate, guard } from '../interceptors/guard.js';
 import { controller } from '../types/controller.js';
 import { RequestContext } from '../services/request-context.js';
-import { RestAppendOptions, type RestDynamicOptions } from './rest-mixin-raw-meta.js';
+import { RestAppendOptions, type RestDynamicOptions } from './rest-aspect-raw-meta.js';
 import { aspectRest, restRootModule } from '#decorators/rest-module-aspects.js';
 
 let mock: MockModuleManager;
@@ -74,9 +74,9 @@ it('imports and appends with gruards for some modules', () => {
   class AppModule {}
 
   mock.scanRootModule(AppModule);
-  const mixinMeta1 = mock.getNormalizedModuleMeta(dynamicModule)?.normalizedAspectMetaMap.get(aspectRest)?.params;
-  const mixinMeta2 = mock.getNormalizedModuleMeta(appendsWithOpts)?.normalizedAspectMetaMap.get(aspectRest)?.params;
+  const aspectMeta1 = mock.getNormalizedModuleMeta(dynamicModule)?.normalizedAspectMetaMap.get(aspectRest)?.params;
+  const aspectMeta2 = mock.getNormalizedModuleMeta(appendsWithOpts)?.normalizedAspectMetaMap.get(aspectRest)?.params;
   expect(mock.normalizedMetaMap.size).toBe(5);
-  expect(mixinMeta1).toMatchObject({ guards: [{ guard: Guard1 }], path: 'module1' });
-  expect(mixinMeta2).toMatchObject({ guards: [{ guard: Guard2 }], path: 'module2' });
+  expect(aspectMeta1).toMatchObject({ guards: [{ guard: Guard1 }], path: 'module1' });
+  expect(aspectMeta2).toMatchObject({ guards: [{ guard: Guard2 }], path: 'module2' });
 });

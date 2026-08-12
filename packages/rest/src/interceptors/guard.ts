@@ -1,7 +1,7 @@
 import type { Class, NormalizedModuleMeta } from '@holu/core';
 import { Reflector } from '@holu/core';
 import type { RequestContext } from '#services/request-context.js';
-import type { RestAspectMeta } from '#init/rest-mixin-meta.js';
+import type { RestAspectMeta } from '#init/rest-aspect-meta.js';
 
 export const guard = Reflector.makeClassDecorator((data?: never) => data);
 

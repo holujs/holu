@@ -74,7 +74,7 @@ export class ShallowModulesImporter {
     this.normalizedModuleMeta = normalizedModuleMeta;
     this.importProvidersAndExtensions(normalizedModuleMeta);
     // this.checkAllCollisionsWithLevelsMix();
-    const mixinValueMap = new Map<AnyFn, AnyObj>();
+    const aspectValueMap = new Map<AnyFn, AnyObj>();
     const appProviders: AppProviders = {
       importedProvidersPerMod: this.importedProvidersPerMod,
       importedProvidersPerRou: this.importedProvidersPerRou,
@@ -85,12 +85,12 @@ export class ShallowModulesImporter {
       importedExtensionProviders: this.importedExtensionProviders,
       importedExtensionGroupTokens: this.importedExtensionGroupTokens,
       importedExtensionConfigs: this.importedExtensionConfigs,
-      mixinValueMap,
+      aspectValueMap,
     };
 
-    normalizedModuleMeta.allModuleAspectsMap.forEach((moduleMixin, decorator) => {
-      const val = moduleMixin.exportAppProviders({ moduleManager, appProviders, normalizedModuleMeta });
-      mixinValueMap.set(decorator, val);
+    normalizedModuleMeta.allModuleAspectsMap.forEach((moduleAspect, decorator) => {
+      const val = moduleAspect.exportAppProviders({ moduleManager, appProviders, normalizedModuleMeta });
+      aspectValueMap.set(decorator, val);
     });
 
     return appProviders;
@@ -136,9 +136,9 @@ export class ShallowModulesImporter {
       extensionGroupTokens = new Map([...this.importedExtensionGroupTokens]);
       extensionConfigs = [...this.importedExtensionConfigs];
     } else {
-      this.appProviders.mixinValueMap.forEach(({ moduleMixin }, decorator) => {
-        if (moduleMixin && !normalizedModuleMeta.allModuleAspectsMap.has(decorator)) {
-          normalizedModuleMeta.allModuleAspectsMap.set(decorator, moduleMixin);
+      this.appProviders.aspectValueMap.forEach(({ moduleAspect }, decorator) => {
+        if (moduleAspect && !normalizedModuleMeta.allModuleAspectsMap.has(decorator)) {
+          normalizedModuleMeta.allModuleAspectsMap.set(decorator, moduleAspect);
         }
       });
       perMod = new Map([...this.appProviders.importedProvidersPerMod, ...this.importedProvidersPerMod]);
@@ -174,9 +174,9 @@ export class ShallowModulesImporter {
   protected importAndScanModules() {
     this.importModules();
 
-    this.normalizedModuleMeta.allModuleAspectsMap.forEach((moduleMixin, decorator) => {
+    this.normalizedModuleMeta.allModuleAspectsMap.forEach((moduleAspect, decorator) => {
       const meta = this.normalizedModuleMeta.normalizedAspectMetaMap.get(decorator);
-      for (const modRefId of moduleMixin.getModulesToScan(meta)) {
+      for (const modRefId of moduleAspect.getModulesToScan(meta)) {
         if (this.unfinishedScanModules.has(modRefId)) {
           continue;
         }

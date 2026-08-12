@@ -22,7 +22,7 @@ sidebar_position: 2
   })
   export class AppModule {}
   ```
-  З міксином хуки фреймворку самостійно обходять ієрархію модулів. Опція `path: 'api'` буде застосована не лише до `SomeModule`, а і всіх модулів, що імпортуються у `SomeModule` — і все це без необхідності змінювати їхній код:
+  З аспектом хуки фреймворку самостійно обходять ієрархію модулів. Опція `path: 'api'` буде застосована не лише до `SomeModule`, а і всіх модулів, що імпортуються у `SomeModule` — і все це без необхідності змінювати їхній код:
   ```ts
   @aspectRest({
     imports: [{ module: SomeModule, path: 'api' }]
@@ -31,13 +31,13 @@ sidebar_position: 2
   export class AppModule {}
   ```
 
-- **Формування архітектурного контексту**: Міксини можуть застосувати єдиний архітектурний контекст (наприклад, REST або tRPC) до цілого дерева звичайних модулів (з простим `@featureModule()`). Завдяки цьому ваші модулі фіч залишаються максимально універсальними.
+- **Формування архітектурного контексту**: Аспекти можуть застосувати єдиний архітектурний контекст (наприклад, REST або tRPC) до цілого дерева звичайних модулів (з простим `@featureModule()`). Завдяки цьому ваші модулі фіч залишаються максимально універсальними.
 
 **Aspect-декоратори** — це кастомні декоратори, які застосовуються до класів модулів, щоб передавати метадані з розширеними типами даних. Вони можуть виступати або як повноцінні декоратори модуля (для кореневого модуля чи модуля фіч), або як модифікатори, що розширюють вже оголошений модуль.
 
 Оскільки ці декоратори приймають метадані модуля з розширеним типом, їм потрібен механізм для нормалізації та валідації переданих метаданих. Саме для цього існує базовий клас **`ModuleAspectHandler`**.
 
-Коли ви створюєте міксин за допомогою `Reflector.makeClassDecorator()`, ви передаєте йому функцію-трансформер. Цей трансформер повинен повертати інстанс класу, який розширює `ModuleAspectHandler`:
+Коли ви створюєте аспект за допомогою `Reflector.makeClassDecorator()`, ви передаєте йому функцію-трансформер. Цей трансформер повинен повертати інстанс класу, який розширює `ModuleAspectHandler`:
 
 ```ts {24-26,46,50}
 import {
@@ -53,9 +53,9 @@ import {
 // ...
 
 /**
- * Об'єкт цього типу буде передано безпосередньо декоратору mixin - @mixinSome({ one: 1, two: 2 })
+ * Об'єкт цього типу буде передано безпосередньо декоратору aspect - @aspectSome({ one: 1, two: 2 })
  */
-interface MyStaticMixinOptions extends StaticAspectOptions<DynamicAspectOptions> {
+interface MyStaticAspectOptions extends StaticAspectOptions<DynamicAspectOptions> {
   one?: number;
   two?: number;
 }
@@ -63,7 +63,7 @@ interface MyStaticMixinOptions extends StaticAspectOptions<DynamicAspectOptions>
 /**
  * Методи цього класу нормалізуватимуть та перевірятимуть метадані модуля.
  */
-class MixinHandler extends ModuleAspectHandler<MyStaticMixinOptions> {
+class AspectHandler extends ModuleAspectHandler<MyStaticAspectOptions> {
   // ...
 }
 
@@ -76,28 +76,28 @@ interface DynamicAspectOptions extends DynamicModuleOptions {
 }
 
 /**
- * Модульні міксини перетворюють об'єкт MyStaticMixinOptions на об'єкт цього типу.
+ * Модульні аспекти перетворюють об'єкт MyStaticAspectOptions на об'єкт цього типу.
  */
 interface MyNormalizedModuleMeta extends BaseNormalizedModuleMeta {
   normalizedModuleMeta: NormalizedModuleMeta;
-  mixinDecoratorOptions: RootModuleOptions;
+  aspectDecoratorOptions: RootModuleOptions;
 }
 
-function transformMixinOptions(data?: MyStaticMixinOptions): ModuleAspectHandler<MyStaticMixinOptions> {
+function transformAspectOptions(data?: MyStaticAspectOptions): ModuleAspectHandler<MyStaticAspectOptions> {
   const metadata = Object.assign({}, data);
-  const mixinHandler = new MixinHandler(metadata);
-  mixinHandler.moduleRole = undefined;
-  // OR mixinHandler.moduleRole = 'root';
-  // OR mixinHandler.moduleRole = 'feature';
-  return mixinHandler;
+  const aspectHandler = new AspectHandler(metadata);
+  aspectHandler.moduleRole = undefined;
+  // OR aspectHandler.moduleRole = 'root';
+  // OR aspectHandler.moduleRole = 'feature';
+  return aspectHandler;
 }
 
-// Створення декоратора міксинів
-const mixinSome: ModuleAspectDecorator<MyStaticMixinOptions, DynamicAspectOptions, MyNormalizedModuleMeta> =
-  Reflector.makeClassDecorator(transformMixinOptions);
+// Створення декоратора аспектів
+const aspectSome: ModuleAspectDecorator<MyStaticAspectOptions, DynamicAspectOptions, MyNormalizedModuleMeta> =
+  Reflector.makeClassDecorator(transformAspectOptions);
 
-// Використання декоратора міксинів
-@mixinSome({ one: 1, two: 2 })
+// Використання декоратора аспектів
+@aspectSome({ one: 1, two: 2 })
 export class SomeModule {}
 ```
 
@@ -108,11 +108,11 @@ export class SomeModule {}
 Залежно від ролі, визначеної через властивість `moduleRole` класу `ModuleAspectHandler` (що повертається функцією-трансформером), aspect-декоратори взаємодіють з базовими декораторами - `rootModule` та `featureModule` - по-різному:
 
 - **Декоратори-замінники**: коли `moduleRole` дорівнює `'root'` або `'feature'`, відповідні декоратори виступають у ролі повноцінних декораторів модуля (наприклад, `@restRootModule` або `@restModule`). Клас, анотований ними, не потребує додаткового використання `@featureModule` чи `@rootModule`. Фреймворк автоматично розпізнає їхню роль і опрацьовує їх.
-- **Декоратори-модифікатори**: коли `moduleRole` дорівнює `undefined`, відповідні декоратори лише модифікують/розширюють метадані. Таким декораторам рекомендується давати префікс `mixin*` (наприклад, `@aspectRest`, `@aspectTrpc`). Клас, анотований ними, **обов'язково** повинен мати базовий декоратор модуля або декоратор-замінник. Якщо базовий декоратор модуля відсутній, фреймворк кине помилку `MissingModuleDecorator`.
+- **Декоратори-модифікатори**: коли `moduleRole` дорівнює `undefined`, відповідні декоратори лише модифікують/розширюють метадані. Таким декораторам рекомендується давати префікс `aspect*` (наприклад, `@aspectRest`, `@aspectTrpc`). Клас, анотований ними, **обов'язково** повинен мати базовий декоратор модуля або декоратор-замінник. Якщо базовий декоратор модуля відсутній, фреймворк кине помилку `MissingModuleDecorator`.
 
 Кілька декораторів-модифікаторів можна застосовувати одночасно до одного класу модуля (наприклад, для додавання метаданих REST або tRPC до одного й того самого модуля).
 
-## Групування aspect-декораторів через `decoratorId` {#grouping-mixin-decorators}
+## Групування aspect-декораторів через `decoratorId` {#grouping-aspect-decorators}
 
 При створенні декоратора-замінника (з роллю `'root'` або `'feature'`) за допомогою `Reflector.makeClassDecorator()`, ви **обов'язково** повинні передати базовий декоратор-модифікатор (наприклад, `aspectRest`) як третій аргумент. Цей третій аргумент працює як `decoratorId`. Він вказує Holu, що ці декоратори належать до однієї групи, дозволяючи фреймворку правильно збирати, нормалізувати та пов'язувати метадані з відповідним контекстом групи під час ініціалізації.
 
@@ -120,14 +120,14 @@ export class SomeModule {}
 
 Базовий клас `ModuleAspectHandler` надає кілька властивостей життєвого циклу та методів, які ви можете перевизначити для керування обробкою метаданих.
 
-### Відокремлення модуля фіч від aspect-декоратора {#separation-of-feature-module-and-mixin-decorator-using-hostmodule}
+### Відокремлення модуля фіч від aspect-декоратора {#separation-of-feature-module-and-aspect-decorator-using-hostmodule}
 
 Відокремлення оголошення хендлера aspect-декоратора від хост-модуля фіч є необхідністю для уникнення циклічних залежностей (оскільки декоратор імпортує модуль, а декорування хост-модуля ним самим створило б цикл імпорту). Продовжуючи наш попередній приклад:
 
 1. Створіть стандартний модуль фіч (наприклад, `MyLibModule`), що містить усі необхідні розширення, дефолтні провайдери та сервіси.
-2. Оновіть ваш підклас `ModuleAspectHandler` (`MixinHandler`), встановивши `override hostModule = MyLibModule`.
+2. Оновіть ваш підклас `ModuleAspectHandler` (`AspectHandler`), встановивши `override hostModule = MyLibModule`.
 3. Створіть нову функцію-трансформер, яка встановлює `handler.moduleRole = 'feature'` (або `'root'`).
-4. Створіть декоратор-замінник (наприклад, `myFeatureModule`) за допомогою `Reflector.makeClassDecorator()`, передавши трансформер, ім'я та базовий декоратор-модифікатор (`mixinSome`) як третій аргумент (`decoratorId`).
+4. Створіть декоратор-замінник (наприклад, `myFeatureModule`) за допомогою `Reflector.makeClassDecorator()`, передавши трансформер, ім'я та базовий декоратор-модифікатор (`aspectSome`) як третій аргумент (`decoratorId`).
 5. Коли розробники застосовуватимуть цей декоратор (наприклад, `@myFeatureModule`), фреймворк розпізнаватиме його як декоратор модуля (потребуючи лише одного декоратора на класі замість двох) та автоматично імпортуватиме `MyLibModule`.
 
 Ось як це виглядає:
@@ -142,20 +142,20 @@ import { featureModule, Reflector } from '@holu/core';
 })
 export class MyLibModule {}
 
-// 2. Кастомний хендлер, що встановлює hostModule (оновлюємо наш MixinHandler з попереднього прикладу)
-class MixinHandler extends ModuleAspectHandler<MyStaticMixinOptions> {
+// 2. Кастомний хендлер, що встановлює hostModule (оновлюємо наш AspectHandler з попереднього прикладу)
+class AspectHandler extends ModuleAspectHandler<MyStaticAspectOptions> {
   override hostModule = MyLibModule;
 }
 
 // 3. Створення трансформера, який встановлює moduleRole = 'feature'
 function transformFeatureMeta(data?: any) {
-  const handler = new MixinHandler(data);
+  const handler = new AspectHandler(data);
   handler.moduleRole = 'feature'; // Робить його декоратором-замінником модуля
   return handler;
 }
 
-// 4. Створення декоратора-замінника, передаючи mixinSome (з попереднього прикладу) як 3-й аргумент
-export const myFeatureModule = Reflector.makeClassDecorator(transformFeatureMeta, 'myFeatureModule', mixinSome);
+// 4. Створення декоратора-замінника, передаючи aspectSome (з попереднього прикладу) як 3-й аргумент
+export const myFeatureModule = Reflector.makeClassDecorator(transformFeatureMeta, 'myFeatureModule', aspectSome);
 
 // 5. Використання лише одного декоратора на класі (автоматично імпортує MyLibModule)
 @myFeatureModule()
@@ -168,9 +168,9 @@ export class MyFeatureModule {}
 
 1. Кастомні параметри (такі як `path` або `guards`) автоматично додаються в Map, використовуючи у якості ключа декоратор-aspect:
     ```ts
-    dynamicModule.aspectOptions.set(mixinDecorator, { path: 'some-path' });
+    dynamicModule.aspectOptions.set(aspectDecorator, { path: 'some-path' });
     ```
-2. Якщо імпортований модуль має лише `@featureModule` (без aspect-декораторів), фреймворк отримує дефолтний клас mixin для цього декоратора з контексту застосунку, клонує його, реєструє у `moduleAspectMap` модуля та викликає метод `normalize()`.
+2. Якщо імпортований модуль має лише `@featureModule` (без aspect-декораторів), фреймворк отримує дефолтний клас aspect для цього декоратора з контексту застосунку, клонує його, реєструє у `moduleAspectMap` модуля та викликає метод `normalize()`.
 3. Це забезпечує коректну обробку кастомних опцій (таких як REST префікси маршрутів та гарди), навіть при імпорті стандартних модулів фіч, які не мають кастомних анотацій aspect-декораторів.
 
 [1]: /basic-components/modules/#DynamicModule

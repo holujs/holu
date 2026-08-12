@@ -3,7 +3,7 @@ import {
   featureModule,
   forwardRef,
   ModuleManager,
-  DynamicModuleWithMixinOptions,
+  DynamicModuleWithAspectOptions,
   DynamicModule,
   ProviderBuilder,
   rootModule,
@@ -14,7 +14,7 @@ import { aspectRest, restRootModule } from '#decorators/rest-module-aspects.js';
 import { controller } from '#types/controller.js';
 import { CanActivate, NormalizedGuard } from '#interceptors/guard.js';
 import { RequestContext } from '#services/request-context.js';
-import { RestAppendOptions } from './rest-mixin-raw-meta.js';
+import { RestAppendOptions } from './rest-aspect-raw-meta.js';
 import { RestModule } from './rest.module.js';
 import { NormalizationFailure, ReexportFailure } from '@holu/core/errors';
 
@@ -27,12 +27,12 @@ describe('rest ModuleNormalizer', () => {
     moduleManager = new ModuleManager(systemLogMediator);
   });
 
-  it('module and append - both with params and without mixin decorator', () => {
+  it('module and append - both with params and without aspect decorator', () => {
     class Service0 {}
 
     @featureModule({ providersPerApp: [Service0] })
     class Module1 {
-      static withOpts(): DynamicModuleWithMixinOptions<Module1> {
+      static withOpts(): DynamicModuleWithAspectOptions<Module1> {
         return {
           module: this,
           aspectOptions: new Map(),
@@ -80,7 +80,7 @@ describe('rest ModuleNormalizer', () => {
 
     @featureModule({ providersPerApp: [Service0] })
     class Module2 {
-      static withOpts(id: string): DynamicModuleWithMixinOptions<Module2> {
+      static withOpts(id: string): DynamicModuleWithAspectOptions<Module2> {
         return {
           id,
           module: this,
@@ -232,7 +232,7 @@ describe('rest ModuleNormalizer', () => {
     })
     @featureModule({ providersPerMod: [Service5] })
     class Module1 {
-      static withOpts(): DynamicModuleWithMixinOptions<Module1> {
+      static withOpts(): DynamicModuleWithAspectOptions<Module1> {
         return {
           module: this,
           aspectOptions: new Map(),

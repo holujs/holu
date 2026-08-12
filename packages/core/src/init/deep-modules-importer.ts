@@ -79,9 +79,9 @@ export class DeepModulesImporter {
           normalizedModuleMeta.providersPerMod.unshift(...targetProviders.providersPerMod);
           normalizedModuleMeta.providersPerRou.unshift(...targetProviders.providersPerRou);
           normalizedModuleMeta.providersPerReq.unshift(...targetProviders.providersPerReq);
-          normalizedModuleMeta.allModuleAspectsMap.forEach((moduleMixin, decorator) => {
+          normalizedModuleMeta.allModuleAspectsMap.forEach((moduleAspect, decorator) => {
             const shallowImportedModule = initImportRegistryMap.get(decorator)!;
-            const deepImports = moduleMixin.importModulesDeep({
+            const deepImports = moduleAspect.importModulesDeep({
               parent: this,
               shallowModuleImports: shallowImportedModule,
               moduleManager: this.moduleManager,

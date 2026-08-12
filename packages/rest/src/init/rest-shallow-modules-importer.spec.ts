@@ -17,7 +17,7 @@ import {
 } from '@holu/core';
 
 import { controller } from '#types/controller.js';
-import { RestAppendOptions } from './rest-mixin-raw-meta.js';
+import { RestAppendOptions } from './rest-aspect-raw-meta.js';
 import { aspectRest } from '#decorators/rest-module-aspects.js';
 import { RestShallowModulesImporter } from './rest-shallow-modules-importer.js';
 import { Level } from '#types/types.js';
@@ -100,8 +100,8 @@ describe('shallow importing modules', () => {
     class AppModule {}
 
     const normalizedModuleMeta = moduleManager.scanRootModule(AppModule);
-    const moduleMixin = normalizedModuleMeta.allModuleAspectsMap.get(aspectRest)!;
-    moduleMixin.exportAppProviders({
+    const moduleAspect = normalizedModuleMeta.allModuleAspectsMap.get(aspectRest)!;
+    moduleAspect.exportAppProviders({
       moduleManager,
       appProviders: new AppProviders(),
       normalizedModuleMeta,

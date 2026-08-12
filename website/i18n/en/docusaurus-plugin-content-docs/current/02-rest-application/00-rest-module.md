@@ -7,7 +7,7 @@ title: "@holu/rest"
 
 As the name suggests, the `@holu/rest` module provides support for [REST][0]. It includes:
 
-- [mixin decorators][4] for the root module and the feature module - `restRootModule`, `restModule`;
+- [aspect decorators][4] for the root module and the feature module - `restRootModule`, `restModule`;
 - extensions that provide REST route creation - `RestRouteExtension`, `DispatcherExtension`;
 - a router of the following type:
 

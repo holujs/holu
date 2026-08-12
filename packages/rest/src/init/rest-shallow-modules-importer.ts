@@ -13,10 +13,10 @@ import {
 import { ProvidersCollision, LevelCollisionNotFound, AppCollisionNotFound } from '@holu/core/errors';
 
 import type { ModuleScopedGuard } from '#interceptors/guard.js';
-import type { RestModRefId } from '#init/rest-mixin-meta.js';
-import { RestAspectMeta } from '#init/rest-mixin-meta.js';
+import type { RestModRefId } from '#init/rest-aspect-meta.js';
+import { RestAspectMeta } from '#init/rest-aspect-meta.js';
 import type { Level, RestAppProviders } from '#types/types.js';
-import { aspectRest, RestModuleMixinHandler } from '#decorators/rest-module-aspects.js';
+import { aspectRest, RestModuleAspectHandler } from '#decorators/rest-module-aspects.js';
 import type { ImportModulesShallowConfig, RestImportedProvider, RestShallowModuleImports } from './types.js';
 import { ModuleIncludesInImportsAndAppends } from '#errors';
 import { ModuleMustHaveControllers } from '#services/rest-errors.js';
@@ -60,10 +60,10 @@ export class RestShallowModulesImporter {
     this.appProviders = appProviders;
     this.moduleName = normalizedModuleMeta.name;
     this.normalizedModuleMeta = normalizedModuleMeta;
-    this.meta = this.getMixinMeta(normalizedModuleMeta);
+    this.meta = this.getAspectMeta(normalizedModuleMeta);
 
     return {
-      moduleMixin: new RestModuleMixinHandler({}),
+      moduleAspect: new RestModuleAspectHandler({}),
     };
   }
 
@@ -82,9 +82,9 @@ export class RestShallowModulesImporter {
     this.moduleManager = moduleManager;
     const normalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta(modRefId, true);
     this.normalizedModuleMeta = normalizedModuleMeta;
-    this.meta = this.getMixinMeta(normalizedModuleMeta);
+    this.meta = this.getAspectMeta(normalizedModuleMeta);
     this.appProviders = appProviders;
-    this.restGlProviders = appProviders.mixinValueMap.get(aspectRest) as RestAppProviders;
+    this.restGlProviders = appProviders.aspectValueMap.get(aspectRest) as RestAppProviders;
     this.prefixPerMod = prefixPerMod || '';
     this.moduleName = normalizedModuleMeta.name;
     this.guardsPerMod = guardsPerMod || [];
@@ -106,7 +106,7 @@ export class RestShallowModulesImporter {
     });
   }
 
-  protected getMixinMeta(normalizedModuleMeta: NormalizedModuleMeta): RestAspectMeta {
+  protected getAspectMeta(normalizedModuleMeta: NormalizedModuleMeta): RestAspectMeta {
     let meta = normalizedModuleMeta.normalizedAspectMetaMap.get(aspectRest);
     if (!meta) {
       meta = createAspectMetaProxy(normalizedModuleMeta, RestAspectMeta);
@@ -133,7 +133,7 @@ export class RestShallowModulesImporter {
       if (this.unfinishedScanModules.has(modRefId)) {
         continue;
       }
-      const meta = this.getMixinMeta(normalizedModuleMeta);
+      const meta = this.getAspectMeta(normalizedModuleMeta);
       const { prefixPerMod, guardsPerMod } = this.getPrefixAndGuards(modRefId, meta, isImport);
       const shallowModulesImporter = new RestShallowModulesImporter();
       this.unfinishedScanModules.add(modRefId);
@@ -217,7 +217,7 @@ export class RestShallowModulesImporter {
   protected checkImportsAndAppends(normalizedModuleMeta: NormalizedModuleMeta, meta1: RestAspectMeta) {
     meta1.appendsModules.concat(meta1.appendsWithOpts as any[]).forEach((modRefId) => {
       const appendedNormalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta(modRefId, true);
-      const meta2 = this.getMixinMeta(appendedNormalizedModuleMeta);
+      const meta2 = this.getAspectMeta(appendedNormalizedModuleMeta);
       if (!meta2.controllers.length) {
         throw new ModuleMustHaveControllers(normalizedModuleMeta.name, appendedNormalizedModuleMeta.name);
       }

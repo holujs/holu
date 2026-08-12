@@ -65,10 +65,10 @@ export class FeatureModuleOptions<T extends AnyObj = AnyObj> {
    */
   declare resolvedCollisionsPerReq?: [any, ModRefId | ForwardRefFn<ModRefId>][];
   /**
-   * Whether this module inherits module mixins / context (like REST or tRPC) from parent modules.
+   * Whether this module inherits module aspects / context (like REST or tRPC) from parent modules.
    * By default, it is true for local modules and false for external modules.
    */
-  declare inheritsMixins?: boolean;
+  declare inheritsAspects?: boolean;
 }
 
 /**
@@ -107,15 +107,15 @@ export interface DynamicModuleOptions<E extends AnyObj = AnyObj> extends Partial
  */
 export interface DynamicModule<M extends AnyObj = AnyObj> extends BaseDynamicModule<M>, DynamicModuleOptions {
   /**
-   * If the current module has this property populated, this means it was used in the context of mixin decorators.
+   * If the current module has this property populated, this means it was used in the context of aspect decorators.
    */
   aspectOptions?: DynamicAspectOptionsMap;
 }
 /**
  * This interface differs from {@link DynamicModule} only in that it requires the presence of the `aspectOptions` property.
- * It is convenient to use in static module methods that return a dynamic module configured with mixin options.
+ * It is convenient to use in static module methods that return a dynamic module configured with aspect options.
  */
-export interface DynamicModuleWithMixinOptions<M extends AnyObj = AnyObj> extends DynamicModule<M> {
+export interface DynamicModuleWithAspectOptions<M extends AnyObj = AnyObj> extends DynamicModule<M> {
   aspectOptions: DynamicAspectOptionsMap;
 }
 

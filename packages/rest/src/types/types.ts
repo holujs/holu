@@ -1,13 +1,13 @@
 import type { HttpMethod, NormalizedModuleMeta } from '@holu/core';
-import { ModuleInfo, AppModuleMixins } from '@holu/core';
+import { ModuleInfo, AppModuleAspects } from '@holu/core';
 
 import type { Tree } from '#services/tree.js';
 import type { ModuleScopedGuard } from '#interceptors/guard.js';
 import type { RouteHandler } from '#services/router.js';
 import type { ControllerMeta } from './controller-metadata.js';
-import type { RestAspectMeta } from '#init/rest-mixin-meta.js';
+import type { RestAspectMeta } from '#init/rest-aspect-meta.js';
 
-export class RestAppProviders extends AppModuleMixins {}
+export class RestAppProviders extends AppModuleAspects {}
 
 /**
  * See also https://en.wikipedia.org/wiki/URL_redirection#HTTP_status_codes_3xx

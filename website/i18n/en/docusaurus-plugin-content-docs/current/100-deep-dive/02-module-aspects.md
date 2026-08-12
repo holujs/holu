@@ -31,9 +31,9 @@ In contrast, aspect decorators provide hooks that actively participate in the **
   export class AppModule {}
   ```
 
-- **Establishing architectural context**: Mixins can apply a unified architectural context (like REST or tRPC) to an entire tree of standard modules (using plain `@featureModule()`). This keeps your feature modules highly reusable.
+- **Establishing architectural context**: Aspects can apply a unified architectural context (like REST or tRPC) to an entire tree of standard modules (using plain `@featureModule()`). This keeps your feature modules highly reusable.
 
-**Mixin decorators** are custom decorators applied to module classes to pass metadata with extended data types. They can act either as full module decorators (for root or feature modules) or as modifiers that extend an already declared module.
+**Aspect decorators** are custom decorators applied to module classes to pass metadata with extended data types. They can act either as full module decorators (for root or feature modules) or as modifiers that extend an already declared module.
 
 Since these decorators accept module metadata with extended types, they need a way to normalize and validate this metadata. This is where the **`ModuleAspectHandler`** base class comes in. 
 
@@ -53,9 +53,9 @@ import {
 // ...
 
 /**
- * An object with this type will be passed directly to the mixin decorator - @mixinSome({ one: 1, two: 2 })
+ * An object with this type will be passed directly to the aspect decorator - @aspectSome({ one: 1, two: 2 })
  */
-interface MyStaticMixinOptions extends StaticAspectOptions<DynamicAspectOptions> {
+interface MyStaticAspectOptions extends StaticAspectOptions<DynamicAspectOptions> {
   one?: number;
   two?: number;
 }
@@ -63,7 +63,7 @@ interface MyStaticMixinOptions extends StaticAspectOptions<DynamicAspectOptions>
 /**
  * The methods of this class will normalize and validate the module metadata.
  */
-class MixinHandler extends ModuleAspectHandler<MyStaticMixinOptions> {
+class AspectHandler extends ModuleAspectHandler<MyStaticAspectOptions> {
   // ...
 }
 
@@ -76,28 +76,28 @@ interface DynamicAspectOptions extends DynamicModuleOptions {
 }
 
 /**
- * Module aspects transform an object of MyStaticMixinOptions into an object of that type.
+ * Module aspects transform an object of MyStaticAspectOptions into an object of that type.
  */
 interface MyNormalizedModuleMeta extends BaseNormalizedModuleMeta {
   normalizedModuleMeta: NormalizedModuleMeta;
-  mixinDecoratorOptions: RootModuleOptions;
+  aspectDecoratorOptions: RootModuleOptions;
 }
 
-function transformMixinOptions(data?: MyStaticMixinOptions): ModuleAspectHandler<MyStaticMixinOptions> {
+function transformAspectOptions(data?: MyStaticAspectOptions): ModuleAspectHandler<MyStaticAspectOptions> {
   const metadata = Object.assign({}, data);
-  const mixinHandler = new MixinHandler(metadata);
-  mixinHandler.moduleRole = undefined;
-  // OR mixinHandler.moduleRole = 'root';
-  // OR mixinHandler.moduleRole = 'feature';
-  return mixinHandler;
+  const aspectHandler = new AspectHandler(metadata);
+  aspectHandler.moduleRole = undefined;
+  // OR aspectHandler.moduleRole = 'root';
+  // OR aspectHandler.moduleRole = 'feature';
+  return aspectHandler;
 }
 
-// Creating the mixin decorator
-const mixinSome: ModuleAspectDecorator<MyStaticMixinOptions, DynamicAspectOptions, MyNormalizedModuleMeta> =
-  Reflector.makeClassDecorator(transformMixinOptions);
+// Creating the aspect decorator
+const aspectSome: ModuleAspectDecorator<MyStaticAspectOptions, DynamicAspectOptions, MyNormalizedModuleMeta> =
+  Reflector.makeClassDecorator(transformAspectOptions);
 
-// Using mixin decorator
-@mixinSome({ one: 1, two: 2 })
+// Using aspect decorator
+@aspectSome({ one: 1, two: 2 })
 export class SomeModule {}
 ```
 
@@ -108,11 +108,11 @@ export class SomeModule {}
 Depending on the role defined by the `moduleRole` property of the `ModuleAspectHandler` class (which is returned by the transformer function), aspect decorators interact differently with standard decorators - `rootModule` and `featureModule`:
 
 - **Substitute Decorators**: when `moduleRole` is `'root'` or `'feature'`, the corresponding decorators act as full module decorators (e.g., `@restRootModule` or `@restModule`). A class annotated with them does not require `@featureModule` or `@rootModule`. The framework automatically recognizes their role and processes them.
-- **Modifier Decorators**: when `moduleRole` is `undefined`, the corresponding decorators only modify/extend the metadata. Such decorators usually have a `mixin*` prefix (e.g., `@aspectRest`, `@aspectTrpc`). A class annotated with them **must** also have a standard module decorator or a substitute decorator. If no module decorator is present, the framework throws a `MissingModuleDecorator` exception.
+- **Modifier Decorators**: when `moduleRole` is `undefined`, the corresponding decorators only modify/extend the metadata. Such decorators usually have a `aspect*` prefix (e.g., `@aspectRest`, `@aspectTrpc`). A class annotated with them **must** also have a standard module decorator or a substitute decorator. If no module decorator is present, the framework throws a `MissingModuleDecorator` exception.
 
 Multiple modifier decorators can be stacked on a single class (for example, to add REST or tRPC metadata to the same module).
 
-## Grouping Aspect Decorators with `decoratorId` {#grouping-mixin-decorators}
+## Grouping Aspect Decorators with `decoratorId` {#grouping-aspect-decorators}
 
 When creating a substitute decorator (with `'root'` or `'feature'` role) using `Reflector.makeClassDecorator()`, you **must** pass the base modifier decorator (e.g. `aspectRest`) as the third argument. This third argument serves as the `decoratorId`. It tells Holu that these decorators belong to the same group, enabling the framework to correctly collect, normalize, and associate metadata with the proper group context during initialization.
 
@@ -120,14 +120,14 @@ When creating a substitute decorator (with `'root'` or `'feature'` role) using `
 
 The `ModuleAspectHandler` base class provides several lifecycle properties and methods you can override to control metadata processing.
 
-### Separation of Feature Module and Mixin Decorator {#separation-of-feature-module-and-mixin-decorator-using-hostmodule}
+### Separation of Feature Module and Aspect Decorator {#separation-of-feature-module-and-aspect-decorator-using-hostmodule}
 
-Separating the mixin decorator's handler definitions from the host feature module is necessary to avoid circular dependencies (since the decorator imports the module, decorating the module with its own decorator would create an import loop). Building upon our earlier example:
+Separating the aspect decorator's handler definitions from the host feature module is necessary to avoid circular dependencies (since the decorator imports the module, decorating the module with its own decorator would create an import loop). Building upon our earlier example:
 
 1. Create a standard feature module (e.g., `MyLibModule`) containing all necessary extensions, default providers, and services.
-2. Update your `ModuleAspectHandler` subclass (`MixinHandler`) to set `override hostModule = MyLibModule`.
+2. Update your `ModuleAspectHandler` subclass (`AspectHandler`) to set `override hostModule = MyLibModule`.
 3. Create a new transformer function that sets `handler.moduleRole = 'feature'` (or `'root'`).
-4. Create the substitute custom decorator (e.g., `myFeatureModule`) using `Reflector.makeClassDecorator()`, passing the transformer, its name, and the base modifier decorator (`mixinSome`) as the third argument (`decoratorId`).
+4. Create the substitute custom decorator (e.g., `myFeatureModule`) using `Reflector.makeClassDecorator()`, passing the transformer, its name, and the base modifier decorator (`aspectSome`) as the third argument (`decoratorId`).
 5. When developers apply this decorator (e.g., `@myFeatureModule`), the framework recognizes it as a module decorator (requiring only one decorator on the class instead of two) and automatically imports `MyLibModule`.
 
 Here is how it looks:
@@ -142,20 +142,20 @@ import { featureModule, Reflector } from '@holu/core';
 })
 export class MyLibModule {}
 
-// 2. Custom handler setting hostModule (updates our MixinHandler from earlier)
-class MixinHandler extends ModuleAspectHandler<MyStaticMixinOptions> {
+// 2. Custom handler setting hostModule (updates our AspectHandler from earlier)
+class AspectHandler extends ModuleAspectHandler<MyStaticAspectOptions> {
   override hostModule = MyLibModule;
 }
 
 // 3. Creating the transformer that sets moduleRole = 'feature'
 function transformFeatureMeta(data?: any) {
-  const handler = new MixinHandler(data);
+  const handler = new AspectHandler(data);
   handler.moduleRole = 'feature'; // Makes it a substitute module decorator
   return handler;
 }
 
-// 4. Creating the substitute decorator, passing mixinSome (from earlier) as the 3rd argument
-export const myFeatureModule = Reflector.makeClassDecorator(transformFeatureMeta, 'myFeatureModule', mixinSome);
+// 4. Creating the substitute decorator, passing aspectSome (from earlier) as the 3rd argument
+export const myFeatureModule = Reflector.makeClassDecorator(transformFeatureMeta, 'myFeatureModule', aspectSome);
 
 // 5. Using only one decorator on the class (automatically imports MyLibModule)
 @myFeatureModule()

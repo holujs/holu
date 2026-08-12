@@ -19,11 +19,11 @@ export class ImportedProvider<T extends Provider = Provider> {
   declare reexporter?: ModRefId;
 }
 
-export class AppModuleMixins<T extends StaticAspectOptions = StaticAspectOptions> {
+export class AppModuleAspects<T extends StaticAspectOptions = StaticAspectOptions> {
   /**
    * The presence of this property indicates whether at least one app provider is exported.
    */
-  moduleMixin?: ModuleAspectHandler<T>;
+  moduleAspect?: ModuleAspectHandler<T>;
 }
 
 export class AppProviders {
@@ -36,7 +36,7 @@ export class AppProviders {
   importedExtensionProviders = new Map<ModRefId, Provider[]>();
   importedExtensionGroupTokens = new Map<ModRefId, Map<ExtensionClass, ExtensionGroupToken>>();
   importedExtensionConfigs: ExtensionConfig[] = [];
-  mixinValueMap = new Map<AnyFn, AppModuleMixins>();
+  aspectValueMap = new Map<AnyFn, AppModuleAspects>();
 }
 
 export class ResolvedModuleMeta<T extends AnyObj = AnyObj> {

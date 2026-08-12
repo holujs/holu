@@ -253,13 +253,13 @@ export class MutableModuleManager extends ModuleManager {
     }
   }
 
-  protected override propagateMixinsTopDown(startModule: ModRefId, parentMixins?: Map<any, any>, visited?: Set<ModRefId>) {
+  protected override propagateAspectsTopDown(startModule: ModRefId, parentAspects?: Map<any, any>, visited?: Set<ModRefId>) {
     // Override to fallback to snapshotMap if not in normalizedMetaMap
     if (!visited) {
       visited = new Set<ModRefId>();
     }
-    if (!parentMixins) {
-      parentMixins = new Map();
+    if (!parentAspects) {
+      parentAspects = new Map();
     }
     if (visited.has(startModule)) {
       return;
@@ -271,27 +271,27 @@ export class MutableModuleManager extends ModuleManager {
       return;
     }
 
-    const activeMixins = new Map(parentMixins);
-    meta.moduleAspectMap.forEach((moduleMixin, decoratorId) => {
-      activeMixins.set(decoratorId, moduleMixin);
+    const activeAspects = new Map(parentAspects);
+    meta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
+      activeAspects.set(decoratorId, moduleAspect);
     });
 
-    this.applyMixinsForDynamicModule(meta, activeMixins);
-    this.inheritParentMixins(meta, activeMixins);
+    this.applyAspectsForDynamicModule(meta, activeAspects);
+    this.inheritParentAspects(meta, activeAspects);
 
-    meta.moduleAspectMap.forEach((moduleMixin, decoratorId) => {
-      activeMixins.set(decoratorId, moduleMixin);
+    meta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
+      activeAspects.set(decoratorId, moduleAspect);
     });
 
     const children = this.childrenMap.get(startModule);
     if (children) {
       for (const child of children) {
-        this.propagateMixinsTopDown(child, activeMixins, visited);
+        this.propagateAspectsTopDown(child, activeAspects, visited);
       }
     }
   }
 
-  protected override accumulateMixinsBottomUp(startModule: ModRefId, visited?: Set<ModRefId>) {
+  protected override accumulateAspectsBottomUp(startModule: ModRefId, visited?: Set<ModRefId>) {
     if (!visited) {
       visited = new Set<ModRefId>();
     }
@@ -308,22 +308,22 @@ export class MutableModuleManager extends ModuleManager {
     const children = this.childrenMap.get(startModule);
     if (children) {
       for (const child of children) {
-        this.accumulateMixinsBottomUp(child, visited);
+        this.accumulateAspectsBottomUp(child, visited);
       }
 
       for (const child of children) {
         const childMeta = this.normalizedMetaMap.get(child) || this.state.snapshotMap.get(child);
-        childMeta?.allModuleAspectsMap.forEach((mixin, decoratorId) => {
+        childMeta?.allModuleAspectsMap.forEach((aspect, decoratorId) => {
           if (!meta.allModuleAspectsMap.has(decoratorId)) {
-            meta.allModuleAspectsMap.set(decoratorId, mixin);
+            meta.allModuleAspectsMap.set(decoratorId, aspect);
           }
         });
       }
     }
 
-    meta.allModuleAspectsMap.forEach((mixin, decoratorId) => {
+    meta.allModuleAspectsMap.forEach((aspect, decoratorId) => {
       if (!meta.moduleAspectMap.has(decoratorId) && !meta.normalizedAspectMetaMap.has(decoratorId)) {
-        const readOnlyMeta = mixin.clone().normalize(meta);
+        const readOnlyMeta = aspect.clone().normalize(meta);
         if (readOnlyMeta) {
           meta.normalizedAspectMetaMap.set(decoratorId, readOnlyMeta);
         }

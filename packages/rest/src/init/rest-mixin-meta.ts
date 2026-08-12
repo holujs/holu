@@ -2,7 +2,7 @@ import type { AnyObj, StaticModule, Class, ModRefId } from '@holu/core';
 import { BaseNormalizedModuleMeta } from '@holu/core';
 
 import type { NormalizedGuard } from '#interceptors/guard.js';
-import type { RestAppendOptions } from '#init/rest-mixin-raw-meta.js';
+import type { RestAppendOptions } from '#init/rest-aspect-raw-meta.js';
 
 class NormalizedParams {
   declare path?: string;

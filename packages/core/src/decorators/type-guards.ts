@@ -56,9 +56,9 @@ export function isModuleDecorator(arg?: any) {
   return isRootModule(arg) || isFeatureModule(arg);
 }
 
-export function isModuleWithModuleMixin(metadata?: ModuleAspectHandler<AnyObj>): metadata is ModuleAspectHandler<AnyObj>;
-export function isModuleWithModuleMixin(arg?: DecoratorMeta): arg is Required<DecoratorMeta<ModuleAspectHandler<AnyObj>>>;
-export function isModuleWithModuleMixin(arg?: any): boolean {
+export function isModuleWithModuleAspect(metadata?: ModuleAspectHandler<AnyObj>): metadata is ModuleAspectHandler<AnyObj>;
+export function isModuleWithModuleAspect(arg?: DecoratorMeta): arg is Required<DecoratorMeta<ModuleAspectHandler<AnyObj>>>;
+export function isModuleWithModuleAspect(arg?: any): boolean {
   if (arg instanceof DecoratorMeta) {
     return arg.value instanceof ModuleAspectHandler;
   } else {

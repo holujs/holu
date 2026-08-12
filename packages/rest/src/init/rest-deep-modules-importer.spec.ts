@@ -24,7 +24,7 @@ import { CanActivate, guard } from '#interceptors/guard.js';
 import { RequestContext } from '#services/request-context.js';
 import { aspectRest, restModule, restRootModule } from '#decorators/rest-module-aspects.js';
 import { RestResolvedModuleMeta } from './types.js';
-import { RestDynamicOptions } from './rest-mixin-raw-meta.js';
+import { RestDynamicOptions } from './rest-aspect-raw-meta.js';
 
 describe('DeepModulesImporter', () => {
   class AppInitializerMock extends AppInitializer {
@@ -62,7 +62,7 @@ describe('DeepModulesImporter', () => {
     clearDebugClassNames();
   });
 
-  it('synchronization between normalizedModuleMeta and mixinMeta remains', () => {
+  it('synchronization between normalizedModuleMeta and aspectMeta remains', () => {
     class Service1 {}
     class Service2 {}
     class Service3 {}
@@ -98,18 +98,18 @@ describe('DeepModulesImporter', () => {
     expect(rootNormalizedModuleMeta?.providersPerApp.includes(Service5)).toBeTruthy();
     expect(rootNormalizedModuleMeta?.providersPerMod.includes(Service6)).toBeTruthy();
 
-    const mod1MixinMeta = mod1NormalizedModuleMeta?.normalizedAspectMetaMap.get(aspectRest);
-    expect(mod1NormalizedModuleMeta?.providersPerApp).toBe(mod1MixinMeta?.providersPerApp);
-    expect(mod1NormalizedModuleMeta?.providersPerMod).toBe(mod1MixinMeta?.providersPerMod);
-    expect(mod1MixinMeta?.providersPerApp).toEqual([Service1, Service3]);
-    expect(mod1MixinMeta?.providersPerMod.includes(Service2)).toBeTruthy();
-    expect(mod1MixinMeta?.providersPerMod.includes(Service4)).toBeTruthy();
+    const mod1AspectMeta = mod1NormalizedModuleMeta?.normalizedAspectMetaMap.get(aspectRest);
+    expect(mod1NormalizedModuleMeta?.providersPerApp).toBe(mod1AspectMeta?.providersPerApp);
+    expect(mod1NormalizedModuleMeta?.providersPerMod).toBe(mod1AspectMeta?.providersPerMod);
+    expect(mod1AspectMeta?.providersPerApp).toEqual([Service1, Service3]);
+    expect(mod1AspectMeta?.providersPerMod.includes(Service2)).toBeTruthy();
+    expect(mod1AspectMeta?.providersPerMod.includes(Service4)).toBeTruthy();
 
-    const rootMixinMeta = rootNormalizedModuleMeta?.normalizedAspectMetaMap.get(aspectRest);
-    expect(rootNormalizedModuleMeta?.providersPerApp).toBe(rootMixinMeta?.providersPerApp);
-    expect(rootNormalizedModuleMeta?.providersPerMod).toBe(rootMixinMeta?.providersPerMod);
-    expect(rootMixinMeta?.providersPerApp.includes(Service5)).toBeTruthy();
-    expect(rootMixinMeta?.providersPerMod.includes(Service6)).toBeTruthy();
+    const rootAspectMeta = rootNormalizedModuleMeta?.normalizedAspectMetaMap.get(aspectRest);
+    expect(rootNormalizedModuleMeta?.providersPerApp).toBe(rootAspectMeta?.providersPerApp);
+    expect(rootNormalizedModuleMeta?.providersPerMod).toBe(rootAspectMeta?.providersPerMod);
+    expect(rootAspectMeta?.providersPerApp.includes(Service5)).toBeTruthy();
+    expect(rootAspectMeta?.providersPerMod.includes(Service6)).toBeTruthy();
   });
 
   it('reexport module that has aspectRest decorator', () => {
@@ -314,12 +314,12 @@ describe('DeepModulesImporter', () => {
     })
     class AppModule {}
 
-    const mixinMeta = getRestResolvedModuleMeta(AppModule)!.meta!;
+    const aspectMeta = getRestResolvedModuleMeta(AppModule)!.meta!;
     const arr = [Service3, Service4, Context];
-    expect(arr.every((item) => mixinMeta.providersPerRou.includes(item))).toBe(true);
-    expect([Context].every((item) => mixinMeta.providersPerReq.includes(item))).toBe(true);
-    expect(mixinMeta.providersPerMod.includes(Service1)).toBeTruthy();
-    expect(mixinMeta.providersPerMod.includes(Service2)).toBeTruthy();
+    expect(arr.every((item) => aspectMeta.providersPerRou.includes(item))).toBe(true);
+    expect([Context].every((item) => aspectMeta.providersPerReq.includes(item))).toBe(true);
+    expect(aspectMeta.providersPerMod.includes(Service1)).toBeTruthy();
+    expect(aspectMeta.providersPerMod.includes(Service2)).toBeTruthy();
   });
 
   it('circular dependencies in one module', () => {
@@ -445,11 +445,11 @@ describe('DeepModulesImporter', () => {
     @restRootModule({ imports: [Module2] })
     class AppModule {}
 
-    const mixinMeta = getRestResolvedModuleMeta(AppModule)!.meta!;
+    const aspectMeta = getRestResolvedModuleMeta(AppModule)!.meta!;
     const arr = [Context];
-    expect(arr.every((item) => mixinMeta.providersPerReq.includes(item))).toBe(true);
-    expect(mixinMeta.providersPerRou.includes(Service2)).toBe(true);
-    expect(mixinMeta.providersPerMod.includes(Service1)).toBeTruthy();
+    expect(arr.every((item) => aspectMeta.providersPerReq.includes(item))).toBe(true);
+    expect(aspectMeta.providersPerRou.includes(Service2)).toBe(true);
+    expect(aspectMeta.providersPerMod.includes(Service1)).toBeTruthy();
   });
 
   it('Service2 is not exported from the host module, but is imported into the AppModule because Service3 depends on it', () => {
@@ -472,12 +472,12 @@ describe('DeepModulesImporter', () => {
     })
     class AppModule {}
 
-    const mixinMeta = getRestResolvedModuleMeta(AppModule)!.meta!;
+    const aspectMeta = getRestResolvedModuleMeta(AppModule)!.meta!;
     const arr = [Context];
-    expect(arr.every((item) => mixinMeta.providersPerReq.includes(item))).toBe(true);
-    expect(mixinMeta.providersPerRou.includes(Service2)).toBeTruthy();
-    expect(mixinMeta.providersPerRou.includes(Service3)).toBeTruthy();
-    expect(mixinMeta.providersPerMod.includes(Service1)).toBeTruthy();
+    expect(arr.every((item) => aspectMeta.providersPerReq.includes(item))).toBe(true);
+    expect(aspectMeta.providersPerRou.includes(Service2)).toBeTruthy();
+    expect(aspectMeta.providersPerRou.includes(Service3)).toBeTruthy();
+    expect(aspectMeta.providersPerMod.includes(Service1)).toBeTruthy();
   });
 
   it('deep importer does not load the Service1 to AppModule as dependency because Service2 does not declare this dependency', () => {
@@ -505,9 +505,9 @@ describe('DeepModulesImporter', () => {
     @restRootModule({ providersPerRou: [Service3], exports: [Service3], imports: [Module2] })
     class AppModule {}
 
-    const mixinMeta = getRestResolvedModuleMeta(AppModule)!.meta!;
-    expect(mixinMeta.providersPerRou.includes(Service2)).toBe(true);
-    expect(mixinMeta.providersPerRou.includes(Service1)).toBe(false);
+    const aspectMeta = getRestResolvedModuleMeta(AppModule)!.meta!;
+    expect(aspectMeta.providersPerRou.includes(Service2)).toBe(true);
+    expect(aspectMeta.providersPerRou.includes(Service1)).toBe(false);
   });
 
   it(`By directly importing Module1, AppModule adds all providers from that module,
@@ -530,8 +530,8 @@ describe('DeepModulesImporter', () => {
     @rootModule({ imports: [Module1] })
     class AppModule {}
 
-    const mixinMeta = getRestResolvedModuleMeta(AppModule)!.meta!;
-    const injector = Injector.resolveAndCreate(mixinMeta.providersPerRou);
+    const aspectMeta = getRestResolvedModuleMeta(AppModule)!.meta!;
+    const injector = Injector.resolveAndCreate(aspectMeta.providersPerRou);
     expect(() => injector.get(Service2)).not.toThrow();
   });
 

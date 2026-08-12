@@ -180,8 +180,8 @@ export class AppInitializer implements BaseAppInitializer {
     }
     const mergedShallowModuleImportsMap: Map<ModRefId, ShallowModuleImports> = new Map();
     // @todo Refactor this.
-    allModuleAspectsMap.forEach((moduleMixin, decorator) => {
-      const val = moduleMixin.importModulesShallow({
+    allModuleAspectsMap.forEach((moduleAspect, decorator) => {
+      const val = moduleAspect.importModulesShallow({
         moduleManager,
         appProviders,
         modRefId,

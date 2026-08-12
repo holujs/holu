@@ -10,7 +10,7 @@ import type {
 } from '@holu/core';
 
 import type { ModuleScopedGuard } from '#interceptors/guard.js';
-import type { RestModRefId, RestAspectMeta } from '#init/rest-mixin-meta.js';
+import type { RestModRefId, RestAspectMeta } from '#init/rest-aspect-meta.js';
 
 export class RestImportedProvider<T extends Provider = Provider> {
   modRefId: RestModRefId;

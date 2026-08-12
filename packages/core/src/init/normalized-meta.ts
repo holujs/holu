@@ -118,9 +118,9 @@ export class BaseNormalizedModuleMeta<A extends AnyObj = AnyObj> {
  */
 export function createAspectMetaProxy<T extends BaseNormalizedModuleMeta>(
   normalizedModuleMeta: NormalizedModuleMeta,
-  MixinMetaClass: Class<T>,
+  AspectMetaClass: Class<T>,
 ): T {
-  return new Proxy(new MixinMetaClass(), {
+  return new Proxy(new AspectMetaClass(), {
     get(meta, prop: keyof NormalizedModuleMeta, proxy) {
       if (Reflect.has(normalizedModuleMeta, prop)) {
         return Reflect.get(normalizedModuleMeta, prop, proxy);
@@ -131,7 +131,7 @@ export function createAspectMetaProxy<T extends BaseNormalizedModuleMeta>(
     set(meta, prop: keyof NormalizedModuleMeta, value, proxy) {
       if (Reflect.has(normalizedModuleMeta, prop) && Reflect.has(meta, prop)) {
         // @todo Create special error
-        const msg = `${prop} is reserved for internal use by NormalizedModuleMeta. You cannot use ${MixinMetaClass.name}.${prop}.`;
+        const msg = `${prop} is reserved for internal use by NormalizedModuleMeta. You cannot use ${AspectMetaClass.name}.${prop}.`;
         throw new TypeError(msg);
       } else if (Reflect.has(normalizedModuleMeta, prop)) {
         return Reflect.set(normalizedModuleMeta, prop, value, proxy);
@@ -175,7 +175,7 @@ export class NormalizedModuleMeta<
    *
    * Indicates whether this module inherits aspects from parent modules.
    */
-  inheritsMixins?: boolean;
+  inheritsAspects?: boolean;
   /**
    * Contains instances of `ModuleAspectHandler` collected from current module.
    */
@@ -259,22 +259,22 @@ export class NormalizedModuleMeta<
     copy.exportedExtensionGroupTokensMap = new Map(copy.exportedExtensionGroupTokensMap);
     copy.normalizedAspectMetaMap = new Map();
     copy.moduleAspectMap = new Map();
-    this.moduleAspectMap.forEach((moduleMixin, decoratorId) => {
-      const clonedMixin = moduleMixin.clone(moduleMixin.moduleOptions);
-      copy.moduleAspectMap.set(decoratorId, clonedMixin);
-      const meta = clonedMixin.normalize(copy);
+    this.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
+      const clonedAspect = moduleAspect.clone(moduleAspect.moduleOptions);
+      copy.moduleAspectMap.set(decoratorId, clonedAspect);
+      const meta = clonedAspect.normalize(copy);
       if (meta) {
         copy.normalizedAspectMetaMap.set(decoratorId, meta);
       }
     });
     copy.allModuleAspectsMap = new Map();
-    this.allModuleAspectsMap.forEach((moduleMixin, decoratorId) => {
-      const clonedMixin = (
-        copy.moduleAspectMap.has(decoratorId) ? copy.moduleAspectMap.get(decoratorId) : moduleMixin.clone()
+    this.allModuleAspectsMap.forEach((moduleAspect, decoratorId) => {
+      const clonedAspect = (
+        copy.moduleAspectMap.has(decoratorId) ? copy.moduleAspectMap.get(decoratorId) : moduleAspect.clone()
       ) as ModuleAspectHandler;
-      copy.allModuleAspectsMap.set(decoratorId, clonedMixin);
+      copy.allModuleAspectsMap.set(decoratorId, clonedAspect);
       if (!copy.moduleAspectMap.has(decoratorId)) {
-        const meta = clonedMixin.normalize(copy);
+        const meta = clonedAspect.normalize(copy);
         if (meta) {
           copy.normalizedAspectMetaMap.set(decoratorId, meta);
         }

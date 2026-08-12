@@ -12,9 +12,9 @@ import {
 } from '@holu/core';
 import { ForbiddenNormalizedExport, EmptyModuleMeta } from '@holu/core/errors';
 
-import type { RestAppendOptions, RestStaticOptions } from '#init/rest-mixin-raw-meta.js';
-import type { RestModRefId } from '#init/rest-mixin-meta.js';
-import { RestAspectMeta } from '#init/rest-mixin-meta.js';
+import type { RestAppendOptions, RestStaticOptions } from '#init/rest-aspect-raw-meta.js';
+import type { RestModRefId } from '#init/rest-aspect-meta.js';
+import { RestAspectMeta } from '#init/rest-aspect-meta.js';
 import { isAppendsWithOptions, isControllerDecorator } from '#types/type.guards.js';
 import type { GuardItem, NormalizedGuard } from '#interceptors/guard.js';
 import { aspectRest } from '#decorators/rest-module-aspects.js';

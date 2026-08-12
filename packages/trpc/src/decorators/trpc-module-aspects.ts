@@ -14,7 +14,7 @@ import type {
   SystemLogMediator,
   ForwardRefFn,
 } from '@holu/core';
-import { Reflector, ModuleAspectHandler, BaseNormalizedModuleMeta, AppModuleMixins } from '@holu/core';
+import { Reflector, ModuleAspectHandler, BaseNormalizedModuleMeta, AppModuleAspects } from '@holu/core';
 
 import { TrpcModule } from '../trpc.module.js';
 import { TrpcModuleNormalizer } from '#init/trpc-module-normalizer.js';
@@ -38,7 +38,7 @@ export interface TrpcDynamicOptions extends DynamicModuleOptions {
 }
 
 /**
- * Metadata for the `mixinTrpcModule` decorator, which adds TRPC metadata to a `featureModule` or `rootModule`.
+ * Metadata for the `aspectTrpcModule` decorator, which adds TRPC metadata to a `featureModule` or `rootModule`.
  */
 export interface TrpcStaticOptions extends StaticAspectOptions<TrpcDynamicOptions> {
   /**
@@ -47,30 +47,30 @@ export interface TrpcStaticOptions extends StaticAspectOptions<TrpcDynamicOption
   controllers?: Class[];
 }
 
-export const mixinTrpcModule: ModuleAspectDecorator<TrpcStaticOptions, TrpcDynamicOptions, TrpcAspectMeta> = Reflector.makeClassDecorator(
-  transformMixinMeta,
-  'mixinTrpcModule',
+export const aspectTrpcModule: ModuleAspectDecorator<TrpcStaticOptions, TrpcDynamicOptions, TrpcAspectMeta> = Reflector.makeClassDecorator(
+  transformAspectMeta,
+  'aspectTrpcModule',
 );
 export const trpcRootModule: ModuleAspectDecorator<
   TrpcStaticOptions & { resolvedCollisionsPerApp?: [any, ModRefId | ForwardRefFn<StaticModule>][] },
   TrpcDynamicOptions,
   TrpcAspectMeta
-> = Reflector.makeClassDecorator(transformRootMetadata, 'trpcRootModule', mixinTrpcModule);
+> = Reflector.makeClassDecorator(transformRootMetadata, 'trpcRootModule', aspectTrpcModule);
 export const trpcModule: ModuleAspectDecorator<TrpcStaticOptions, TrpcDynamicOptions, TrpcAspectMeta> = Reflector.makeClassDecorator(
   transformFeatureMetadata,
   'trpcModule',
-  mixinTrpcModule,
+  aspectTrpcModule,
 );
 
-export function transformMixinMeta(data?: TrpcStaticOptions): ModuleAspectHandler<TrpcStaticOptions> {
+export function transformAspectMeta(data?: TrpcStaticOptions): ModuleAspectHandler<TrpcStaticOptions> {
   const metadata = Object.assign({}, data);
-  return new TrpcModuleMixinHandler(metadata);
+  return new TrpcModuleAspectHandler(metadata);
 }
 export function transformRootMetadata(data?: TrpcStaticOptions): ModuleAspectHandler<TrpcStaticOptions> {
   const metadata = Object.assign({}, data);
-  const moduleMixin = new TrpcModuleMixinHandler(metadata);
-  moduleMixin.moduleRole = 'root';
-  return moduleMixin;
+  const moduleAspect = new TrpcModuleAspectHandler(metadata);
+  moduleAspect.moduleRole = 'root';
+  return moduleAspect;
 }
 export function transformFeatureMetadata(data?: TrpcStaticOptions): ModuleAspectHandler<TrpcStaticOptions> {
   const metadata = transformRootMetadata(data);
@@ -78,7 +78,7 @@ export function transformFeatureMetadata(data?: TrpcStaticOptions): ModuleAspect
   return metadata;
 }
 
-export class TrpcModuleMixinHandler extends ModuleAspectHandler<TrpcStaticOptions> {
+export class TrpcModuleAspectHandler extends ModuleAspectHandler<TrpcStaticOptions> {
   override hostModule = TrpcModule;
 
   override normalize(normalizedModuleMeta: NormalizedModuleMeta): TrpcAspectMeta {
@@ -137,4 +137,4 @@ export class TrpcShallowModuleImports {
   meta: TrpcAspectMeta;
 }
 
-export class TrpcAppProviders extends AppModuleMixins {}
+export class TrpcAppProviders extends AppModuleAspects {}

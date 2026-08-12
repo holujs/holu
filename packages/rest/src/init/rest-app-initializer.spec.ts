@@ -11,7 +11,7 @@ import {
   rootModule,
   SystemLogMediator,
   ImportedProvider,
-  DynamicModuleWithMixinOptions,
+  DynamicModuleWithAspectOptions,
   ModRefId,
   ShallowModuleImports,
 } from '@holu/core';
@@ -87,7 +87,7 @@ describe('RestAppInitializer', () => {
     class Module5 {}
 
     const module2WithOpts: DynamicModule = Module2.withOpts();
-    const module3WithOpts: DynamicModuleWithMixinOptions = { module: Module3, aspectOptions: new Map() };
+    const module3WithOpts: DynamicModuleWithAspectOptions = { module: Module3, aspectOptions: new Map() };
     module3WithOpts.aspectOptions.set(aspectRest, { path: 'one' });
     const module4WithOpts: DynamicModule = { module: Module4 };
     @rootModule({

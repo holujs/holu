@@ -1,4 +1,4 @@
-import { DynamicAspectOptionsMap, DynamicModuleWithMixinOptions } from '@holu/core';
+import { DynamicAspectOptionsMap, DynamicModuleWithAspectOptions } from '@holu/core';
 import { ValidationModule } from '@holu/openapi-validation';
 import { BodyParserModule } from '@holu/body-parser';
 import { aspectRest, restModule } from '@holu/rest';
@@ -10,7 +10,7 @@ import { FirstController } from './first.controller.js';
   controllers: [FirstController],
 })
 export class FirstModule {
-  static withPath(path?: string): DynamicModuleWithMixinOptions<FirstModule> {
+  static withPath(path?: string): DynamicModuleWithAspectOptions<FirstModule> {
     const aspectOptions: DynamicAspectOptionsMap = new Map();
     aspectOptions.set(aspectRest, { path });
 

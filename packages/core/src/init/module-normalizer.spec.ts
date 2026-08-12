@@ -9,7 +9,7 @@ import { ModRefId, type StaticModule } from '#decorators/module-decorator-option
 import {
   DynamicModuleOptions,
   FeatureModuleOptions,
-  DynamicModuleWithMixinOptions,
+  DynamicModuleWithAspectOptions,
   DynamicModule,
 } from '#decorators/module-decorator-options.js';
 import { clearDebugClassNames } from '#utils/get-debug-class-name.js';
@@ -49,7 +49,7 @@ describe('ModuleNormalizer', () => {
   });
 
   describe('base module metadata', () => {
-    it('normalizes an empty root module without requiring providers, exports, extensions, or module mixins', () => {
+    it('normalizes an empty root module without requiring providers, exports, extensions, or module aspects', () => {
       @rootModule()
       class AppModule {}
 
@@ -583,35 +583,35 @@ describe('ModuleNormalizer', () => {
     });
   });
 
-  describe('mixin decorators', () => {
-    interface SomeMixinDynamicOptions extends DynamicModuleOptions {
+  describe('aspect decorators', () => {
+    interface SomeAspectDynamicOptions extends DynamicModuleOptions {
       path?: string;
       num?: number;
     }
 
-    interface SomeMixinOptions extends StaticAspectOptions<SomeMixinDynamicOptions> {
+    interface SomeAspectOptions extends StaticAspectOptions<SomeAspectDynamicOptions> {
       one?: number;
       two?: number;
       flag?: boolean;
       appends?: ({ module: ModRefId } & AnyObj)[];
     }
 
-    class SomeMixinMeta extends BaseNormalizedModuleMeta {
+    class SomeAspectMeta extends BaseNormalizedModuleMeta {
       normalizedModuleMeta?: NormalizedModuleMeta;
-      aspectOptions?: SomeMixinOptions;
+      aspectOptions?: SomeAspectOptions;
       flag?: boolean;
       path?: string;
       targetModRefId?: ModRefId;
     }
 
-    class SomeModuleMixin extends ModuleAspectHandler<SomeMixinOptions> {
+    class SomeModuleAspect extends ModuleAspectHandler<SomeAspectOptions> {
       override normalize(normalizedModuleMeta: NormalizedModuleMeta) {
-        const meta = createAspectMetaProxy(normalizedModuleMeta, SomeMixinMeta);
+        const meta = createAspectMetaProxy(normalizedModuleMeta, SomeAspectMeta);
         meta.normalizedModuleMeta = normalizedModuleMeta;
         meta.aspectOptions = this.moduleOptions;
 
         if (isDynamicModule(normalizedModuleMeta.modRefId)) {
-          const params = normalizedModuleMeta.modRefId.aspectOptions?.get(mixinSome);
+          const params = normalizedModuleMeta.modRefId.aspectOptions?.get(aspectSome);
           meta.path = params?.path;
           meta.targetModRefId = normalizedModuleMeta.modRefId;
         } else {
@@ -623,30 +623,30 @@ describe('ModuleNormalizer', () => {
       }
     }
 
-    function getModuleMixin(data?: SomeMixinOptions): ModuleAspectHandler<SomeMixinOptions> {
-      return new SomeModuleMixin(Object.assign({}, data));
+    function getModuleAspect(data?: SomeAspectOptions): ModuleAspectHandler<SomeAspectOptions> {
+      return new SomeModuleAspect(Object.assign({}, data));
     }
 
-    const mixinSome: ModuleAspectDecorator<SomeMixinOptions, SomeMixinDynamicOptions, SomeMixinMeta> = Reflector.makeClassDecorator(
-      getModuleMixin,
-      'mixinSome',
+    const aspectSome: ModuleAspectDecorator<SomeAspectOptions, SomeAspectDynamicOptions, SomeAspectMeta> = Reflector.makeClassDecorator(
+      getModuleAspect,
+      'aspectSome',
     );
 
     it('stores metadata returned by ModuleAspectHandler.normalize() in normalizedModuleMeta.normalizedAspectMetaMap', () => {
-      const moduleOptions: SomeMixinOptions = { one: 1, two: 2, flag: true };
+      const moduleOptions: SomeAspectOptions = { one: 1, two: 2, flag: true };
 
-      @mixinSome(moduleOptions)
+      @aspectSome(moduleOptions)
       @featureModule()
       class Module1 {}
 
-      const mixinMeta = normalizer.normalize(Module1).normalizedAspectMetaMap.get(mixinSome);
-      expect(mixinMeta?.normalizedModuleMeta?.modRefId).toBe(Module1);
-      expect(mixinMeta?.aspectOptions).toEqual(moduleOptions);
-      expect(mixinMeta?.targetModRefId).toBe(Module1);
-      expect(mixinMeta?.flag).toBe(true);
+      const aspectMeta = normalizer.normalize(Module1).normalizedAspectMetaMap.get(aspectSome);
+      expect(aspectMeta?.normalizedModuleMeta?.modRefId).toBe(Module1);
+      expect(aspectMeta?.aspectOptions).toEqual(moduleOptions);
+      expect(aspectMeta?.targetModRefId).toBe(Module1);
+      expect(aspectMeta?.flag).toBe(true);
     });
 
-    it('normalizes providers, exports, extensions, and extensionsMeta declared by an mixin decorator', () => {
+    it('normalizes providers, exports, extensions, and extensionsMeta declared by an aspect decorator', () => {
       class Service1 {}
 
       @injectable()
@@ -654,7 +654,7 @@ describe('ModuleNormalizer', () => {
         async stage1() {}
       }
 
-      @mixinSome({
+      @aspectSome({
         providersPerMod: [Service1],
         exports: [Service1],
         extensions: [{ extension: Extension1, export: true }],
@@ -682,7 +682,7 @@ describe('ModuleNormalizer', () => {
       @featureModule()
       class Module2 {}
 
-      const dynamicModule1: DynamicModuleWithMixinOptions & SomeMixinDynamicOptions = {
+      const dynamicModule1: DynamicModuleWithAspectOptions & SomeAspectDynamicOptions = {
         module: Module1,
         providersPerMod: [Service1],
         providersPerApp: [Service3],
@@ -690,37 +690,37 @@ describe('ModuleNormalizer', () => {
         num: 4,
         aspectOptions: new Map(),
       };
-      dynamicModule1.aspectOptions.set(mixinSome, { path: 'path-1' });
+      dynamicModule1.aspectOptions.set(aspectSome, { path: 'path-1' });
 
-      const dynamicModule2: DynamicModuleWithMixinOptions & SomeMixinDynamicOptions = {
+      const dynamicModule2: DynamicModuleWithAspectOptions & SomeAspectDynamicOptions = {
         module: Module2,
         providersPerApp: [Service2],
         num: 12,
         extensionsMeta: { four: 4 },
         aspectOptions: new Map(),
       };
-      dynamicModule2.aspectOptions.set(mixinSome, {
+      dynamicModule2.aspectOptions.set(aspectSome, {
         path: 'path-2',
         providersPerApp: [Service1],
         num: 11,
         extensionsMeta: { three: 3 },
       });
 
-      @mixinSome({
+      @aspectSome({
         imports: [{ dynamicModule: dynamicModule1, providersPerMod: [Service2], extensionsMeta: { two: 2 }, num: 5 }, dynamicModule2],
       })
       @rootModule()
       class AppModule {}
 
       normalizer.normalize(AppModule);
-      expect(dynamicModule1.aspectOptions.get(mixinSome)).toEqual<SomeMixinDynamicOptions>({
+      expect(dynamicModule1.aspectOptions.get(aspectSome)).toEqual<SomeAspectDynamicOptions>({
         path: 'path-1',
         providersPerMod: [Service1, Service2],
         extensionsMeta: { one: 1, two: 2 },
         num: 5,
         providersPerApp: [Service3],
       });
-      expect(dynamicModule2.aspectOptions.get(mixinSome)).toEqual<SomeMixinDynamicOptions>({
+      expect(dynamicModule2.aspectOptions.get(aspectSome)).toEqual<SomeAspectDynamicOptions>({
         providersPerApp: [Service1, Service2],
         num: 12,
         extensionsMeta: { three: 3, four: 4 },
@@ -728,7 +728,7 @@ describe('ModuleNormalizer', () => {
       });
     });
 
-    it('normalizes mixin decorator imports and exports for module classes, DynamicModule objects, and wrappers', () => {
+    it('normalizes aspect decorator imports and exports for module classes, DynamicModule objects, and wrappers', () => {
       class Service1 {}
 
       @featureModule({ providersPerApp: [Service1] })
@@ -745,7 +745,7 @@ describe('ModuleNormalizer', () => {
       class Module4 {}
       const dynamicModule4: DynamicModule = { module: Module4 };
 
-      @mixinSome({
+      @aspectSome({
         imports: [Module1, dynamicModule2, { module: Module3 }, { dynamicModule: dynamicModule4 }],
         exports: [Module1, dynamicModule2, dynamicModule4],
       })
@@ -763,7 +763,7 @@ describe('ModuleNormalizer', () => {
       expect(normalizedModuleMeta.exportedDynamicModules).toEqual([dynamicModule2, dynamicModule4]);
     });
 
-    it('resolves forwardRef in mixin decorator imports and exports', () => {
+    it('resolves forwardRef in aspect decorator imports and exports', () => {
       class Service1 {}
 
       @featureModule({ providersPerApp: [Service1] })
@@ -780,7 +780,7 @@ describe('ModuleNormalizer', () => {
       class Module4 {}
       const dynamicModule4: DynamicModule = { module: forwardRef(() => Module4) };
 
-      @mixinSome({
+      @aspectSome({
         imports: [forwardRef(() => Module1), dynamicModule2, { module: forwardRef(() => Module3) }, { dynamicModule: dynamicModule4 }],
         exports: [forwardRef(() => Module1), dynamicModule2, dynamicModule4],
       })
@@ -800,40 +800,40 @@ describe('ModuleNormalizer', () => {
       expect(dynamicModule4.module).toBe(Module4);
     });
 
-    it('applies hostAspectOptions via applyHostMixinOptions method', () => {
+    it('applies hostAspectOptions via applyHostAspectOptions method', () => {
       @featureModule()
       class HostModule {}
 
-      class HostModuleMixin extends ModuleAspectHandler<SomeMixinOptions> {
+      class HostModuleAspect extends ModuleAspectHandler<SomeAspectOptions> {
         override hostModule = HostModule;
         override hostAspectOptions = { flag: true };
 
-        override normalize(normalizedModuleMeta: NormalizedModuleMeta): SomeMixinMeta {
+        override normalize(normalizedModuleMeta: NormalizedModuleMeta): SomeAspectMeta {
           return {
             flag: this.moduleOptions.flag,
             targetModRefId: normalizedModuleMeta.modRefId,
-          } as SomeMixinMeta;
+          } as SomeAspectMeta;
         }
       }
 
-      const hostInitSome: ModuleAspectDecorator<SomeMixinOptions, {}, {}> = Reflector.makeClassDecorator((data) => new HostModuleMixin(data));
-      const moduleMixin = new HostModuleMixin({}).clone({ flag: true });
+      const hostInitSome: ModuleAspectDecorator<SomeAspectOptions, {}, {}> = Reflector.makeClassDecorator((data) => new HostModuleAspect(data));
+      const moduleAspect = new HostModuleAspect({}).clone({ flag: true });
 
       const normalizedModuleMeta = normalizer.normalize(HostModule);
-      normalizer.applyHostMixinOptions(normalizedModuleMeta, hostInitSome, moduleMixin as any);
+      normalizer.applyHostAspectOptions(normalizedModuleMeta, hostInitSome, moduleAspect as any);
 
       expect(normalizedModuleMeta.normalizedAspectMetaMap.get(hostInitSome)).toEqual({ flag: true, targetModRefId: HostModule });
     });
 
-    it('imports the host module when an mixin decorator declares hostModule on a different module', () => {
+    it('imports the host module when an aspect decorator declares hostModule on a different module', () => {
       @featureModule()
       class HostModule {}
 
-      class HostModuleMixin extends ModuleAspectHandler<SomeMixinOptions> {
+      class HostModuleAspect extends ModuleAspectHandler<SomeAspectOptions> {
         override hostModule = HostModule;
       }
 
-      const hostInitSome: ModuleAspectDecorator<SomeMixinOptions, {}, {}> = Reflector.makeClassDecorator((data) => new HostModuleMixin(data));
+      const hostInitSome: ModuleAspectDecorator<SomeAspectOptions, {}, {}> = Reflector.makeClassDecorator((data) => new HostModuleAspect(data));
 
       class Service1 {}
 
@@ -992,12 +992,12 @@ describe('ModuleNormalizer', () => {
       expect(externalModuleNormalizer.normalize(HoluModule).isExternal).toBe(true);
     });
 
-    it('sets inheritsMixins from moduleOptions when explicitly specified', () => {
-      @featureModule({ inheritsMixins: false, providersPerApp: [{ token: 'tok', useValue: 1 }] })
+    it('sets inheritsAspects from moduleOptions when explicitly specified', () => {
+      @featureModule({ inheritsAspects: false, providersPerApp: [{ token: 'tok', useValue: 1 }] })
       class Module1 {}
 
       const normalizedModuleMeta = normalizer.normalize(Module1);
-      expect(normalizedModuleMeta.inheritsMixins).toBe(false);
+      expect(normalizedModuleMeta.inheritsAspects).toBe(false);
     });
   });
 });

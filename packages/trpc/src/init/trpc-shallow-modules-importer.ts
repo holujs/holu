@@ -7,7 +7,7 @@ import type {
   TrpcModRefId,
   TrpcShallowModuleImports,
 } from '#decorators/trpc-module-aspects.js';
-import { mixinTrpcModule, TrpcModuleMixinHandler, TrpcAspectMeta } from '#decorators/trpc-module-aspects.js';
+import { aspectTrpcModule, TrpcModuleAspectHandler, TrpcAspectMeta } from '#decorators/trpc-module-aspects.js';
 import type { ModuleScopedGuard } from '#interceptors/trpc-guard.js';
 
 /**
@@ -48,10 +48,10 @@ export class TrpcShallowModulesImporter {
     this.glProviders = appProviders;
     this.moduleName = normalizedModuleMeta.name;
     this.normalizedModuleMeta = normalizedModuleMeta;
-    this.meta = this.getMixinMeta(normalizedModuleMeta);
+    this.meta = this.getAspectMeta(normalizedModuleMeta);
 
     return {
-      moduleMixin: new TrpcModuleMixinHandler({}),
+      moduleAspect: new TrpcModuleAspectHandler({}),
     };
   }
 
@@ -68,9 +68,9 @@ export class TrpcShallowModulesImporter {
     this.moduleManager = moduleManager;
     const normalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta(modRefId, true);
     this.normalizedModuleMeta = normalizedModuleMeta;
-    this.meta = this.getMixinMeta(normalizedModuleMeta);
+    this.meta = this.getAspectMeta(normalizedModuleMeta);
     this.glProviders = appProviders;
-    this.trpcGlProviders = appProviders.mixinValueMap.get(mixinTrpcModule) as TrpcAppProviders;
+    this.trpcGlProviders = appProviders.aspectValueMap.get(aspectTrpcModule) as TrpcAppProviders;
     this.moduleName = normalizedModuleMeta.name;
     this.guardsPerMod = guardsPerMod || [];
     this.unfinishedScanModules = unfinishedScanModules;
@@ -86,11 +86,11 @@ export class TrpcShallowModulesImporter {
     });
   }
 
-  protected getMixinMeta(normalizedModuleMeta: NormalizedModuleMeta): TrpcAspectMeta {
-    let meta = normalizedModuleMeta.normalizedAspectMetaMap.get(mixinTrpcModule);
+  protected getAspectMeta(normalizedModuleMeta: NormalizedModuleMeta): TrpcAspectMeta {
+    let meta = normalizedModuleMeta.normalizedAspectMetaMap.get(aspectTrpcModule);
     if (!meta) {
       meta = createAspectMetaProxy(normalizedModuleMeta, TrpcAspectMeta);
-      normalizedModuleMeta.normalizedAspectMetaMap.set(mixinTrpcModule, meta);
+      normalizedModuleMeta.normalizedAspectMetaMap.set(aspectTrpcModule, meta);
     }
     return meta;
   }
@@ -101,7 +101,7 @@ export class TrpcShallowModulesImporter {
       if (this.unfinishedScanModules.has(modRefId)) {
         continue;
       }
-      const meta = this.getMixinMeta(normalizedModuleMeta);
+      const meta = this.getAspectMeta(normalizedModuleMeta);
       const { guardsPerMod } = this.getPrefixAndGuards(modRefId, meta, isImport);
       const shallowModulesImporter = new TrpcShallowModulesImporter();
       this.unfinishedScanModules.add(modRefId);

@@ -11,7 +11,7 @@ export { BaseApplication } from '#init/base-application.js';
 export { StandaloneApplication } from '#init/standalone-application.js';
 export { BaseAppOptions } from '#init/base-app-options.js';
 export { DeepModulesImporter } from '#init/deep-modules-importer.js';
-export { AppProviders, AppModuleMixins } from '#types/metadata-per-mod.js';
+export { AppProviders, AppModuleAspects } from '#types/metadata-per-mod.js';
 export { ShallowModulesImporter } from '#init/shallow-modules-importer.js';
 export { defaultProvidersPerApp } from '#init/default-providers-per-app.js';
 export { OnModuleInit, BeforeShutdown, OnShutdown, SHUTDOWN_SIGNALS } from '#init/hooks.js';
@@ -69,7 +69,7 @@ export {
 export {
   FeatureModuleOptions,
   DynamicModule,
-  DynamicModuleWithMixinOptions,
+  DynamicModuleWithAspectOptions,
   BaseDynamicModule,
   DynamicModuleOptions,
   StaticModule,
@@ -93,7 +93,7 @@ export { getDebugClassName, clearDebugClassNames } from '#utils/get-debug-class-
 export { getProviderTarget, getProvidersTargets, getToken, getTokens } from '#utils/get-tokens.js';
 export {
   isDynamicModule,
-  isModuleWithModuleMixin,
+  isModuleWithModuleAspect,
   isFeatureModule,
   isModuleDecorator,
   isRootModule,

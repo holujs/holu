@@ -1,7 +1,7 @@
 import type { ModRefId, NormalizedModuleMeta, ModuleAspectDecorator, Provider, ForwardRefFn, StaticModule } from '@holu/core';
 import { Reflector, ModuleAspectHandler } from '@holu/core';
 
-import type { RestStaticOptions, RestDynamicOptions } from '#init/rest-mixin-raw-meta.js';
+import type { RestStaticOptions, RestDynamicOptions } from '#init/rest-aspect-raw-meta.js';
 import { RestModuleNormalizer } from '#init/rest-module-normalizer.js';
 import { RestShallowModulesImporter } from '#init/rest-shallow-modules-importer.js';
 import type {
@@ -10,13 +10,13 @@ import type {
   ImportModulesShallowConfig,
   RestShallowModuleImports,
 } from '#init/types.js';
-import type { RestModRefId, RestAspectMeta } from '#init/rest-mixin-meta.js';
+import type { RestModRefId, RestAspectMeta } from '#init/rest-aspect-meta.js';
 import type { RestAppProviders } from '#types/types.js';
 import { RestModule } from '#init/rest.module.js';
 import { RestDeepModulesImporter } from '#init/rest-deep-modules-importer.js';
 
 export const aspectRest: ModuleAspectDecorator<RestStaticOptions, RestDynamicOptions, RestAspectMeta> = Reflector.makeClassDecorator(
-  transformMixinMeta,
+  transformAspectMeta,
   'aspectRest',
 );
 export const restRootModule: ModuleAspectDecorator<
@@ -30,15 +30,15 @@ export const restModule: ModuleAspectDecorator<RestStaticOptions, RestDynamicOpt
   aspectRest,
 );
 
-export function transformMixinMeta(data?: RestStaticOptions): ModuleAspectHandler<RestStaticOptions> {
+export function transformAspectMeta(data?: RestStaticOptions): ModuleAspectHandler<RestStaticOptions> {
   const metadata = Object.assign({}, data);
-  return new RestModuleMixinHandler(metadata);
+  return new RestModuleAspectHandler(metadata);
 }
 export function transformRootMeta(data?: RestStaticOptions): ModuleAspectHandler<RestStaticOptions> {
   const metadata = Object.assign({}, data);
-  const moduleMixin = new RestModuleMixinHandler(metadata);
-  moduleMixin.moduleRole = 'root';
-  return moduleMixin;
+  const moduleAspect = new RestModuleAspectHandler(metadata);
+  moduleAspect.moduleRole = 'root';
+  return moduleAspect;
 }
 export function transformFeatureMeta(data?: RestStaticOptions): ModuleAspectHandler<RestStaticOptions> {
   const metadata = transformRootMeta(data);
@@ -46,7 +46,7 @@ export function transformFeatureMeta(data?: RestStaticOptions): ModuleAspectHand
   return metadata;
 }
 
-export class RestModuleMixinHandler extends ModuleAspectHandler<RestStaticOptions> {
+export class RestModuleAspectHandler extends ModuleAspectHandler<RestStaticOptions> {
   override hostModule = RestModule;
 
   override normalize(normalizedModuleMeta: NormalizedModuleMeta): RestAspectMeta {

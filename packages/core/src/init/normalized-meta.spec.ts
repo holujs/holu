@@ -54,8 +54,8 @@ describe('NormalizedModuleMeta', () => {
     });
   });
 
-  it('should not mutate original moduleMixin instance when clone() calls normalize()', () => {
-    class MutatingMixin extends ModuleAspectHandler<any> {
+  it('should not mutate original moduleAspect instance when clone() calls normalize()', () => {
+    class MutatingAspect extends ModuleAspectHandler<any> {
       normalizedCount = 0;
       constructor() {
         super({});
@@ -67,20 +67,20 @@ describe('NormalizedModuleMeta', () => {
     }
 
     const original = new NormalizedModuleMeta();
-    const mixin = new MutatingMixin();
-    original.moduleAspectMap.set(MutatingMixin as any, mixin);
+    const aspect = new MutatingAspect();
+    original.moduleAspectMap.set(MutatingAspect as any, aspect);
 
-    expect(mixin.normalizedCount).toBe(0);
+    expect(aspect.normalizedCount).toBe(0);
 
     const copy = original.clone();
 
-    // The original mixin should remain untouched
-    expect(mixin.normalizedCount).toBe(0);
+    // The original aspect should remain untouched
+    expect(aspect.normalizedCount).toBe(0);
 
-    // The copied mixin in copy.moduleAspectMap should be a clone and should have been normalized
-    const copiedMixin = copy.moduleAspectMap.get(MutatingMixin as any) as unknown as MutatingMixin;
-    expect(copiedMixin).toBeDefined();
-    expect(copiedMixin).not.toBe(mixin);
-    expect(copiedMixin.normalizedCount).toBe(1);
+    // The copied aspect in copy.moduleAspectMap should be a clone and should have been normalized
+    const copiedAspect = copy.moduleAspectMap.get(MutatingAspect as any) as unknown as MutatingAspect;
+    expect(copiedAspect).toBeDefined();
+    expect(copiedAspect).not.toBe(aspect);
+    expect(copiedAspect.normalizedCount).toBe(1);
   });
 });
