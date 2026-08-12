@@ -483,24 +483,24 @@ describe('ModuleManager', () => {
     }
 
     it('should propagate allModuleAspectsMap so that they only contain module aspects imported into the current module', () => {
-      const aspectSome1: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleAspect1(data));
-      const aspectSome2: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleAspect2(data));
-      const aspectSome3: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleAspect3(data));
-      const aspectSome4: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleAspect4(data));
+      const someAspect1: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleAspect1(data));
+      const someAspect2: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleAspect2(data));
+      const someAspect3: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleAspect3(data));
+      const someAspect4: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleAspect4(data));
 
-      @aspectSome1({ name: '1' })
+      @someAspect1({ name: '1' })
       @featureModule()
       class Module1 {}
 
-      @aspectSome2({ name: '2' })
+      @someAspect2({ name: '2' })
       @featureModule({ imports: [Module1], providersPerApp: [Service1] })
       class Module2 {}
 
-      @aspectSome3({ name: '3' })
+      @someAspect3({ name: '3' })
       @featureModule({ imports: [Module2], providersPerApp: [Service1] })
       class Module3 {}
 
-      @aspectSome4({ name: '4' })
+      @someAspect4({ name: '4' })
       @rootModule({ imports: [Module3], providersPerApp: [Service1] })
       class Module4 {}
 
@@ -517,22 +517,22 @@ describe('ModuleManager', () => {
       expect(mock.getNormalizedModuleMeta(HostModule4, true).modRefId).toBe(HostModule4);
 
       expect(mod1.allModuleAspectsMap.size).toBe(1);
-      expect(mod1.allModuleAspectsMap.get(aspectSome1)?.hostModule).toBe(HostModule1);
+      expect(mod1.allModuleAspectsMap.get(someAspect1)?.hostModule).toBe(HostModule1);
 
       expect(mod2.allModuleAspectsMap.size).toBe(2);
-      expect(mod2.allModuleAspectsMap.get(aspectSome1)?.hostModule).toBe(HostModule1);
-      expect(mod2.allModuleAspectsMap.get(aspectSome2)?.hostModule).toBe(HostModule2);
+      expect(mod2.allModuleAspectsMap.get(someAspect1)?.hostModule).toBe(HostModule1);
+      expect(mod2.allModuleAspectsMap.get(someAspect2)?.hostModule).toBe(HostModule2);
 
       expect(mod3.allModuleAspectsMap.size).toBe(3);
-      expect(mod3.allModuleAspectsMap.get(aspectSome1)?.hostModule).toBe(HostModule1);
-      expect(mod3.allModuleAspectsMap.get(aspectSome2)?.hostModule).toBe(HostModule2);
-      expect(mod3.allModuleAspectsMap.get(aspectSome3)?.hostModule).toBe(HostModule3);
+      expect(mod3.allModuleAspectsMap.get(someAspect1)?.hostModule).toBe(HostModule1);
+      expect(mod3.allModuleAspectsMap.get(someAspect2)?.hostModule).toBe(HostModule2);
+      expect(mod3.allModuleAspectsMap.get(someAspect3)?.hostModule).toBe(HostModule3);
 
       expect(mod4.allModuleAspectsMap.size).toBe(4);
-      expect(mod4.allModuleAspectsMap.get(aspectSome1)?.hostModule).toBe(HostModule1);
-      expect(mod4.allModuleAspectsMap.get(aspectSome2)?.hostModule).toBe(HostModule2);
-      expect(mod4.allModuleAspectsMap.get(aspectSome3)?.hostModule).toBe(HostModule3);
-      expect(mod4.allModuleAspectsMap.get(aspectSome4)?.hostModule).toBe(HostModule4);
+      expect(mod4.allModuleAspectsMap.get(someAspect1)?.hostModule).toBe(HostModule1);
+      expect(mod4.allModuleAspectsMap.get(someAspect2)?.hostModule).toBe(HostModule2);
+      expect(mod4.allModuleAspectsMap.get(someAspect3)?.hostModule).toBe(HostModule3);
+      expect(mod4.allModuleAspectsMap.get(someAspect4)?.hostModule).toBe(HostModule4);
     });
 
     it('should handle Module1 not having an annotation with someAspect, but imported in AppModule with this decorator', () => {
@@ -676,10 +676,10 @@ describe('ModuleManager', () => {
       class ModuleAspect1 extends ModuleAspectHandler<DecoratorOptions1> {}
       class ModuleAspect2 extends ModuleAspectHandler<DecoratorOptions2> {}
 
-      const aspectSome1: ModuleAspectDecorator<DecoratorOptions1, {}, AspectMeta1> = Reflector.makeClassDecorator(
+      const someAspect1: ModuleAspectDecorator<DecoratorOptions1, {}, AspectMeta1> = Reflector.makeClassDecorator(
         (d) => new ModuleAspect1(d),
       );
-      const aspectSome2: ModuleAspectDecorator<DecoratorOptions2, {}, AspectMeta2> = Reflector.makeClassDecorator(
+      const someAspect2: ModuleAspectDecorator<DecoratorOptions2, {}, AspectMeta2> = Reflector.makeClassDecorator(
         (d) => new ModuleAspect2(d),
       );
 
@@ -696,16 +696,16 @@ describe('ModuleManager', () => {
       const dynamicModule2: DynamicModule = { module: Module2 };
       const dynamicModule3: DynamicModule = { module: Module3 };
 
-      @aspectSome1({
+      @someAspect1({
         imports: [
-          { dynamicModule: dynamicModule1, one: 'aspectSome1-1' },
-          { dynamicModule: dynamicModule3, one: 'aspectSome1-3' },
+          { dynamicModule: dynamicModule1, one: 'someAspect1-1' },
+          { dynamicModule: dynamicModule3, one: 'someAspect1-3' },
         ],
       })
-      @aspectSome2({
+      @someAspect2({
         imports: [
-          { dynamicModule: dynamicModule2, three: 'aspectSome2-2' },
-          { dynamicModule: dynamicModule3, three: 'aspectSome2-3' },
+          { dynamicModule: dynamicModule2, three: 'someAspect2-2' },
+          { dynamicModule: dynamicModule3, three: 'someAspect2-3' },
         ],
       })
       @rootModule()
@@ -716,9 +716,9 @@ describe('ModuleManager', () => {
       function getParams(dynamicModule: DynamicModule) {
         return [...(dynamicModule.aspectOptions?.values() || [])];
       }
-      expect(getParams(dynamicModule1)).toEqual([{ one: 'aspectSome1-1' }]);
-      expect(getParams(dynamicModule2)).toEqual([{ three: 'aspectSome2-2' }]);
-      expect(getParams(dynamicModule3)).toEqual([{ three: 'aspectSome2-3' }, { one: 'aspectSome1-3' }]);
+      expect(getParams(dynamicModule1)).toEqual([{ one: 'someAspect1-1' }]);
+      expect(getParams(dynamicModule2)).toEqual([{ three: 'someAspect2-2' }]);
+      expect(getParams(dynamicModule3)).toEqual([{ three: 'someAspect2-3' }, { one: 'someAspect1-3' }]);
     });
 
     it('should successfully apply hostAspectOptions to a host module even if it is imported before the aspect module', () => {

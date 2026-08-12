@@ -253,7 +253,11 @@ export class ModuleManager {
    *
    * Modules with their own aspect decorators keep them and do not inherit from the parent.
    */
-  protected propagateAspectsTopDown(startModule: ModRefId, parentAspects: AllModuleAspectsMap = new Map(), visited = new Set<ModRefId>()) {
+  protected propagateAspectsTopDown(
+    startModule: ModRefId,
+    parentAspects: AllModuleAspectsMap = new Map(),
+    visited = new Set<ModRefId>(),
+  ) {
     if (visited.has(startModule)) {
       return;
     }
