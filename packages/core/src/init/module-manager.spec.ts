@@ -535,7 +535,7 @@ describe('ModuleManager', () => {
       expect(mod4.allModuleAspectsMap.get(aspectSome4)?.hostModule).toBe(HostModule4);
     });
 
-    it('should handle Module1 not having an annotation with aspectSome, but imported in AppModule with this decorator', () => {
+    it('should handle Module1 not having an annotation with someAspect, but imported in AppModule with this decorator', () => {
       interface MyDynamicOptions extends DynamicModuleOptions {
         path?: string;
       }
@@ -549,14 +549,14 @@ describe('ModuleManager', () => {
       class ModuleAspect1 extends ModuleAspectHandler<RootModuleOptions> {
         override normalize({ modRefId }: NormalizedModuleMeta): AspectMeta {
           if (isDynamicModule(modRefId)) {
-            const params = modRefId.aspectOptions?.get(aspectSome);
+            const params = modRefId.aspectOptions?.get(someAspect);
             return { path: params?.path } as AspectMeta;
           }
           return {} as AspectMeta;
         }
       }
 
-      const aspectSome: ModuleAspectDecorator<RootModuleOptions, MyDynamicOptions, AspectMeta> = Reflector.makeClassDecorator(
+      const someAspect: ModuleAspectDecorator<RootModuleOptions, MyDynamicOptions, AspectMeta> = Reflector.makeClassDecorator(
         (d) => new ModuleAspect1(d),
       );
 
@@ -565,16 +565,16 @@ describe('ModuleManager', () => {
 
       const dynamicModule: DynamicModule = { module: Module1 };
 
-      @aspectSome({ one: 'some-here', imports: [{ dynamicModule: dynamicModule, path: 'some-prefix' }] })
+      @someAspect({ one: 'some-here', imports: [{ dynamicModule: dynamicModule, path: 'some-prefix' }] })
       @rootModule()
       class AppModule {}
 
       mock.scanRootModule(AppModule);
       const mod1 = mock.getNormalizedModuleMeta(dynamicModule)!;
-      expect(mod1.normalizedAspectMetaMap.get(aspectSome)).toEqual({ path: 'some-prefix' });
+      expect(mod1.normalizedAspectMetaMap.get(someAspect)).toEqual({ path: 'some-prefix' });
     });
 
-    it('should handle static Module1 not having an annotation with aspectSome, but imported in AppModule with this decorator', () => {
+    it('should handle static Module1 not having an annotation with someAspect, but imported in AppModule with this decorator', () => {
       interface MyDynamicOptions extends DynamicModuleOptions {
         path?: string;
       }
@@ -599,17 +599,17 @@ describe('ModuleManager', () => {
       @featureModule({ providersPerApp: [{ token: 'token1', useValue: 'value1' }] })
       class Module1 {}
 
-      const aspectSome: ModuleAspectDecorator<RootModuleOptions, { path?: string }, AspectMeta> = Reflector.makeClassDecorator(
+      const someAspect: ModuleAspectDecorator<RootModuleOptions, { path?: string }, AspectMeta> = Reflector.makeClassDecorator(
         (d) => new ModuleAspect1(d),
       );
 
-      @aspectSome({ one: 'some-here', imports: [Module1] })
+      @someAspect({ one: 'some-here', imports: [Module1] })
       @rootModule()
       class AppModule {}
 
       mock.scanRootModule(AppModule);
       const mod1 = mock.getNormalizedModuleMeta(Module1)!;
-      expect(mod1.normalizedAspectMetaMap.get(aspectSome)).toEqual({ path: 'static-default' });
+      expect(mod1.normalizedAspectMetaMap.get(someAspect)).toEqual({ path: 'static-default' });
       expect(mod1.importedStaticModules.includes(HostModule1)).toBe(true);
     });
 
@@ -634,7 +634,7 @@ describe('ModuleManager', () => {
         }
       }
 
-      const aspectSome: ModuleAspectDecorator<RootModuleOptions, { path?: string }, AspectMeta> = Reflector.makeClassDecorator(
+      const someAspect: ModuleAspectDecorator<RootModuleOptions, { path?: string }, AspectMeta> = Reflector.makeClassDecorator(
         (d) => new ModuleAspect1(d),
       );
 
@@ -644,13 +644,13 @@ describe('ModuleManager', () => {
       })
       class Module1 {}
 
-      @aspectSome({ one: 'some-here', imports: [Module1] })
+      @someAspect({ one: 'some-here', imports: [Module1] })
       @rootModule()
       class AppModule {}
 
       mock.scanRootModule(AppModule);
       const mod1 = mock.getNormalizedModuleMeta(Module1)!;
-      expect(mod1.normalizedAspectMetaMap.has(aspectSome)).toBe(false);
+      expect(mod1.normalizedAspectMetaMap.has(someAspect)).toBe(false);
       expect(mod1.importedStaticModules.includes(HostModule1)).toBe(false);
     });
 
@@ -738,9 +738,9 @@ describe('ModuleManager', () => {
         }
       }
 
-      const aspectSome: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new AspectHandler1(d));
+      const someAspect: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new AspectHandler1(d));
 
-      @aspectSome()
+      @someAspect()
       @featureModule()
       class AspectModule {}
 
@@ -751,8 +751,8 @@ describe('ModuleManager', () => {
       mock.scanRootModule(AppModule);
 
       const hostMeta = mock.getNormalizedModuleMeta(HostModule);
-      expect(hostMeta?.moduleAspectMap.has(aspectSome)).toBe(true);
-      const moduleAspectHandler = hostMeta?.moduleAspectMap.get(aspectSome);
+      expect(hostMeta?.moduleAspectMap.has(someAspect)).toBe(true);
+      const moduleAspectHandler = hostMeta?.moduleAspectMap.get(someAspect);
       expect(moduleAspectHandler?.moduleOptions).toEqual({ customProp: 'works' });
     });
     it('should accumulate the exact same allModuleAspectsMap in the parent regardless of import order', () => {

@@ -2,7 +2,7 @@ import type { AnyObj, StaticModule, Class, AnyFn, StaticAspectOptions, DynamicMo
 import type { GuardItem } from '#interceptors/guard.js';
 
 /**
- * Metadata for the `aspectRest` decorator, which adds REST metadata to a `featureModule` or `rootModule`.
+ * Metadata for the `restAspect` decorator, which adds REST metadata to a `featureModule` or `rootModule`.
  */
 export interface RestStaticOptions extends StaticAspectOptions<RestDynamicOptions> {
   /**

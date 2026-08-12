@@ -15,28 +15,28 @@ import type { RestAppProviders } from '#types/types.js';
 import { RestModule } from '#init/rest.module.js';
 import { RestDeepModulesImporter } from '#init/rest-deep-modules-importer.js';
 
-export const aspectRest: ModuleAspectDecorator<RestStaticOptions, RestDynamicOptions, RestAspectMeta> = Reflector.makeClassDecorator(
+export const restAspect: ModuleAspectDecorator<RestStaticOptions, RestDynamicOptions, RestAspectMeta> = Reflector.makeClassDecorator(
   transformAspectMeta,
-  'aspectRest',
+  'restAspect',
 );
 export const restRootModule: ModuleAspectDecorator<
   RestStaticOptions & { resolvedCollisionsPerApp?: [any, ModRefId | ForwardRefFn<StaticModule>][] },
   RestDynamicOptions,
   RestAspectMeta
-> = Reflector.makeClassDecorator(transformRootMeta, 'restRootModule', aspectRest);
+> = Reflector.makeClassDecorator(transformRootMeta, 'restRootModule', restAspect);
 export const restModule: ModuleAspectDecorator<RestStaticOptions, RestDynamicOptions, RestAspectMeta> = Reflector.makeClassDecorator(
   transformFeatureMeta,
   'restModule',
-  aspectRest,
+  restAspect,
 );
 
 export function transformAspectMeta(data?: RestStaticOptions): ModuleAspectHandler<RestStaticOptions> {
   const metadata = Object.assign({}, data);
-  return new RestModuleAspectHandler(metadata);
+  return new RestAspectHandler(metadata);
 }
 export function transformRootMeta(data?: RestStaticOptions): ModuleAspectHandler<RestStaticOptions> {
   const metadata = Object.assign({}, data);
-  const moduleAspect = new RestModuleAspectHandler(metadata);
+  const moduleAspect = new RestAspectHandler(metadata);
   moduleAspect.moduleRole = 'root';
   return moduleAspect;
 }
@@ -46,7 +46,7 @@ export function transformFeatureMeta(data?: RestStaticOptions): ModuleAspectHand
   return metadata;
 }
 
-export class RestModuleAspectHandler extends ModuleAspectHandler<RestStaticOptions> {
+export class RestAspectHandler extends ModuleAspectHandler<RestStaticOptions> {
   override hostModule = RestModule;
 
   override normalize(normalizedModuleMeta: NormalizedModuleMeta): RestAspectMeta {

@@ -402,13 +402,13 @@ describe('ModuleManager', () => {
         override normalize(normalizedModuleMeta: NormalizedModuleMeta): AspectMeta {
           const meta = createAspectMetaProxy(normalizedModuleMeta, AspectMeta);
           if (isDynamicModule(normalizedModuleMeta.modRefId)) {
-            const params = normalizedModuleMeta.modRefId.aspectOptions?.get(aspectSome);
+            const params = normalizedModuleMeta.modRefId.aspectOptions?.get(someAspect);
             meta.path = params?.path;
           }
           return meta;
         }
       }
-      const aspectSome: ModuleAspectDecorator<RootAspectOptions, { path?: string }, AspectMeta> = Reflector.makeClassDecorator(
+      const someAspect: ModuleAspectDecorator<RootAspectOptions, { path?: string }, AspectMeta> = Reflector.makeClassDecorator(
         (d) => new ModuleAspect1(d),
       );
 
@@ -417,7 +417,7 @@ describe('ModuleManager', () => {
 
       const dynamicModule: DynamicModule = { module: Module1 };
 
-      @aspectSome({ one: 'some-here', imports: [{ dynamicModule: dynamicModule, path: 'some-prefix' }] })
+      @someAspect({ one: 'some-here', imports: [{ dynamicModule: dynamicModule, path: 'some-prefix' }] })
       @rootModule()
       class AppModule {}
 
@@ -436,8 +436,8 @@ describe('ModuleManager', () => {
       expect(copiedMod1.normalizedAspectMetaMap).not.toBe(originalMod1.normalizedAspectMetaMap);
 
       // The proxy inside copiedMod1.normalizedAspectMetaMap should wrap copiedMod1.
-      const originalProxy = originalMod1.normalizedAspectMetaMap.get(aspectSome) as AspectMeta;
-      const copiedProxy = copiedMod1.normalizedAspectMetaMap.get(aspectSome) as AspectMeta;
+      const originalProxy = originalMod1.normalizedAspectMetaMap.get(someAspect) as AspectMeta;
+      const copiedProxy = copiedMod1.normalizedAspectMetaMap.get(someAspect) as AspectMeta;
 
       expect(copiedProxy).toBeDefined();
       expect(copiedProxy).not.toBe(originalProxy);

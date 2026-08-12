@@ -17,7 +17,7 @@ import type { RestModRefId } from '#init/rest-aspect-meta.js';
 import { RestAspectMeta } from '#init/rest-aspect-meta.js';
 import { isAppendsWithOptions, isControllerDecorator } from '#types/type.guards.js';
 import type { GuardItem, NormalizedGuard } from '#interceptors/guard.js';
-import { aspectRest } from '#decorators/rest-module-aspects.js';
+import { restAspect } from '#decorators/rest-module-aspects.js';
 import { ControllerDoesNotHaveDecorator, DuplicateOfControllers, InvalidGuard } from '#errors';
 
 /**
@@ -53,7 +53,7 @@ export class RestModuleNormalizer {
     } else if (!isDynamicModule(modRefId)) {
       return;
     }
-    const params = modRefId.aspectOptions?.get(aspectRest);
+    const params = modRefId.aspectOptions?.get(restAspect);
 
     if (params) {
       if (params.absolutePath !== undefined) {
@@ -76,9 +76,9 @@ export class RestModuleNormalizer {
         const params = { ...ap } as Partial<RestAppendOptions>;
         delete params.module;
         if (ap.aspectOptions) {
-          ap.aspectOptions.set(aspectRest, params);
+          ap.aspectOptions.set(restAspect, params);
         } else {
-          ap.aspectOptions = new Map([[aspectRest, params]]);
+          ap.aspectOptions = new Map([[restAspect, params]]);
         }
         this.meta.appendsWithOpts.push(ap);
       } else {

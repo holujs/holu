@@ -16,7 +16,7 @@ import type { ModuleScopedGuard } from '#interceptors/guard.js';
 import type { RestModRefId } from '#init/rest-aspect-meta.js';
 import { RestAspectMeta } from '#init/rest-aspect-meta.js';
 import type { Level, RestAppProviders } from '#types/types.js';
-import { aspectRest, RestModuleAspectHandler } from '#decorators/rest-module-aspects.js';
+import { restAspect, RestAspectHandler } from '#decorators/rest-module-aspects.js';
 import type { ImportModulesShallowConfig, RestImportedProvider, RestShallowModuleImports } from './types.js';
 import { ModuleIncludesInImportsAndAppends } from '#errors';
 import { ModuleMustHaveControllers } from '#services/rest-errors.js';
@@ -63,7 +63,7 @@ export class RestShallowModulesImporter {
     this.meta = this.getAspectMeta(normalizedModuleMeta);
 
     return {
-      moduleAspect: new RestModuleAspectHandler({}),
+      moduleAspect: new RestAspectHandler({}),
     };
   }
 
@@ -84,7 +84,7 @@ export class RestShallowModulesImporter {
     this.normalizedModuleMeta = normalizedModuleMeta;
     this.meta = this.getAspectMeta(normalizedModuleMeta);
     this.appProviders = appProviders;
-    this.restGlProviders = appProviders.aspectValueMap.get(aspectRest) as RestAppProviders;
+    this.restGlProviders = appProviders.aspectValueMap.get(restAspect) as RestAppProviders;
     this.prefixPerMod = prefixPerMod || '';
     this.moduleName = normalizedModuleMeta.name;
     this.guardsPerMod = guardsPerMod || [];
@@ -107,10 +107,10 @@ export class RestShallowModulesImporter {
   }
 
   protected getAspectMeta(normalizedModuleMeta: NormalizedModuleMeta): RestAspectMeta {
-    let meta = normalizedModuleMeta.normalizedAspectMetaMap.get(aspectRest);
+    let meta = normalizedModuleMeta.normalizedAspectMetaMap.get(restAspect);
     if (!meta) {
       meta = createAspectMetaProxy(normalizedModuleMeta, RestAspectMeta);
-      normalizedModuleMeta.normalizedAspectMetaMap.set(aspectRest, meta);
+      normalizedModuleMeta.normalizedAspectMetaMap.set(restAspect, meta);
     }
     return meta;
   }
@@ -202,7 +202,7 @@ export class RestShallowModulesImporter {
     const moduleName = getDebugClassName(modRefId2) || '""';
     const tokenName = token2.name || token2;
     const normalizedModuleMeta2 = this.moduleManager.getNormalizedModuleMeta(modRefId2);
-    const meta2 = normalizedModuleMeta2?.normalizedAspectMetaMap.get(aspectRest);
+    const meta2 = normalizedModuleMeta2?.normalizedAspectMetaMap.get(restAspect);
     if (!normalizedModuleMeta2) {
       throw new AppCollisionNotFound(this.moduleName, moduleName, level, tokenName);
     }

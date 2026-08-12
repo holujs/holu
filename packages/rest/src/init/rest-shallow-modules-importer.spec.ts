@@ -18,7 +18,7 @@ import {
 
 import { controller } from '#types/controller.js';
 import { RestAppendOptions } from './rest-aspect-raw-meta.js';
-import { aspectRest } from '#decorators/rest-module-aspects.js';
+import { restAspect } from '#decorators/rest-module-aspects.js';
 import { RestShallowModulesImporter } from './rest-shallow-modules-importer.js';
 import { Level } from '#types/types.js';
 import { ModuleMustHaveControllers } from '#services/rest-errors.js';
@@ -70,7 +70,7 @@ describe('shallow importing modules', () => {
     class Provider2 {}
 
     const dynamicModule0: DynamicModule = { module: forwardRef(() => Module3) };
-    @aspectRest()
+    @restAspect()
     @featureModule({
       imports: [dynamicModule0],
       exports: [dynamicModule0],
@@ -78,7 +78,7 @@ describe('shallow importing modules', () => {
     class Module1 {}
     const dynamicModule1: DynamicModule = { module: Module1 };
 
-    @aspectRest({
+    @restAspect({
       providersPerReq: [Provider1],
       exports: [Provider1],
     })
@@ -86,7 +86,7 @@ describe('shallow importing modules', () => {
     class Module2 {}
     const dynamicModule2: DynamicModule = { module: Module2 };
 
-    @aspectRest({
+    @restAspect({
       providersPerReq: [Provider2],
       exports: [Provider2],
     })
@@ -100,7 +100,7 @@ describe('shallow importing modules', () => {
     class AppModule {}
 
     const normalizedModuleMeta = moduleManager.scanRootModule(AppModule);
-    const moduleAspect = normalizedModuleMeta.allModuleAspectsMap.get(aspectRest)!;
+    const moduleAspect = normalizedModuleMeta.allModuleAspectsMap.get(restAspect)!;
     moduleAspect.exportAppProviders({
       moduleManager,
       appProviders: new AppProviders(),
@@ -119,15 +119,15 @@ describe('shallow importing modules', () => {
     })
     class Module0 {}
 
-    @aspectRest({ providersPerReq: [{ token: Provider1, useValue: 'some value' }], exports: [Provider1] })
+    @restAspect({ providersPerReq: [{ token: Provider1, useValue: 'some value' }], exports: [Provider1] })
     @featureModule()
     class Module1 {}
 
-    @aspectRest({ providersPerReq: [Provider1], exports: [Provider1] })
+    @restAspect({ providersPerReq: [Provider1], exports: [Provider1] })
     @featureModule()
     class Module2 {}
 
-    @aspectRest({
+    @restAspect({
       resolvedCollisionsPerReq: [[Provider1, Module0]],
     })
     @rootModule({ imports: [Module0, Module1, Module2] })
@@ -141,15 +141,15 @@ describe('shallow importing modules', () => {
     class Provider1 {}
     class Provider2 {}
 
-    @aspectRest({ providersPerReq: [Provider1], exports: [Provider1] })
+    @restAspect({ providersPerReq: [Provider1], exports: [Provider1] })
     @featureModule()
     class Module1 {}
 
-    @aspectRest({ providersPerReq: [Provider2], exports: [Provider2] })
+    @restAspect({ providersPerReq: [Provider2], exports: [Provider2] })
     @featureModule()
     class Module2 {}
 
-    @aspectRest({ resolvedCollisionsPerReq: [[Provider1, Module1]] })
+    @restAspect({ resolvedCollisionsPerReq: [[Provider1, Module1]] })
     @rootModule({ imports: [Module1, Module2] })
     class AppModule {}
 
@@ -161,11 +161,11 @@ describe('shallow importing modules', () => {
     class Provider1 {}
     class Provider2 {}
 
-    @aspectRest({ providersPerReq: [Provider1], exports: [Provider1] })
+    @restAspect({ providersPerReq: [Provider1], exports: [Provider1] })
     @featureModule()
     class Module1 {}
 
-    @aspectRest({
+    @restAspect({
       providersPerReq: [{ token: Provider1, useValue: 'some value' }, Provider2],
       exports: [Provider1, Provider2],
     })
@@ -186,17 +186,17 @@ describe('shallow importing modules', () => {
   it('should work with resolved collision', () => {
     class Provider1 {}
 
-    @aspectRest({ providersPerReq: [{ token: Provider1, useValue: 'some value' }], exports: [Provider1] })
+    @restAspect({ providersPerReq: [{ token: Provider1, useValue: 'some value' }], exports: [Provider1] })
     @featureModule()
     class Module1 {}
 
-    @aspectRest({ providersPerReq: [Provider1], exports: [Provider1] })
+    @restAspect({ providersPerReq: [Provider1], exports: [Provider1] })
     @featureModule()
     class Module2 {}
 
     const modRefId1: DynamicModule = { module: Module1 };
     const modRefId2: DynamicModule = { module: Module2 };
-    @aspectRest({
+    @restAspect({
       resolvedCollisionsPerReq: [[Provider1, modRefId1]],
     })
     @rootModule({ imports: [modRefId1, modRefId2] })
@@ -205,20 +205,20 @@ describe('shallow importing modules', () => {
     expect(() => importModulesShallow(AppModule)).not.toThrow();
   });
 
-  it('should work with resolved collision in aspectRest and import a module in rootModule', () => {
+  it('should work with resolved collision in restAspect and import a module in rootModule', () => {
     class Provider1 {}
 
-    @aspectRest({ providersPerReq: [{ token: Provider1, useValue: 'some value' }], exports: [Provider1] })
+    @restAspect({ providersPerReq: [{ token: Provider1, useValue: 'some value' }], exports: [Provider1] })
     @featureModule()
     class Module1 {}
 
-    @aspectRest({ providersPerReq: [Provider1], exports: [Provider1] })
+    @restAspect({ providersPerReq: [Provider1], exports: [Provider1] })
     @featureModule()
     class Module2 {}
 
     const modRefId1: DynamicModule = { module: Module1 };
     const modRefId2: DynamicModule = { module: Module2 };
-    @aspectRest({ resolvedCollisionsPerReq: [[Provider1, modRefId1]] })
+    @restAspect({ resolvedCollisionsPerReq: [[Provider1, modRefId1]] })
     @rootModule({ imports: [modRefId1, modRefId2] })
     class AppModule {}
 
@@ -229,15 +229,15 @@ describe('shallow importing modules', () => {
     @controller()
     class Controller1 {}
 
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule()
     class Module1 {}
 
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule()
     class Module2 {}
 
-    @aspectRest({
+    @restAspect({
       appends: [Module1, { path: 'some-prefix', module: Module2 }],
       controllers: [Controller1],
     })
@@ -251,17 +251,17 @@ describe('shallow importing modules', () => {
     @controller()
     class Controller1 {}
 
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule()
     class Module1 {}
 
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule()
     class Module2 {}
 
     const mod1: RestAppendOptions = { path: 'prefix1', module: Module1 };
     const mod2: RestAppendOptions = { path: 'prefix2', module: Module2 };
-    @aspectRest({
+    @restAspect({
       appends: [mod1, mod2],
       controllers: [Controller1],
     })
@@ -292,11 +292,11 @@ describe('shallow importing modules', () => {
     @controller()
     class Controller1 {}
 
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule()
     class Module1 {}
 
-    @aspectRest({
+    @restAspect({
       appends: [Module1],
       controllers: [Controller1],
     })
@@ -319,7 +319,7 @@ describe('shallow importing modules', () => {
     })
     class Module1 {}
 
-    @aspectRest({
+    @restAspect({
       appends: [Module1],
       controllers: [Controller1],
     })
@@ -340,7 +340,7 @@ describe('shallow importing modules', () => {
     })
     class Module1 {}
 
-    @aspectRest({
+    @restAspect({
       appends: [{ path: '', module: Module1 }],
     })
     @rootModule()
@@ -356,14 +356,14 @@ describe('shallow importing modules', () => {
     @controller()
     class Controller1 {}
 
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule({
       providersPerMod: [Provider1, Provider2],
       exports: [Provider1, Provider2],
     })
     class Module1 {}
 
-    @aspectRest({
+    @restAspect({
       appends: [Module1],
       controllers: [Controller1],
     })
@@ -377,15 +377,15 @@ describe('shallow importing modules', () => {
     @controller()
     class Controller1 {}
 
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule()
     class Module1 {}
 
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule()
     class Module2 {}
 
-    @aspectRest({
+    @restAspect({
       appends: [Module1, { path: 'some-prefix', module: Module2 }],
       controllers: [Controller1],
     })
@@ -399,17 +399,17 @@ describe('shallow importing modules', () => {
     @controller()
     class Controller1 {}
 
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule()
     class Module1 {}
 
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule()
     class Module2 {}
 
     const mod1: RestAppendOptions = { path: 'prefix1', module: Module1 };
     const mod2: RestAppendOptions = { path: 'prefix2', module: Module2 };
-    @aspectRest({
+    @restAspect({
       appends: [mod1, mod2],
       controllers: [Controller1],
     })

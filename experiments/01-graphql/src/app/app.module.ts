@@ -1,5 +1,5 @@
 import { rootModule, ProviderBuilder, LoggerConfig } from '@holu/core';
-import { controller, route, aspectRest } from '@holu/rest';
+import { controller, route, restAspect } from '@holu/rest';
 
 @controller()
 export class RequestScopedController {
@@ -17,7 +17,7 @@ export class RouteScopedController {
   }
 }
 
-@aspectRest({
+@restAspect({
   controllers: [RequestScopedController, RouteScopedController],
   providersPerApp: new ProviderBuilder().useValue(LoggerConfig, { level: 'info' }),
 })

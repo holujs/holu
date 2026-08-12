@@ -1,6 +1,6 @@
 import { XOasObject } from '@ts-stack/openapi-spec';
 import { featureModule, DynamicAspectOptionsMap, DynamicModule, ProviderBuilder } from '@holu/core';
-import { DispatcherExtension, RestRouteExtension, aspectRest } from '@holu/rest';
+import { DispatcherExtension, RestRouteExtension, restAspect } from '@holu/rest';
 
 import { OpenapiCompilerExtension } from './extensions/openapi-compiler.extension.js';
 import { OpenapiRouteExtension } from './extensions/openapi-routes.extension.js';
@@ -9,7 +9,7 @@ import { SwaggerOAuthOptions } from './swagger-ui/o-auth-options.js';
 import { OasExtensionConfig } from './types/oas-extension-options.js';
 import { OpenapiLogMediator } from '#services/openapi-log-mediator.js';
 
-@aspectRest({
+@restAspect({
   providersPerMod: [OpenapiLogMediator],
   extensions: [
     { extension: OpenapiRouteExtension, groups: [RestRouteExtension], export: true },
@@ -40,7 +40,7 @@ export class OpenapiModule {
 
     const aspectOptions: DynamicAspectOptionsMap = new Map();
     if (absolutePath !== undefined) {
-      aspectOptions.set(aspectRest, { absolutePath });
+      aspectOptions.set(restAspect, { absolutePath });
     }
 
     return {

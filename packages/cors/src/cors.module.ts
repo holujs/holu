@@ -1,11 +1,11 @@
 import { featureModule, DynamicModule, ProviderBuilder } from '@holu/core';
-import { aspectRest, DispatcherExtension, RestRouteExtension } from '@holu/rest';
+import { restAspect, DispatcherExtension, RestRouteExtension } from '@holu/rest';
 import { CorsOptions } from '@ts-stack/cors';
 
 import { CorsExtension } from './cors.extension.js';
 import { CorsService } from './cors.service.js';
 
-@aspectRest({
+@restAspect({
   providersPerReq: [CorsService],
   exports: [CorsService],
   extensions: [

@@ -19,7 +19,7 @@ export { RequestContext } from './services/request-context.js';
 export { RestRouteExtension } from './extensions/rest-route.extension.js';
 export { DispatcherExtension } from './extensions/dispatcher.extension.js';
 export { InterceptorExtension } from './extensions/use-interceptor.extension.js';
-export { aspectRest, restRootModule, restModule } from './decorators/rest-module-aspects.js';
+export { restAspect, restRootModule, restModule } from './decorators/rest-module-aspects.js';
 export { RestAspectMeta } from './init/rest-aspect-meta.js';
 export { route, DecoratorRouteMeta } from './decorators/route.js';
 export {

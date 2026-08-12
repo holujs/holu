@@ -1,5 +1,5 @@
 import { StaticModule, rootModule } from '@holu/core';
-import { AppOptions, aspectRest, Router } from '@holu/rest';
+import { AppOptions, restAspect, Router } from '@holu/rest';
 import { Server } from 'node:http';
 
 import { TestRestApplication } from './test-application.js';
@@ -15,7 +15,7 @@ describe('TestRestApplication', () => {
   const path = 'some-prefix';
   class Service1 {}
 
-  @aspectRest({ providersPerApp: [Service1, { token: Router, useValue: {} }] })
+  @restAspect({ providersPerApp: [Service1, { token: Router, useValue: {} }] })
   @rootModule()
   class RootModule1 {}
 

@@ -26,7 +26,7 @@ import {
 } from '@holu/core/errors';
 
 import { controller } from '../types/controller.js';
-import { aspectRest, restRootModule } from '#decorators/rest-module-aspects.js';
+import { restAspect, restRootModule } from '#decorators/rest-module-aspects.js';
 import { RestAppendOptions } from './rest-aspect-raw-meta.js';
 import { RestAspectMeta } from './rest-aspect-meta.js';
 import { CanActivate, guard } from '#interceptors/guard.js';
@@ -52,7 +52,7 @@ describe('ModuleManager', () => {
   function getAspectMeta(moduleId: ModuleId) {
     const normalizedModuleMeta = mock.getNormalizedModuleMeta(moduleId);
     // console.log(normalizedModuleMeta);
-    return normalizedModuleMeta?.normalizedAspectMetaMap.get(aspectRest);
+    return normalizedModuleMeta?.normalizedAspectMetaMap.get(restAspect);
   }
 
   beforeEach(() => {
@@ -82,7 +82,7 @@ describe('ModuleManager', () => {
       })
       class Module1 {}
 
-      @aspectRest({ appends: [{ path: 'v1', module: Module1 }] })
+      @restAspect({ appends: [{ path: 'v1', module: Module1 }] })
       @featureModule()
       class Module2 {}
 
@@ -116,7 +116,7 @@ describe('ModuleManager', () => {
       @controller()
       class Controller1 {}
 
-      @aspectRest({ controllers: [Controller1] })
+      @restAspect({ controllers: [Controller1] })
       @featureModule()
       class Module1 {}
 
@@ -124,7 +124,7 @@ describe('ModuleManager', () => {
     });
   });
 
-  it('populate in aspectRest providers per a module and per an application', () => {
+  it('populate in restAspect providers per a module and per an application', () => {
     class Service1 {}
     class Service2 {}
     class Service3 {}
@@ -132,7 +132,7 @@ describe('ModuleManager', () => {
     class Service5 {}
     class Service6 {}
 
-    @aspectRest({
+    @restAspect({
       providersPerApp: [Service3],
       providersPerMod: [Service4],
     })
@@ -142,7 +142,7 @@ describe('ModuleManager', () => {
     })
     class Module1 {}
 
-    @aspectRest({
+    @restAspect({
       imports: [Module1],
       providersPerApp: [Service5],
       providersPerMod: [Service6],
@@ -160,13 +160,13 @@ describe('ModuleManager', () => {
     expect(rootNormalizedModuleMeta?.providersPerApp).toEqual([Service5]);
     expect(rootNormalizedModuleMeta?.providersPerMod.includes(Service6)).toBeTruthy();
 
-    const mod1AspectMeta = normalizedModuleMeta1?.normalizedAspectMetaMap.get(aspectRest);
+    const mod1AspectMeta = normalizedModuleMeta1?.normalizedAspectMetaMap.get(restAspect);
     expect(mod1AspectMeta?.providersPerApp).toEqual(normalizedModuleMeta1?.providersPerApp);
     expect(mod1AspectMeta?.providersPerMod).toEqual(normalizedModuleMeta1?.providersPerMod);
     expect(mod1AspectMeta?.providersPerMod.includes(Service2)).toBeTruthy();
     expect(mod1AspectMeta?.providersPerMod.includes(Service4)).toBeTruthy();
 
-    const rootAspectMeta = rootNormalizedModuleMeta?.normalizedAspectMetaMap.get(aspectRest);
+    const rootAspectMeta = rootNormalizedModuleMeta?.normalizedAspectMetaMap.get(restAspect);
     expect(rootAspectMeta?.providersPerApp).toEqual(rootNormalizedModuleMeta?.providersPerApp);
     expect(rootAspectMeta?.providersPerMod).toEqual(rootNormalizedModuleMeta?.providersPerMod);
     expect(rootAspectMeta?.providersPerMod.includes(Service6)).toBeTruthy();
@@ -181,7 +181,7 @@ describe('ModuleManager', () => {
     expect(mock.normalizedMetaMap.get(AppModule)).toBeDefined();
   });
 
-  it('empty root module with aspectRest decorator', () => {
+  it('empty root module with restAspect decorator', () => {
     @restRootModule()
     class AppModule {}
 
@@ -205,7 +205,7 @@ describe('ModuleManager', () => {
     @injectable()
     class Provider1 {}
 
-    @aspectRest({ providersPerRou: [], providersPerReq: [Provider1] })
+    @restAspect({ providersPerRou: [], providersPerReq: [Provider1] })
     @rootModule()
     class AppModule {}
 
@@ -236,13 +236,13 @@ describe('ModuleManager', () => {
     @controller()
     class Controller1 {}
 
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule()
     class Module1 {}
 
     const dynamicModule: DynamicModule = { module: Module1 };
 
-    @aspectRest({ imports: [dynamicModule], exports: [dynamicModule] })
+    @restAspect({ imports: [dynamicModule], exports: [dynamicModule] })
     @featureModule()
     class Module2 {}
 
@@ -276,7 +276,7 @@ describe('ModuleManager', () => {
     @controller()
     class Controller1 {}
 
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule()
     class Module1 {
       static withOpts(): DynamicModule<Module1> {
@@ -288,7 +288,7 @@ describe('ModuleManager', () => {
 
     const dynamicModule = Module1.withOpts();
 
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule({
       imports: [dynamicModule],
       exports: [Module1],
@@ -303,11 +303,11 @@ describe('ModuleManager', () => {
     @controller()
     class Controller1 {}
 
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule()
     class Module1 {}
 
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule({ exports: [Module1] })
     class Module2 {}
 
@@ -328,7 +328,7 @@ describe('ModuleManager', () => {
     @injectable()
     class Provider1 {}
 
-    @aspectRest({ providersPerReq: [Provider1] })
+    @restAspect({ providersPerReq: [Provider1] })
     @featureModule({ exports: [{ token: Provider1, useClass: Provider1 }] })
     class Module2 {}
 
@@ -364,7 +364,7 @@ describe('ModuleManager', () => {
     class Controller1 {}
 
     const fn = () => module4WithOpts;
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule({ imports: [forwardRef(fn)] })
     class Module1 {}
 
@@ -374,7 +374,7 @@ describe('ModuleManager', () => {
     @injectable()
     class Provider1 {}
 
-    @aspectRest({ providersPerRou: [Provider1], exports: [Provider1] })
+    @restAspect({ providersPerRou: [Provider1], exports: [Provider1] })
     @featureModule({
       imports: [Module1],
       providersPerMod: [Provider0],
@@ -382,7 +382,7 @@ describe('ModuleManager', () => {
     })
     class Module2 {}
 
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule()
     class Module4 {
       static withOpts(providersPerMod: Provider[]): DynamicModule<Module4> {
@@ -398,7 +398,7 @@ describe('ModuleManager', () => {
 
     const module4WithOpts = Module4.withOpts([Provider2]);
 
-    @aspectRest({ controllers: [] })
+    @restAspect({ controllers: [] })
     @rootModule({
       imports: [Module1, Module2],
       providersPerApp: [],
@@ -411,12 +411,12 @@ describe('ModuleManager', () => {
     expect(mock.normalizedMetaMap.size).toBe(6);
     expect(getAspectMeta(Module1)?.controllers).toEqual([Controller1]);
 
-    expect(mock.normalizedMetaMap.get(Module2)?.normalizedAspectMetaMap.get(aspectRest)?.providersPerRou).toEqual([Provider1]);
-    expect(mock.normalizedMetaMap.get(Module2)?.normalizedAspectMetaMap.get(aspectRest)?.exportedProvidersPerRou).toEqual([Provider1]);
+    expect(mock.normalizedMetaMap.get(Module2)?.normalizedAspectMetaMap.get(restAspect)?.providersPerRou).toEqual([Provider1]);
+    expect(mock.normalizedMetaMap.get(Module2)?.normalizedAspectMetaMap.get(restAspect)?.exportedProvidersPerRou).toEqual([Provider1]);
 
     expect(getAspectMeta('root')?.importedStaticModules).toEqual([Module1, Module2, RestModule]);
 
-    const aspectMeta = mock.normalizedMetaMap.get(module4WithOpts)?.normalizedAspectMetaMap.get(aspectRest);
+    const aspectMeta = mock.normalizedMetaMap.get(module4WithOpts)?.normalizedAspectMetaMap.get(restAspect);
     expect(aspectMeta?.importedStaticModules).toEqual([RestModule]);
   });
 
@@ -441,7 +441,7 @@ describe('ModuleManager', () => {
     @controller()
     class Controller2 {}
 
-    @aspectRest({ controllers: [Controller1] })
+    @restAspect({ controllers: [Controller1] })
     @featureModule()
     class Module1 {
       static withOpts(): DynamicModuleWithAspectOptions<Module1> {
@@ -452,15 +452,15 @@ describe('ModuleManager', () => {
       }
     }
 
-    @aspectRest({ controllers: [Controller2] })
+    @restAspect({ controllers: [Controller2] })
     @featureModule()
     class Module2 {}
 
     const dynamicModule = Module1.withOpts();
-    dynamicModule.aspectOptions.set(aspectRest, { path: 'module1', guards: [Guard1] });
+    dynamicModule.aspectOptions.set(restAspect, { path: 'module1', guards: [Guard1] });
     const appendsWithOpts: RestAppendOptions = { path: 'module2', module: Module2, guards: [Guard2] };
 
-    @aspectRest({ appends: [appendsWithOpts] })
+    @restAspect({ appends: [appendsWithOpts] })
     @rootModule({ imports: [dynamicModule] })
     class AppModule {}
 
@@ -542,7 +542,7 @@ describe('ModuleManager', () => {
       Provider3,
     ];
 
-    @aspectRest({ providersPerReq, exports: [Provider2, Provider1, Provider3] })
+    @restAspect({ providersPerReq, exports: [Provider2, Provider1, Provider3] })
     @featureModule()
     class Module1 {}
 

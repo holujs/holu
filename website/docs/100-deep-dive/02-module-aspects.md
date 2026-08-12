@@ -24,7 +24,7 @@ sidebar_position: 2
   ```
   З аспектом хуки фреймворку самостійно обходять ієрархію модулів. Опція `path: 'api'` буде застосована не лише до `SomeModule`, а і всіх модулів, що імпортуються у `SomeModule` — і все це без необхідності змінювати їхній код:
   ```ts
-  @aspectRest({
+  @restAspect({
     imports: [{ module: SomeModule, path: 'api' }]
   })
   @rootModule()
@@ -53,7 +53,7 @@ import {
 // ...
 
 /**
- * Об'єкт цього типу буде передано безпосередньо декоратору aspect - @aspectSome({ one: 1, two: 2 })
+ * Об'єкт цього типу буде передано безпосередньо декоратору aspect - @someAspect({ one: 1, two: 2 })
  */
 interface MyStaticAspectOptions extends StaticAspectOptions<DynamicAspectOptions> {
   one?: number;
@@ -93,28 +93,28 @@ function transformAspectOptions(data?: MyStaticAspectOptions): ModuleAspectHandl
 }
 
 // Створення декоратора аспектів
-const aspectSome: ModuleAspectDecorator<MyStaticAspectOptions, DynamicAspectOptions, MyNormalizedModuleMeta> =
+const someAspect: ModuleAspectDecorator<MyStaticAspectOptions, DynamicAspectOptions, MyNormalizedModuleMeta> =
   Reflector.makeClassDecorator(transformAspectOptions);
 
 // Використання декоратора аспектів
-@aspectSome({ one: 1, two: 2 })
+@someAspect({ one: 1, two: 2 })
 export class SomeModule {}
 ```
 
-[Готовий приклад створення aspect-декоратора][2] можна знайти в тестах репозиторія Holu. Окрім цього, можна проглянути на більш складний, але і більш повний приклади [створення aspect-декораторів (restRootModule, restModule та aspectRest)][3], які знаходяться у модулі `@holu/rest`.
+[Готовий приклад створення aspect-декоратора][2] можна знайти в тестах репозиторія Holu. Окрім цього, можна проглянути на більш складний, але і більш повний приклади [створення aspect-декораторів (restRootModule, restModule та restAspect)][3], які знаходяться у модулі `@holu/rest`.
 
 ## Взаємодія з кореневим модулем та модулем фіч {#interaction-with-root-and-feature-modules}
 
 Залежно від ролі, визначеної через властивість `moduleRole` класу `ModuleAspectHandler` (що повертається функцією-трансформером), aspect-декоратори взаємодіють з базовими декораторами - `rootModule` та `featureModule` - по-різному:
 
 - **Декоратори-замінники**: коли `moduleRole` дорівнює `'root'` або `'feature'`, відповідні декоратори виступають у ролі повноцінних декораторів модуля (наприклад, `@restRootModule` або `@restModule`). Клас, анотований ними, не потребує додаткового використання `@featureModule` чи `@rootModule`. Фреймворк автоматично розпізнає їхню роль і опрацьовує їх.
-- **Декоратори-модифікатори**: коли `moduleRole` дорівнює `undefined`, відповідні декоратори лише модифікують/розширюють метадані. Таким декораторам рекомендується давати префікс `aspect*` (наприклад, `@aspectRest`, `@aspectTrpc`). Клас, анотований ними, **обов'язково** повинен мати базовий декоратор модуля або декоратор-замінник. Якщо базовий декоратор модуля відсутній, фреймворк кине помилку `MissingModuleDecorator`.
+- **Декоратори-модифікатори**: коли `moduleRole` дорівнює `undefined`, відповідні декоратори лише модифікують/розширюють метадані. Таким декораторам рекомендується давати закінчення `Aspect` (наприклад, `@restAspect`, `@trpcAspect`). Клас, анотований ними, **обов'язково** повинен мати базовий декоратор модуля або декоратор-замінник. Якщо базовий декоратор модуля відсутній, фреймворк кине помилку `MissingModuleDecorator`.
 
 Кілька декораторів-модифікаторів можна застосовувати одночасно до одного класу модуля (наприклад, для додавання метаданих REST або tRPC до одного й того самого модуля).
 
 ## Групування aspect-декораторів через `decoratorId` {#grouping-aspect-decorators}
 
-При створенні декоратора-замінника (з роллю `'root'` або `'feature'`) за допомогою `Reflector.makeClassDecorator()`, ви **обов'язково** повинні передати базовий декоратор-модифікатор (наприклад, `aspectRest`) як третій аргумент. Цей третій аргумент працює як `decoratorId`. Він вказує Holu, що ці декоратори належать до однієї групи, дозволяючи фреймворку правильно збирати, нормалізувати та пов'язувати метадані з відповідним контекстом групи під час ініціалізації.
+При створенні декоратора-замінника (з роллю `'root'` або `'feature'`) за допомогою `Reflector.makeClassDecorator()`, ви **обов'язково** повинні передати базовий декоратор-модифікатор (наприклад, `restAspect`) як третій аргумент. Цей третій аргумент працює як `decoratorId`. Він вказує Holu, що ці декоратори належать до однієї групи, дозволяючи фреймворку правильно збирати, нормалізувати та пов'язувати метадані з відповідним контекстом групи під час ініціалізації.
 
 ## Кастомізація ModuleAspectHandler {#customizing-inithooks}
 
@@ -127,7 +127,7 @@ export class SomeModule {}
 1. Створіть стандартний модуль фіч (наприклад, `MyLibModule`), що містить усі необхідні розширення, дефолтні провайдери та сервіси.
 2. Оновіть ваш підклас `ModuleAspectHandler` (`AspectHandler`), встановивши `override hostModule = MyLibModule`.
 3. Створіть нову функцію-трансформер, яка встановлює `handler.moduleRole = 'feature'` (або `'root'`).
-4. Створіть декоратор-замінник (наприклад, `myFeatureModule`) за допомогою `Reflector.makeClassDecorator()`, передавши трансформер, ім'я та базовий декоратор-модифікатор (`aspectSome`) як третій аргумент (`decoratorId`).
+4. Створіть декоратор-замінник (наприклад, `myFeatureModule`) за допомогою `Reflector.makeClassDecorator()`, передавши трансформер, ім'я та базовий декоратор-модифікатор (`someAspect`) як третій аргумент (`decoratorId`).
 5. Коли розробники застосовуватимуть цей декоратор (наприклад, `@myFeatureModule`), фреймворк розпізнаватиме його як декоратор модуля (потребуючи лише одного декоратора на класі замість двох) та автоматично імпортуватиме `MyLibModule`.
 
 Ось як це виглядає:
@@ -154,8 +154,8 @@ function transformFeatureMeta(data?: any) {
   return handler;
 }
 
-// 4. Створення декоратора-замінника, передаючи aspectSome (з попереднього прикладу) як 3-й аргумент
-export const myFeatureModule = Reflector.makeClassDecorator(transformFeatureMeta, 'myFeatureModule', aspectSome);
+// 4. Створення декоратора-замінника, передаючи someAspect (з попереднього прикладу) як 3-й аргумент
+export const myFeatureModule = Reflector.makeClassDecorator(transformFeatureMeta, 'myFeatureModule', someAspect);
 
 // 5. Використання лише одного декоратора на класі (автоматично імпортує MyLibModule)
 @myFeatureModule()

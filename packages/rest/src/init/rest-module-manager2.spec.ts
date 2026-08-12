@@ -12,7 +12,7 @@ import { CanActivate, guard } from '../interceptors/guard.js';
 import { controller } from '../types/controller.js';
 import { RequestContext } from '../services/request-context.js';
 import { RestAppendOptions, type RestDynamicOptions } from './rest-aspect-raw-meta.js';
-import { aspectRest, restRootModule } from '#decorators/rest-module-aspects.js';
+import { restAspect, restRootModule } from '#decorators/rest-module-aspects.js';
 
 let mock: MockModuleManager;
 
@@ -48,11 +48,11 @@ it('imports and appends with gruards for some modules', () => {
   @controller()
   class Controller2 {}
 
-  @aspectRest({ controllers: [Controller1] })
+  @restAspect({ controllers: [Controller1] })
   @featureModule()
   class Module1 {}
 
-  @aspectRest({ controllers: [Controller2] })
+  @restAspect({ controllers: [Controller2] })
   @featureModule()
   class Module2 {}
 
@@ -74,8 +74,8 @@ it('imports and appends with gruards for some modules', () => {
   class AppModule {}
 
   mock.scanRootModule(AppModule);
-  const aspectMeta1 = mock.getNormalizedModuleMeta(dynamicModule)?.normalizedAspectMetaMap.get(aspectRest)?.params;
-  const aspectMeta2 = mock.getNormalizedModuleMeta(appendsWithOpts)?.normalizedAspectMetaMap.get(aspectRest)?.params;
+  const aspectMeta1 = mock.getNormalizedModuleMeta(dynamicModule)?.normalizedAspectMetaMap.get(restAspect)?.params;
+  const aspectMeta2 = mock.getNormalizedModuleMeta(appendsWithOpts)?.normalizedAspectMetaMap.get(restAspect)?.params;
   expect(mock.normalizedMetaMap.size).toBe(5);
   expect(aspectMeta1).toMatchObject({ guards: [{ guard: Guard1 }], path: 'module1' });
   expect(aspectMeta2).toMatchObject({ guards: [{ guard: Guard2 }], path: 'module2' });

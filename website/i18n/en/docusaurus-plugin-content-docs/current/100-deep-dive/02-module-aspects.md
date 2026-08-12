@@ -24,7 +24,7 @@ In contrast, aspect decorators provide hooks that actively participate in the **
   ```
   With an aspect, the framework's hooks autonomously traverse the module hierarchy. The `path: 'api'` option will be applied not only to `SomeModule`, but also to all modules imported into `SomeModule` — all without having to change their code:
   ```ts
-  @aspectRest({
+  @restAspect({
     imports: [{ module: SomeModule, path: 'api' }]
   })
   @rootModule()
@@ -53,7 +53,7 @@ import {
 // ...
 
 /**
- * An object with this type will be passed directly to the aspect decorator - @aspectSome({ one: 1, two: 2 })
+ * An object with this type will be passed directly to the aspect decorator - @someAspect({ one: 1, two: 2 })
  */
 interface MyStaticAspectOptions extends StaticAspectOptions<DynamicAspectOptions> {
   one?: number;
@@ -93,28 +93,28 @@ function transformAspectOptions(data?: MyStaticAspectOptions): ModuleAspectHandl
 }
 
 // Creating the aspect decorator
-const aspectSome: ModuleAspectDecorator<MyStaticAspectOptions, DynamicAspectOptions, MyNormalizedModuleMeta> =
+const someAspect: ModuleAspectDecorator<MyStaticAspectOptions, DynamicAspectOptions, MyNormalizedModuleMeta> =
   Reflector.makeClassDecorator(transformAspectOptions);
 
 // Using aspect decorator
-@aspectSome({ one: 1, two: 2 })
+@someAspect({ one: 1, two: 2 })
 export class SomeModule {}
 ```
 
-[A ready-made example of creating an aspect decorator][2] can be found in the Holu repository tests. In addition, you can check out a more complex but also more complete example of [creating aspect decorators (restRootModule, restModule, and aspectRest)][3], which are located in the `@holu/rest` module.
+[A ready-made example of creating an aspect decorator][2] can be found in the Holu repository tests. In addition, you can check out a more complex but also more complete example of [creating aspect decorators (restRootModule, restModule, and restAspect)][3], which are located in the `@holu/rest` module.
 
 ## Interaction with Root and Feature Modules {#interaction-with-root-and-feature-modules}
 
 Depending on the role defined by the `moduleRole` property of the `ModuleAspectHandler` class (which is returned by the transformer function), aspect decorators interact differently with standard decorators - `rootModule` and `featureModule`:
 
 - **Substitute Decorators**: when `moduleRole` is `'root'` or `'feature'`, the corresponding decorators act as full module decorators (e.g., `@restRootModule` or `@restModule`). A class annotated with them does not require `@featureModule` or `@rootModule`. The framework automatically recognizes their role and processes them.
-- **Modifier Decorators**: when `moduleRole` is `undefined`, the corresponding decorators only modify/extend the metadata. Such decorators usually have a `aspect*` prefix (e.g., `@aspectRest`, `@aspectTrpc`). A class annotated with them **must** also have a standard module decorator or a substitute decorator. If no module decorator is present, the framework throws a `MissingModuleDecorator` exception.
+- **Modifier Decorators**: when `moduleRole` is `undefined`, the corresponding decorators only modify/extend the metadata. Such decorators should be named with an `Aspect` suffix (e.g., `@restAspect`, `@trpcAspect`). A class annotated with them **must** also have a standard module decorator or a substitute decorator. If no module decorator is present, the framework throws a `MissingModuleDecorator` exception.
 
 Multiple modifier decorators can be stacked on a single class (for example, to add REST or tRPC metadata to the same module).
 
 ## Grouping Aspect Decorators with `decoratorId` {#grouping-aspect-decorators}
 
-When creating a substitute decorator (with `'root'` or `'feature'` role) using `Reflector.makeClassDecorator()`, you **must** pass the base modifier decorator (e.g. `aspectRest`) as the third argument. This third argument serves as the `decoratorId`. It tells Holu that these decorators belong to the same group, enabling the framework to correctly collect, normalize, and associate metadata with the proper group context during initialization.
+When creating a substitute decorator (with `'root'` or `'feature'` role) using `Reflector.makeClassDecorator()`, you **must** pass the base modifier decorator (e.g. `restAspect`) as the third argument. This third argument serves as the `decoratorId`. It tells Holu that these decorators belong to the same group, enabling the framework to correctly collect, normalize, and associate metadata with the proper group context during initialization.
 
 ## Customizing ModuleAspectHandler {#customizing-inithooks}
 
@@ -127,7 +127,7 @@ Separating the aspect decorator's handler definitions from the host feature modu
 1. Create a standard feature module (e.g., `MyLibModule`) containing all necessary extensions, default providers, and services.
 2. Update your `ModuleAspectHandler` subclass (`AspectHandler`) to set `override hostModule = MyLibModule`.
 3. Create a new transformer function that sets `handler.moduleRole = 'feature'` (or `'root'`).
-4. Create the substitute custom decorator (e.g., `myFeatureModule`) using `Reflector.makeClassDecorator()`, passing the transformer, its name, and the base modifier decorator (`aspectSome`) as the third argument (`decoratorId`).
+4. Create the substitute custom decorator (e.g., `myFeatureModule`) using `Reflector.makeClassDecorator()`, passing the transformer, its name, and the base modifier decorator (`someAspect`) as the third argument (`decoratorId`).
 5. When developers apply this decorator (e.g., `@myFeatureModule`), the framework recognizes it as a module decorator (requiring only one decorator on the class instead of two) and automatically imports `MyLibModule`.
 
 Here is how it looks:
@@ -154,8 +154,8 @@ function transformFeatureMeta(data?: any) {
   return handler;
 }
 
-// 4. Creating the substitute decorator, passing aspectSome (from earlier) as the 3rd argument
-export const myFeatureModule = Reflector.makeClassDecorator(transformFeatureMeta, 'myFeatureModule', aspectSome);
+// 4. Creating the substitute decorator, passing someAspect (from earlier) as the 3rd argument
+export const myFeatureModule = Reflector.makeClassDecorator(transformFeatureMeta, 'myFeatureModule', someAspect);
 
 // 5. Using only one decorator on the class (automatically imports MyLibModule)
 @myFeatureModule()
