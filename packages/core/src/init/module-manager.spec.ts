@@ -462,31 +462,31 @@ describe('ModuleManager', () => {
     @featureModule()
     class HostModule4 {}
 
-    class ModuleAspect1 extends ModuleAspectHandler<any> {
+    class AspectHandler1 extends ModuleAspectHandler<any> {
       override hostModule = HostModule1;
       override hostAspectOptions = { one: 1 };
     }
 
-    class ModuleAspect2 extends ModuleAspectHandler<any> {
+    class AspectHandler2 extends ModuleAspectHandler<any> {
       override hostModule = HostModule2;
       override hostAspectOptions = { two: 2 };
     }
 
-    class ModuleAspect3 extends ModuleAspectHandler<any> {
+    class AspectHandler3 extends ModuleAspectHandler<any> {
       override hostModule = HostModule3;
       override hostAspectOptions = { three: 3 };
     }
 
-    class ModuleAspect4 extends ModuleAspectHandler<any> {
+    class AspectHandler4 extends ModuleAspectHandler<any> {
       override hostModule = HostModule4;
       override hostAspectOptions = { four: 4 };
     }
 
     it('should propagate allModuleAspectsMap so that they only contain module aspects imported into the current module', () => {
-      const someAspect1: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleAspect1(data));
-      const someAspect2: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleAspect2(data));
-      const someAspect3: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleAspect3(data));
-      const someAspect4: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new ModuleAspect4(data));
+      const someAspect1: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new AspectHandler1(data));
+      const someAspect2: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new AspectHandler2(data));
+      const someAspect3: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new AspectHandler3(data));
+      const someAspect4: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new AspectHandler4(data));
 
       @someAspect1({ name: '1' })
       @featureModule()
@@ -546,7 +546,7 @@ describe('ModuleManager', () => {
       interface AspectMeta extends BaseNormalizedModuleMeta {
         path?: string;
       }
-      class ModuleAspect1 extends ModuleAspectHandler<RootModuleOptions> {
+      class AspectHandler1 extends ModuleAspectHandler<RootModuleOptions> {
         override normalize({ modRefId }: NormalizedModuleMeta): AspectMeta {
           if (isDynamicModule(modRefId)) {
             const params = modRefId.aspectOptions?.get(someAspect);
@@ -557,7 +557,7 @@ describe('ModuleManager', () => {
       }
 
       const someAspect: ModuleAspectDecorator<RootModuleOptions, MyDynamicOptions, AspectMeta> = Reflector.makeClassDecorator(
-        (d) => new ModuleAspect1(d),
+        (d) => new AspectHandler1(d),
       );
 
       @featureModule({ providersPerApp: [{ token: 'token1', useValue: 'value1' }] })
@@ -565,7 +565,7 @@ describe('ModuleManager', () => {
 
       const dynamicModule: DynamicModule = { module: Module1 };
 
-      @someAspect({ one: 'some-here', imports: [{ dynamicModule: dynamicModule, path: 'some-prefix' }] })
+      @someAspect({ one: 'some-here', imports: [{ dynamicModule, path: 'some-prefix' }] })
       @rootModule()
       class AppModule {}
 
@@ -589,9 +589,9 @@ describe('ModuleManager', () => {
       @featureModule()
       class HostModule1 {}
 
-      class ModuleAspect1 extends ModuleAspectHandler<RootModuleOptions> {
+      class AspectHandler1 extends ModuleAspectHandler<RootModuleOptions> {
         override hostModule = HostModule1;
-        override normalize({ modRefId }: NormalizedModuleMeta): AspectMeta {
+        override normalize(): AspectMeta {
           return { path: 'static-default' } as AspectMeta;
         }
       }
@@ -600,7 +600,7 @@ describe('ModuleManager', () => {
       class Module1 {}
 
       const someAspect: ModuleAspectDecorator<RootModuleOptions, { path?: string }, AspectMeta> = Reflector.makeClassDecorator(
-        (d) => new ModuleAspect1(d),
+        (d) => new AspectHandler1(d),
       );
 
       @someAspect({ one: 'some-here', imports: [Module1] })
@@ -627,7 +627,7 @@ describe('ModuleManager', () => {
       @featureModule()
       class HostModule1 {}
 
-      class ModuleAspect1 extends ModuleAspectHandler<RootModuleOptions> {
+      class AspectHandler1 extends ModuleAspectHandler<RootModuleOptions> {
         override hostModule = HostModule1;
         override normalize({ modRefId }: NormalizedModuleMeta): AspectMeta {
           return { path: 'static-default' } as AspectMeta;
@@ -635,7 +635,7 @@ describe('ModuleManager', () => {
       }
 
       const someAspect: ModuleAspectDecorator<RootModuleOptions, { path?: string }, AspectMeta> = Reflector.makeClassDecorator(
-        (d) => new ModuleAspect1(d),
+        (d) => new AspectHandler1(d),
       );
 
       @featureModule({
@@ -673,14 +673,14 @@ describe('ModuleManager', () => {
       interface AspectMeta2 {
         paramsForAspectMeta2?: any;
       }
-      class ModuleAspect1 extends ModuleAspectHandler<DecoratorOptions1> {}
-      class ModuleAspect2 extends ModuleAspectHandler<DecoratorOptions2> {}
+      class AspectHandler1 extends ModuleAspectHandler<DecoratorOptions1> {}
+      class AspectHandler2 extends ModuleAspectHandler<DecoratorOptions2> {}
 
       const someAspect1: ModuleAspectDecorator<DecoratorOptions1, {}, AspectMeta1> = Reflector.makeClassDecorator(
-        (d) => new ModuleAspect1(d),
+        (d) => new AspectHandler1(d),
       );
       const someAspect2: ModuleAspectDecorator<DecoratorOptions2, {}, AspectMeta2> = Reflector.makeClassDecorator(
-        (d) => new ModuleAspect2(d),
+        (d) => new AspectHandler2(d),
       );
 
       @featureModule({ providersPerApp: [{ token: 'token1', useValue: 'value1' }] })
@@ -756,19 +756,19 @@ describe('ModuleManager', () => {
       expect(moduleAspectHandler?.moduleOptions).toEqual({ customProp: 'works' });
     });
     it('should accumulate the exact same allModuleAspectsMap in the parent regardless of import order', () => {
-      class ModuleAspect1 extends ModuleAspectHandler<any> {
+      class AspectHandler1 extends ModuleAspectHandler<any> {
         override normalize(normalizedModuleMeta: NormalizedModuleMeta) {
           return normalizedModuleMeta;
         }
       }
-      class ModuleAspect2 extends ModuleAspectHandler<any> {
+      class AspectHandler2 extends ModuleAspectHandler<any> {
         override normalize(normalizedModuleMeta: NormalizedModuleMeta) {
           return normalizedModuleMeta;
         }
       }
 
-      const aspectDec1: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new ModuleAspect1(d));
-      const aspectDec2: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new ModuleAspect2(d));
+      const aspectDec1: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new AspectHandler1(d));
+      const aspectDec2: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new AspectHandler2(d));
 
       @aspectDec1()
       @featureModule()
