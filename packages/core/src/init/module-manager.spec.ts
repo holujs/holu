@@ -31,6 +31,9 @@ describe('ModuleManager', () => {
     declare systemLogMediator: SystemLogMediator;
     declare normalizedMetaMap: Map<ModRefId, NormalizedModuleMeta>;
     declare moduleIdMap: Map<string, ModRefId>;
+    override get childrenMap() {
+      return super.childrenMap;
+    }
 
     override normalizeMeta(modRefId: ModRefId): NormalizedModuleMeta {
       return super.normalizeMeta(modRefId);
@@ -153,15 +156,7 @@ describe('ModuleManager', () => {
 
     it('should collect providers in a particular order', () => {
       mock.scanRootModule(AppModule);
-      expect(mock.providersPerApp).toEqual([
-        Service1,
-        Service2,
-        Service3,
-        Service4,
-        Service5,
-        Service6,
-        Service0,
-      ]);
+      expect(mock.providersPerApp).toEqual([Service1, Service2, Service3, Service4, Service5, Service6, Service0]);
     });
 
     it('should work with dynamicModule', () => {
@@ -799,6 +794,34 @@ describe('ModuleManager', () => {
       expect(meta2!.allModuleAspectsMap.size).toBe(2);
       expect(meta2!.allModuleAspectsMap.has(aspectDec1)).toBe(true);
       expect(meta2!.allModuleAspectsMap.has(aspectDec2)).toBe(true);
+    });
+    it('should add the host module to childrenMap when aspects are inherited via top-down propagation', () => {
+      @featureModule()
+      class HostModule {}
+
+      class TestAspectHandler extends ModuleAspectHandler<any> {
+        override hostModule = HostModule;
+
+        override normalize(normalizedModuleMeta: NormalizedModuleMeta) {
+          return createAspectMetaProxy(normalizedModuleMeta, BaseNormalizedModuleMeta);
+        }
+      }
+
+      const testAspect: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new TestAspectHandler(d));
+
+      @featureModule({ providersPerApp: [{ token: 'token1', useValue: 'value1' }] })
+      class ChildModule {}
+
+      @testAspect()
+      @rootModule({ imports: [ChildModule] })
+      class AppModule {}
+
+      mock.scanRootModule(AppModule);
+
+      // ChildModule inherits testAspect from AppModule, so HostModule should be in its childrenMap.
+      const childChildren = mock.childrenMap.get(ChildModule);
+      expect(childChildren).toBeDefined();
+      expect(childChildren!.has(HostModule)).toBe(true);
     });
   });
 });

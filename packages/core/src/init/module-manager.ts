@@ -210,8 +210,8 @@ export class ModuleManager {
     }
 
     const importsOrExports: (DynamicModule | StaticModule)[] = [];
-    hostMeta.moduleAspectMap.forEach((aspect, dec) => {
-      const aspectMeta = hostMeta.normalizedAspectMetaMap.get(dec);
+    hostMeta.moduleAspectMap.forEach((aspect, decorId) => {
+      const aspectMeta = hostMeta.normalizedAspectMetaMap.get(decorId);
       if (aspectMeta) {
         importsOrExports.push(...aspect.getModulesToScan(aspectMeta));
       }
@@ -472,6 +472,9 @@ export class ModuleManager {
         if (parentAspect) {
           try {
             this.moduleNormalizer.registerAspectOnModule(meta, decoratorId, parentAspect.clone());
+            if (parentAspect.hostModule) {
+              this.childrenMap.get(meta.modRefId)?.add(parentAspect.hostModule);
+            }
           } catch (err: any) {
             throw new NormalizationFailure(meta.name, err);
           }
@@ -492,6 +495,9 @@ export class ModuleManager {
     parentAspects.forEach((aspect, decoratorId) => {
       try {
         this.moduleNormalizer.registerAspectOnModule(meta, decoratorId, aspect.clone());
+        if (aspect.hostModule) {
+          this.childrenMap.get(meta.modRefId)?.add(aspect.hostModule);
+        }
       } catch (err: any) {
         throw new NormalizationFailure(meta.name, err);
       }
