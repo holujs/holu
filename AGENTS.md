@@ -68,7 +68,3 @@ Run `yarn docs-en` to preview changes locally.
 ## Tool Usage
 
 - **Prioritize Built-in Agent Tools**: Agents must always prioritize dedicated agent tools (e.g., `view_file`, `grep_search`, `replace_file_content`, `list_dir`). Ask the user for permission to execute Linux utilities (such as `cat`) only when built-in agent tools cannot accomplish the task.
-
-## User Interaction
-
-- If the user asks a question, do not modify any code immediately. It is sufficient to answer the question first. Only modify the code when the user explicitly instructs to do so.

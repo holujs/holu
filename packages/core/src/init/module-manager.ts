@@ -185,7 +185,10 @@ export class ModuleManager {
           if (moduleAspect.hostModule && moduleAspect.hostAspectOptions) {
             const hostMeta = this.normalizedMetaMap.get(moduleAspect.hostModule);
             if (hostMeta && !hostMeta.moduleAspectMap.has(decoratorId)) {
-              hasNewModules = this.applyHostAspectAndGatherDependencies(hostMeta, decoratorId, moduleAspect, modulesToScan);
+              const isAdded = this.applyHostAspectAndGatherDependencies(hostMeta, decoratorId, moduleAspect, modulesToScan);
+              if (isAdded) {
+                hasNewModules = true;
+              }
             }
           }
         });
@@ -209,28 +212,26 @@ export class ModuleManager {
       throw new NormalizationFailure(hostMeta.name, err);
     }
 
-    const importsOrExports: (DynamicModule | StaticModule)[] = [];
-    hostMeta.moduleAspectMap.forEach((aspect, decorId) => {
-      const aspectMeta = hostMeta.normalizedAspectMetaMap.get(decorId);
-      if (aspectMeta) {
-        importsOrExports.push(...aspect.getModulesToScan(aspectMeta));
-      }
-    });
+    const inputs: ModRefId[] = [];
+    const aspectMeta = hostMeta.normalizedAspectMetaMap.get(decoratorId);
+    if (aspectMeta) {
+      inputs.push(...newModuleAspect.getModulesToScan(aspectMeta));
+    }
 
-    const inputs: ModRefId[] = importsOrExports;
+    let hasNewSubChildren = false;
     this.propsWithModules.forEach((p) => inputs.push(...hostMeta[p]));
-
     const children = this.childrenMap.get(hostMeta.modRefId);
     if (children) {
       inputs.forEach((input) => {
         children.add(input);
         if (!this.scannedModules.has(input)) {
           modulesToScan.add(input);
+          hasNewSubChildren = true;
         }
       });
     }
 
-    return true; // Indicates a change occurred
+    return hasNewSubChildren;
   }
 
   protected scanNewlyAddedModules(modulesToScan: Set<ModRefId>) {
