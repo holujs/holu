@@ -8,6 +8,14 @@ sidebar_position: 2
 If you can easily pass metadata to a module using a [dynamic module][1], it is highly recommended to do so. Creating an aspect is only justified when the capabilities of dynamic modules are insufficient.
 :::
 
+:::info A note on terminology
+The term "aspect" in Holu is **inspired by**, but **not identical to**, aspects in classical [Aspect-Oriented Programming (AOP)][4]. In traditional AOP, aspects intercept method execution through join points, pointcuts, and advice (before/after/around), weaving cross-cutting behavior directly into the runtime call flow.
+
+Holu's aspects operate at a different level: they propagate **cross-cutting metadata and configuration** across the module dependency graph during initialization. This means they share some of the key ideas of AOP — separating cross-cutting concerns, applying behavior transparently across multiple modules — but they do not provide runtime method interception, join points, or advice.
+
+In short, if classic AOP is a 10/10, Holu's aspects are roughly a **6/10 match**: they solve the same category of problem (cross-cutting concerns), but through module-level metadata propagation rather than runtime code weaving. Keep this distinction in mind so you don't expect a full AOP toolkit here.
+:::
+
 The primary limitation of dynamic modules is that they are strictly bound by the configuration types accepted by base decorators, and their configuration is entirely local. They cannot recursively apply custom dynamic options to the modules they import.
 
 In contrast, aspect decorators provide hooks that actively participate in the **recursive import and export** of modules, providers, and their dynamic options across the entire dependency graph. Here is exactly what aspects can do that dynamic modules **cannot**:
@@ -16,7 +24,7 @@ In contrast, aspect decorators provide hooks that actively participate in the **
   
   For example, dynamic modules are restricted by the base decorators (`@rootModule`, `@featureModule`). Even if you bypass TypeScript to pass a custom parameter like `path`, the base decorators will ignore it, and the dynamic module cannot recursively apply it to any child module it imports:
   ```ts
-  @featureModule({
+  @rootModule({
     // The base decorator will ignore the 'path' parameter, and it won't be passed to imported child modules
     imports: [{ module: SomeModule, path: 'api' } as any]
   })
@@ -176,3 +184,4 @@ When importing a dynamic module in the context of an aspect decorator:
 [1]: /basic-components/modules/#DynamicModule
 [2]: https://github.com/holujs/holu/blob/main/packages/core/src/init/module-normalizer.spec.ts
 [3]: https://github.com/holujs/holu/blob/main/packages/rest/src/decorators/rest-module-aspects.ts
+[4]: https://en.wikipedia.org/wiki/Aspect-oriented_programming
