@@ -750,6 +750,52 @@ describe('ModuleManager', () => {
       const moduleAspectHandler = hostMeta?.moduleAspectMap.get(someAspect);
       expect(moduleAspectHandler?.moduleOptions).toEqual({ customProp: 'works' });
     });
+
+    it('should scan modules returned by getModulesToScan() of a host aspect', () => {
+      class Provider1 {}
+
+      @featureModule({ providersPerApp: [Provider1] })
+      class ModuleC {}
+
+      @featureModule({ providersPerApp: [Provider1] })
+      class HostModule {}
+
+      class AspectMeta extends BaseNormalizedModuleMeta {}
+
+      class AspectHandler1 extends ModuleAspectHandler<any> {
+        override hostModule = HostModule;
+        override hostAspectOptions = {};
+
+        override normalize(normalizedModuleMeta: NormalizedModuleMeta): any {
+          return createAspectMetaProxy(normalizedModuleMeta, AspectMeta);
+        }
+
+        override getModulesToScan(meta: BaseNormalizedModuleMeta) {
+          return [ModuleC];
+        }
+      }
+
+      const someAspect: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new AspectHandler1(d));
+
+      @someAspect()
+      @featureModule({ providersPerApp: [Provider1] })
+      class AspectModule {}
+
+      @rootModule({ imports: [HostModule, AspectModule] })
+      class AppModule {}
+
+      mock.scanRootModule(AppModule);
+
+      const hostChildren = mock.childrenMap.get(HostModule);
+      expect(hostChildren?.has(ModuleC)).toBe(true);
+      
+      const aspectChildren = mock.childrenMap.get(AspectModule);
+      expect(aspectChildren?.has(ModuleC)).toBe(true);
+
+      const moduleCMeta = mock.getNormalizedModuleMeta(ModuleC, true);
+      expect(moduleCMeta.modRefId).toBe(ModuleC);
+    });
+
     it('should accumulate the exact same allModuleAspectsMap in the parent regardless of import order', () => {
       class AspectHandler1 extends ModuleAspectHandler<any> {
         override normalize(normalizedModuleMeta: NormalizedModuleMeta) {

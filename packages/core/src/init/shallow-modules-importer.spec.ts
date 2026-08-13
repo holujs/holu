@@ -2,7 +2,7 @@ import { jest } from '@jest/globals';
 
 import { featureModule } from '#decorators/feature-module.js';
 import { rootModule } from '#decorators/root-module.js';
-import { NormalizedModuleMeta } from '#init/normalized-meta.js';
+import { BaseNormalizedModuleMeta, createAspectMetaProxy, NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { ShallowModulesImporter } from '#init/shallow-modules-importer.js';
 import { ModuleManager } from '#init/module-manager.js';
 import { AppProviders, ImportedProvider } from '#types/metadata-per-mod.js';
@@ -16,7 +16,7 @@ import { ShallowModuleImports } from './types.js';
 import { injectable } from '#di/decorators.js';
 import type { FactoryProvider, Provider } from '#di/top/types-and-models.js';
 import { forwardRef, type ForwardRefFn } from '#di/forward-ref.js';
-import { AllModuleAspectsMap } from '#decorators/module-aspects.js';
+import { ModuleAspectHandler, ModuleAspectDecorator } from '#decorators/module-aspects.js';
 import { Reflector } from '#di/reflector.js';
 
 describe('ShallowModulesImporter', () => {
@@ -373,6 +373,34 @@ describe('ShallowModulesImporter', () => {
       exports: [Module2],
     })
     class Module3 {}
+
+    it('should scan modules returned by getModulesToScan() from module aspects', () => {
+      @featureModule()
+      class ModuleC {}
+
+      class AspectMeta extends BaseNormalizedModuleMeta {}
+
+      class AspectHandler1 extends ModuleAspectHandler<any> {
+        override normalize(normalizedModuleMeta: NormalizedModuleMeta): any {
+          return createAspectMetaProxy(normalizedModuleMeta, AspectMeta);
+        }
+
+        override getModulesToScan(meta: BaseNormalizedModuleMeta) {
+          return [ModuleC];
+        }
+      }
+
+      const someAspect: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((d) => new AspectHandler1(d));
+
+      @someAspect()
+      @featureModule()
+      class AspectModule {}
+
+      importModulesShallow(AspectModule);
+
+      // Verify that ShallowModulesImporter successfully scanned ModuleC because it was returned by getModulesToScan
+      expect(mock.shallowModuleImportsMap.has(ModuleC)).toBe(true);
+    });
 
     it('exporting providers order', () => {
       importModulesShallow(Module3);
