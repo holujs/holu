@@ -438,7 +438,7 @@ export class ModuleNormalizer {
 
   protected applyAspectModuleOptions(decoratorId: AnyFn, aspectOptions: StaticAspectOptions) {
     this.applyAspectImports(decoratorId, aspectOptions);
-    this.applyAspectModuleExports(aspectOptions);
+    this.applyAspectExports(aspectOptions);
     this.normalizeExtensions(aspectOptions);
     this.normalizeProvidersAndResolvedCollisions(aspectOptions);
     this.normalizeExports(aspectOptions, 'Static exports');
@@ -498,7 +498,7 @@ export class ModuleNormalizer {
     return dstn;
   }
 
-  protected applyAspectModuleExports(aspectOptions: StaticAspectOptions) {
+  protected applyAspectExports(aspectOptions: StaticAspectOptions) {
     if (aspectOptions.exports) {
       this.resolveAllForwardRefs(aspectOptions.exports).forEach((exp) => {
         if (isDynamicModule(exp)) {
