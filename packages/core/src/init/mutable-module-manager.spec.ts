@@ -6,13 +6,12 @@ import { rootModule } from '#decorators/root-module.js';
 import { SystemLogMediator } from '#logger/system-log-mediator.js';
 import { ModuleId } from './module-manager.js';
 import { MutableModuleManager } from './mutable-module-manager.js';
-import { StaticAspectOptions, ModuleAspectDecorator, ModuleAspectHandler } from '#decorators/module-aspects.js';
-import { BaseNormalizedModuleMeta, NormalizedModuleMeta, createAspectMetaProxy } from '#init/normalized-meta.js';
+import { ModuleAspectDecorator, ModuleAspectHandler } from '#decorators/module-aspects.js';
+import { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { ModuleGraphState } from '#init/module-graph-state.js';
-import { DynamicModuleOptions, ModRefId } from '#decorators/module-decorator-options.js';
+import { ModRefId } from '#decorators/module-decorator-options.js';
 import { DynamicModule } from '#decorators/module-decorator-options.js';
 import { clearDebugClassNames } from '#utils/get-debug-class-name.js';
-import { isDynamicModule } from '#decorators/type-guards.js';
 import { ImportAdditionFailure, ImportRemovalFailure, ForbiddenRollback, ForbiddenSavingSnapshot } from '#errors';
 import { injectable } from '#di/decorators.js';
 import { forwardRef } from '#di/forward-ref.js';
@@ -245,9 +244,7 @@ describe('ModuleManager', () => {
 
     it('should correctly propagate inherited aspects to dynamically added modules (Gemini Pro vs Opus test)', () => {
       class TestAspectHandler extends ModuleAspectHandler<any> {}
-      const testAspect: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator(
-        (data) => new TestAspectHandler(data)
-      );
+      const testAspect: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator((data) => new TestAspectHandler(data));
 
       class SomeService {}
 
@@ -426,68 +423,6 @@ describe('ModuleManager', () => {
       class AppModule {}
       mock.scanRootModule(AppModule);
       expect(() => mock.saveSnapshot()).toThrow(new ForbiddenSavingSnapshot());
-    });
-  });
-
-  describe('clone() on NormalizedModuleMeta', () => {
-    it('should copy NormalizedModuleMeta correctly, preserving prototype and recreating aspectMeta proxies wrapping the copy', () => {
-      interface MyDynamicOptions extends DynamicModuleOptions {
-        path?: string;
-      }
-      interface RootAspectOptions extends StaticAspectOptions<MyDynamicOptions> {
-        one?: string;
-      }
-      class AspectMeta extends BaseNormalizedModuleMeta {
-        path?: string;
-      }
-      class ModuleAspect1 extends ModuleAspectHandler<RootAspectOptions> {
-        override normalize(normalizedModuleMeta: NormalizedModuleMeta): AspectMeta {
-          const meta = createAspectMetaProxy(normalizedModuleMeta, AspectMeta);
-          if (isDynamicModule(normalizedModuleMeta.modRefId)) {
-            const params = normalizedModuleMeta.modRefId.aspectOptions?.get(someAspect);
-            meta.path = params?.path;
-          }
-          return meta;
-        }
-      }
-      const someAspect: ModuleAspectDecorator<RootAspectOptions, { path?: string }, AspectMeta> = Reflector.makeClassDecorator(
-        (d) => new ModuleAspect1(d),
-      );
-
-      @featureModule({ providersPerApp: [{ token: 'token1', useValue: 'value1' }] })
-      class Module1 {}
-
-      const dynamicModule: DynamicModule = { module: Module1 };
-
-      @someAspect({ one: 'some-here', imports: [{ dynamicModule: dynamicModule, path: 'some-prefix' }] })
-      @rootModule()
-      class AppModule {}
-
-      mock.scanRootModule(AppModule);
-      const originalMod1 = mock.getNormalizedModuleMeta(dynamicModule)!;
-      expect(originalMod1).toBeInstanceOf(NormalizedModuleMeta);
-
-      // Call clone
-      const copiedMod1 = originalMod1.clone();
-      expect(copiedMod1).toBeInstanceOf(NormalizedModuleMeta);
-      expect(copiedMod1).not.toBe(originalMod1);
-
-      // Maps should be new instances
-      expect(copiedMod1.moduleAspectMap).not.toBe(originalMod1.moduleAspectMap);
-      expect(copiedMod1.allModuleAspectsMap).not.toBe(originalMod1.allModuleAspectsMap);
-      expect(copiedMod1.normalizedAspectMetaMap).not.toBe(originalMod1.normalizedAspectMetaMap);
-
-      // The proxy inside copiedMod1.normalizedAspectMetaMap should wrap copiedMod1.
-      const originalProxy = originalMod1.normalizedAspectMetaMap.get(someAspect) as AspectMeta;
-      const copiedProxy = copiedMod1.normalizedAspectMetaMap.get(someAspect) as AspectMeta;
-
-      expect(copiedProxy).toBeDefined();
-      expect(copiedProxy).not.toBe(originalProxy);
-
-      // When we mutate providersPerApp of copiedMod1, it should NOT affect originalProxy, but it should affect copiedProxy.
-      copiedMod1.providersPerApp.push({ token: 'new-token', useValue: 'new-val' });
-      expect(originalProxy.providersPerApp.some((p) => (p as any).token === 'new-token')).toBe(false);
-      expect(copiedProxy.providersPerApp.some((p) => (p as any).token === 'new-token')).toBe(true);
     });
   });
 

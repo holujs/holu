@@ -1,8 +1,15 @@
-import { NormalizedModuleMeta } from '#init/normalized-meta.js';
+import { NormalizedModuleMeta, BaseNormalizedModuleMeta, createAspectMetaProxy } from '#init/normalized-meta.js';
 import { injectable } from '#di/decorators.js';
 import { ExtensionGroupToken } from '#di/key-registry.js';
 import type { Extension } from '#extension/extension-types.js';
-import { ModuleAspectHandler } from '#decorators/module-aspects.js';
+import { ModuleAspectHandler, StaticAspectOptions, ModuleAspectDecorator } from '#decorators/module-aspects.js';
+import { featureModule } from '#decorators/feature-module.js';
+import { rootModule } from '#decorators/root-module.js';
+import { Reflector } from '#di/reflector.js';
+import { DynamicModuleOptions, DynamicModule } from '#decorators/module-decorator-options.js';
+import { isDynamicModule } from '#decorators/type-guards.js';
+import { ModuleManager } from '#init/module-manager.js';
+import { SystemLogMediator } from '#logger/system-log-mediator.js';
 
 describe('NormalizedModuleMeta', () => {
   @injectable()
@@ -82,5 +89,71 @@ describe('NormalizedModuleMeta', () => {
     expect(copiedAspect).toBeDefined();
     expect(copiedAspect).not.toBe(aspect);
     expect(copiedAspect.normalizedCount).toBe(1);
+  });
+  describe('clone() on NormalizedModuleMeta', () => {
+    class MockModuleManager extends ModuleManager {
+      declare systemLogMediator: SystemLogMediator;
+    }
+
+    it('should copy NormalizedModuleMeta correctly, preserving prototype and recreating aspectMeta proxies wrapping the copy', () => {
+      const mock = new MockModuleManager(new SystemLogMediator({ moduleName: 'fakeName' }));
+      interface MyDynamicOptions extends DynamicModuleOptions {
+        path?: string;
+      }
+      interface RootAspectOptions extends StaticAspectOptions<MyDynamicOptions> {
+        one?: string;
+      }
+      class AspectMeta extends BaseNormalizedModuleMeta {
+        path?: string;
+      }
+      class ModuleAspect1 extends ModuleAspectHandler<RootAspectOptions> {
+        override normalize(normalizedModuleMeta: NormalizedModuleMeta): AspectMeta {
+          const meta = createAspectMetaProxy(normalizedModuleMeta, AspectMeta);
+          if (isDynamicModule(normalizedModuleMeta.modRefId)) {
+            const params = normalizedModuleMeta.modRefId.aspectOptions?.get(someAspect);
+            meta.path = params?.path;
+          }
+          return meta;
+        }
+      }
+      const someAspect: ModuleAspectDecorator<RootAspectOptions, { path?: string }, AspectMeta> = Reflector.makeClassDecorator(
+        (d) => new ModuleAspect1(d),
+      );
+
+      @featureModule({ providersPerApp: [{ token: 'token1', useValue: 'value1' }] })
+      class Module1 {}
+
+      const dynamicModule: DynamicModule = { module: Module1 };
+
+      @someAspect({ one: 'some-here', imports: [{ dynamicModule: dynamicModule, path: 'some-prefix' }] })
+      @rootModule()
+      class AppModule {}
+
+      mock.scanRootModule(AppModule);
+      const originalMod1 = mock.getNormalizedModuleMeta(dynamicModule)!;
+      expect(originalMod1).toBeInstanceOf(NormalizedModuleMeta);
+
+      // Call clone
+      const copiedMod1 = originalMod1.clone();
+      expect(copiedMod1).toBeInstanceOf(NormalizedModuleMeta);
+      expect(copiedMod1).not.toBe(originalMod1);
+
+      // Maps should be new instances
+      expect(copiedMod1.moduleAspectMap).not.toBe(originalMod1.moduleAspectMap);
+      expect(copiedMod1.allModuleAspectsMap).not.toBe(originalMod1.allModuleAspectsMap);
+      expect(copiedMod1.normalizedAspectMetaMap).not.toBe(originalMod1.normalizedAspectMetaMap);
+
+      // The proxy inside copiedMod1.normalizedAspectMetaMap should wrap copiedMod1.
+      const originalProxy = originalMod1.normalizedAspectMetaMap.get(someAspect) as AspectMeta;
+      const copiedProxy = copiedMod1.normalizedAspectMetaMap.get(someAspect) as AspectMeta;
+
+      expect(copiedProxy).toBeDefined();
+      expect(copiedProxy).not.toBe(originalProxy);
+
+      // When we mutate providersPerApp of copiedMod1, it should NOT affect originalProxy, but it should affect copiedProxy.
+      copiedMod1.providersPerApp.push({ token: 'new-token', useValue: 'new-val' });
+      expect(originalProxy.providersPerApp.some((p) => (p as any).token === 'new-token')).toBe(false);
+      expect(copiedProxy.providersPerApp.some((p) => (p as any).token === 'new-token')).toBe(true);
+    });
   });
 });
