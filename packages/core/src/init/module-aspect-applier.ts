@@ -16,10 +16,12 @@ import { EmptyModuleMeta } from '#errors';
  * This class is separated from {@link ModuleNormalizer} to clearly distinguish
  * between **creating** new metadata (normalizer) and **mutating** existing metadata (this class).
  */
-export class ModuleAspectApplier extends ModuleMetaProcessor {
+export class ModuleAspectApplier {
+  constructor(protected metaProcessor = new ModuleMetaProcessor()) {}
+
   applyHostAspectOptions(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleAspect: ModuleAspectHandler) {
-    this.applyAspectModuleOptions(decoratorId, moduleAspect.moduleOptions, normalizedModuleMeta);
-    this.normalizeAspectMeta(decoratorId, moduleAspect, normalizedModuleMeta);
+    this.metaProcessor.applyAspectModuleOptions(decoratorId, moduleAspect.moduleOptions, normalizedModuleMeta);
+    this.metaProcessor.normalizeAspectMeta(decoratorId, moduleAspect, normalizedModuleMeta);
   }
 
   /**
@@ -32,8 +34,8 @@ export class ModuleAspectApplier extends ModuleMetaProcessor {
    */
   registerAspectOnModule(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleAspect: ModuleAspectHandler): void {
     normalizedModuleMeta.allModuleAspectsMap.set(decoratorId, moduleAspect);
-    this.ensureHostModuleImported(moduleAspect, normalizedModuleMeta);
-    this.normalizeAspectMeta(decoratorId, moduleAspect, normalizedModuleMeta);
+    this.metaProcessor.ensureHostModuleImported(moduleAspect, normalizedModuleMeta);
+    this.metaProcessor.normalizeAspectMeta(decoratorId, moduleAspect, normalizedModuleMeta);
     normalizedModuleMeta.moduleAspectMap.set(decoratorId, moduleAspect);
   }
 

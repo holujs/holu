@@ -30,7 +30,7 @@ import { UndefinedSymbol, InvalidExtension, UnknownExport, ForbiddenNormalizedEx
  * (mutation of existing metadata).
  */
 export class ModuleMetaProcessor {
-  protected normalizeProvidersAndResolvedCollisions(
+  normalizeProvidersAndResolvedCollisions(
     staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
     meta: NormalizedModuleMeta,
   ) {
@@ -38,7 +38,7 @@ export class ModuleMetaProcessor {
     this.normalizeResolvedCollisions(staticModuleOptions, meta);
   }
 
-  protected normalizeProviders(moduleOptions: Partial<ProvidersByLevel>, meta: NormalizedModuleMeta) {
+  normalizeProviders(moduleOptions: Partial<ProvidersByLevel>, meta: NormalizedModuleMeta) {
     (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
       const providersKey = `providersPer${level}` as const;
       if (moduleOptions[providersKey]) {
@@ -48,7 +48,7 @@ export class ModuleMetaProcessor {
     });
   }
 
-  protected normalizeResolvedCollisions(
+  normalizeResolvedCollisions(
     staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
     meta: NormalizedModuleMeta,
   ) {
@@ -67,7 +67,7 @@ export class ModuleMetaProcessor {
     });
   }
 
-  protected normalizeExports(
+  normalizeExports(
     moduleOptions: { exports?: any[] },
     action: 'Static exports' | 'Dynamic exports',
     meta: NormalizedModuleMeta,
@@ -100,7 +100,7 @@ export class ModuleMetaProcessor {
     });
   }
 
-  protected exportProviders(token: any, meta: NormalizedModuleMeta): void {
+  exportProviders(token: any, meta: NormalizedModuleMeta): void {
     let found = false;
     (['Mod', 'Rou', 'Req'] satisfies Level[]).forEach((level) => {
       const providers = meta[`providersPer${level}`].filter((p) => getToken(p) === token);
@@ -124,7 +124,7 @@ export class ModuleMetaProcessor {
     }
   }
 
-  protected normalizeExtensions(
+  normalizeExtensions(
     staticModuleOptions: PickProps<FeatureModuleOptions, 'extensions' | 'extensionsMeta'>,
     meta: NormalizedModuleMeta,
   ) {
@@ -163,7 +163,7 @@ export class ModuleMetaProcessor {
     });
   }
 
-  protected assertValidExtensionProvider(extensionsProvider: Provider, meta: NormalizedModuleMeta) {
+  assertValidExtensionProvider(extensionsProvider: Provider, meta: NormalizedModuleMeta) {
     const np = normalizeProviders([extensionsProvider])[0];
     let ExtensionCls: ExtensionClass | undefined;
     if (isClassProvider(np)) {
@@ -185,7 +185,7 @@ export class ModuleMetaProcessor {
     }
   }
 
-  protected normalizeAspectMeta(decoratorId: AnyFn, moduleAspect: ModuleAspectHandler, meta: NormalizedModuleMeta) {
+  normalizeAspectMeta(decoratorId: AnyFn, moduleAspect: ModuleAspectHandler, meta: NormalizedModuleMeta) {
     const aspectMeta = moduleAspect.normalize(meta);
     if (aspectMeta) {
       meta.normalizedAspectMetaMap.set(decoratorId, aspectMeta);
@@ -196,14 +196,14 @@ export class ModuleMetaProcessor {
    * Ensures the host module (if any) is added to `importedStaticModules` for the current module,
    * unless the current module itself is the host module.
    */
-  protected ensureHostModuleImported(moduleAspect: ModuleAspectHandler, meta: NormalizedModuleMeta): void {
+  ensureHostModuleImported(moduleAspect: ModuleAspectHandler, meta: NormalizedModuleMeta): void {
     const { hostModule } = moduleAspect;
     if (hostModule && hostModule !== meta.modRefId && !meta.importedStaticModules.includes(hostModule)) {
       meta.importedStaticModules.push(hostModule);
     }
   }
 
-  protected applyAspectModuleOptions(decoratorId: AnyFn, aspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
+  applyAspectModuleOptions(decoratorId: AnyFn, aspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
     this.applyAspectImports(decoratorId, aspectOptions, meta);
     this.applyAspectExports(aspectOptions, meta);
     this.normalizeExtensions(aspectOptions, meta);
@@ -211,7 +211,7 @@ export class ModuleMetaProcessor {
     this.normalizeExports(aspectOptions, 'Static exports', meta);
   }
 
-  protected applyAspectImports(decoratorId: AnyFn, aspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
+  applyAspectImports(decoratorId: AnyFn, aspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
     if (aspectOptions.imports) {
       this.resolveAllForwardRefs(aspectOptions.imports).forEach((imp) => {
         if (isDynamicModule(imp)) {
@@ -231,7 +231,7 @@ export class ModuleMetaProcessor {
     }
   }
 
-  protected mergeAspectOptionsIntoDynamicModule(
+  mergeAspectOptionsIntoDynamicModule(
     decoratorId: AnyFn,
     params: AnyObj,
     dynamicModule: DynamicModule,
@@ -251,7 +251,7 @@ export class ModuleMetaProcessor {
     }
   }
 
-  protected mergeAspectOptionObjects(dstn: AnyObj, src: AnyObj) {
+  mergeAspectOptionObjects(dstn: AnyObj, src: AnyObj) {
     objectKeys(src).forEach((prop) => {
       if (prop == 'aspectOptions' || prop == 'module') {
         // ignore
@@ -270,7 +270,7 @@ export class ModuleMetaProcessor {
     return dstn;
   }
 
-  protected applyAspectExports(aspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
+  applyAspectExports(aspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
     if (aspectOptions.exports) {
       this.resolveAllForwardRefs(aspectOptions.exports).forEach((exp) => {
         if (isDynamicModule(exp)) {
@@ -290,7 +290,7 @@ export class ModuleMetaProcessor {
     }
   }
 
-  protected resolveAllForwardRefs<T extends ModRefId | Provider | ForwardRefFn | { dynamicModule: DynamicModule }>(
+  resolveAllForwardRefs<T extends ModRefId | Provider | ForwardRefFn | { dynamicModule: DynamicModule }>(
     arr: T[] | ProviderBuilder = [],
   ): Exclude<T, ForwardRefFn>[] {
     return [...arr].map((item) => {

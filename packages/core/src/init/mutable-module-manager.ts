@@ -142,6 +142,11 @@ export class MutableModuleManager extends ModuleManager {
     }
   }
 
+  protected override get activeMetaMap() {
+    return this.oldState ? this.state.snapshotMap : this.normalizedMetaMap;
+  }
+
+
   /**
    * @experimental The mutability of the module graph is an experimental feature.
    */

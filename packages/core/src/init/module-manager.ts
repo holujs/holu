@@ -1,15 +1,15 @@
 import type { SystemLogMediator } from '#logger/system-log-mediator.js';
 import type { AnyObj } from '#types/mix.js';
-import type { StaticModule, ModRefId, DynamicModule } from '#decorators/module-decorator-options.js';
+import type { StaticModule, ModRefId } from '#decorators/module-decorator-options.js';
 import type { BaseNormalizedModuleMeta, NormalizedModuleMeta } from '#init/normalized-meta.js';
-import type { AllModuleAspectsMap, ModuleAspectHandler } from '#decorators/module-aspects.js';
-import type { Provider, AnyFn } from '#di/top/types-and-models.js';
+import type { Provider } from '#di/top/types-and-models.js';
 import type { Injector } from '#di/injector.js';
 import { resolveForwardRef, type ForwardRefFn } from '#di/forward-ref.js';
 import { isRootModule } from '#decorators/type-guards.js';
 import { clearDebugClassNames, getDebugClassName } from '#utils/get-debug-class-name.js';
 import { ModuleNormalizer } from '#init/module-normalizer.js';
 import { ModuleAspectApplier } from '#init/module-aspect-applier.js';
+import { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
 import { ModuleIdNotFound, NormalizationFailure, MissingRootDecorator } from '#errors';
 import { getModule } from '#utils/get-module.js';
 
@@ -168,76 +168,24 @@ export class ModuleManager {
     this.normalizedMetaMap.set(modRefId, normalizedModuleMeta);
   }
 
+  protected get activeMetaMap() {
+    return this.normalizedMetaMap;
+  }
+
   protected finalizeRootScan(modRefId: ModRefId) {
-    this.applyHostAspectOptions();
+    const propagator = new ModuleAspectPropagator(
+      this.aspectApplier,
+      this.activeMetaMap,
+      this.childrenMap,
+      this.scannedModules,
+      this.propsWithModules,
+    );
+    propagator.applyHostAspectOptions((modulesToScan) => this.scanNewlyAddedModules(modulesToScan));
+
     const rootModule = this.moduleIdMap.get('root') || resolveForwardRef(modRefId);
-    this.propagateAspectsTopDown(rootModule);
-    this.accumulateAspectsBottomUp(rootModule);
+    propagator.propagateAspectsTopDown(rootModule);
+    propagator.accumulateAspectsBottomUp(rootModule);
     this.checkEmptyMetaForAllModules();
-  }
-
-  /**
-   * Identifies module aspects containing `hostAspectOptions` and applies them to their respective host modules.
-   * Runs recursively to scan any newly added dependencies triggered by these options.
-   */
-  protected applyHostAspectOptions() {
-    let hasNewModules = true;
-    while (hasNewModules) {
-      hasNewModules = false;
-      const modulesToScan = new Set<ModRefId>();
-
-      this.normalizedMetaMap.forEach((meta) => {
-        meta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
-          if (moduleAspect.hostModule && moduleAspect.hostAspectOptions) {
-            const hostMeta = this.normalizedMetaMap.get(moduleAspect.hostModule);
-            if (hostMeta && !hostMeta.moduleAspectMap.has(decoratorId)) {
-              const isAdded = this.applyHostAspectAndGatherDependencies(hostMeta, decoratorId, moduleAspect, modulesToScan);
-              if (isAdded) {
-                hasNewModules = true;
-              }
-            }
-          }
-        });
-      });
-
-      this.scanNewlyAddedModules(modulesToScan);
-    }
-  }
-
-  protected applyHostAspectAndGatherDependencies(
-    hostMeta: NormalizedModuleMeta,
-    decoratorId: AnyFn,
-    moduleAspect: ModuleAspectHandler,
-    modulesToScan: Set<ModRefId>,
-  ): boolean {
-    const newModuleAspect = moduleAspect.clone(moduleAspect.hostAspectOptions);
-    hostMeta.moduleAspectMap.set(decoratorId, newModuleAspect);
-    try {
-      this.aspectApplier.applyHostAspectOptions(hostMeta, decoratorId, newModuleAspect);
-    } catch (err: any) {
-      throw new NormalizationFailure(hostMeta.name, err);
-    }
-
-    const inputs: ModRefId[] = [];
-    const aspectMeta = hostMeta.normalizedAspectMetaMap.get(decoratorId);
-    if (aspectMeta) {
-      inputs.push(...newModuleAspect.getModulesToScan(aspectMeta));
-    }
-
-    let hasNewSubChildren = false;
-    this.propsWithModules.forEach((p) => inputs.push(...hostMeta[p]));
-    const children = this.childrenMap.get(hostMeta.modRefId);
-    if (children) {
-      inputs.forEach((input) => {
-        children.add(input);
-        if (!this.scannedModules.has(input)) {
-          modulesToScan.add(input);
-          hasNewSubChildren = true;
-        }
-      });
-    }
-
-    return hasNewSubChildren;
   }
 
   protected scanNewlyAddedModules(modulesToScan: Set<ModRefId>) {
@@ -249,104 +197,6 @@ export class ModuleManager {
         this.scannedModules.add(input);
       }
     }
-  }
-
-  /**
-   * Top-down traversal of the module dependency graph.
-   *
-   * Propagates parent module aspects to child modules that:
-   * - Are dynamic modules with `aspectOptions` but no own aspect decorator for that decorator.
-   * - Are static modules without any own aspect decorators (inheriting full parent context).
-   *
-   * Modules with their own aspect decorators keep them and do not inherit from the parent.
-   */
-  protected propagateAspectsTopDown(
-    startModule: ModRefId,
-    parentAspects: AllModuleAspectsMap = new Map(),
-    visited = new Set<ModRefId>(),
-  ) {
-    if (visited.has(startModule)) {
-      return;
-    }
-    visited.add(startModule);
-
-    const meta = this.getMeta(startModule);
-    if (!meta) {
-      return;
-    }
-
-    // Build the active aspect context: parent's aspects + current module's own aspects.
-    const activeAspects: AllModuleAspectsMap = new Map(parentAspects);
-    meta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
-      activeAspects.set(decoratorId, moduleAspect);
-    });
-
-    // Apply aspects for dynamic modules imported with aspectOptions.
-    this.applyAspectsForDynamicModule(meta, activeAspects);
-
-    // Inherit parent aspects for static modules without own decorators.
-    this.inheritParentAspects(meta, activeAspects);
-
-    // After applying/inheriting, rebuild activeAspects to include newly added entries.
-    meta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
-      activeAspects.set(decoratorId, moduleAspect);
-    });
-
-    // Recurse into children.
-    const children = this.childrenMap.get(startModule);
-    if (children) {
-      for (const child of children) {
-        this.propagateAspectsTopDown(child, activeAspects, visited);
-      }
-    }
-  }
-
-  /**
-   * Post-order (bottom-up) traversal that accumulates `allModuleAspectsMap` for each module.
-   *
-   * After this pass, each module's `allModuleAspectsMap` contains the union of the module's
-   * own aspects and all aspects found in descendant modules.
-   * Also creates read-only `normalizedAspectMetaMap` entries for aspects that are in
-   * `allModuleAspectsMap` but not in `moduleAspectMap`.
-   */
-  protected accumulateAspectsBottomUp(startModule: ModRefId, visited = new Set<ModRefId>()) {
-    if (visited.has(startModule)) {
-      return;
-    }
-    visited.add(startModule);
-
-    const meta = this.getMeta(startModule);
-    if (!meta) {
-      return;
-    }
-
-    // Recurse into children first (post-order).
-    const children = this.childrenMap.get(startModule);
-    if (children) {
-      for (const child of children) {
-        this.accumulateAspectsBottomUp(child, visited);
-      }
-
-      // Now add children's aspects to the current module's allModuleAspectsMap.
-      for (const child of children) {
-        const childMeta = this.getMeta(child);
-        childMeta?.allModuleAspectsMap.forEach((aspect, decoratorId) => {
-          if (!meta.allModuleAspectsMap.has(decoratorId)) {
-            meta.allModuleAspectsMap.set(decoratorId, aspect);
-          }
-        });
-      }
-    }
-
-    // Create read-only normalizedAspectMetaMap entries for accumulated (non-own) aspects.
-    meta.allModuleAspectsMap.forEach((aspect, decoratorId) => {
-      if (!meta.moduleAspectMap.has(decoratorId) && !meta.normalizedAspectMetaMap.has(decoratorId)) {
-        const readOnlyMeta = aspect.clone().normalize(meta);
-        if (readOnlyMeta) {
-          meta.normalizedAspectMetaMap.set(decoratorId, readOnlyMeta);
-        }
-      }
-    });
   }
 
   /**
@@ -465,49 +315,5 @@ export class ModuleManager {
       path = this.unfinishedScanModules.size > 1 ? `${moduleName} (${path})` : `${moduleName}`;
       throw new NormalizationFailure(path, err);
     }
-  }
-
-  /**
-   * For dynamic modules imported with `aspectOptions`, clones the corresponding
-   * aspect from the parent's context and registers it on the module.
-   * This ensures the aspect's `normalize()` can read dynamic options (path, guards, etc.).
-   */
-  protected applyAspectsForDynamicModule(meta: NormalizedModuleMeta, parentAspects: AllModuleAspectsMap) {
-    (meta.modRefId as DynamicModule).aspectOptions?.forEach((params, decoratorId) => {
-      if (!meta.moduleAspectMap.has(decoratorId)) {
-        const parentAspect = parentAspects.get(decoratorId);
-        if (parentAspect) {
-          try {
-            this.aspectApplier.registerAspectOnModule(meta, decoratorId, parentAspect.clone());
-            if (parentAspect.hostModule) {
-              this.childrenMap.get(meta.modRefId)?.add(parentAspect.hostModule);
-            }
-          } catch (err: any) {
-            throw new NormalizationFailure(meta.name, err);
-          }
-        }
-      }
-    });
-  }
-
-  /**
-   * For modules without any own aspect decorators, inherits all aspects from the parent.
-   * Respects `inheritsAspects` and `isExternal` flags.
-   */
-  protected inheritParentAspects(meta: NormalizedModuleMeta, parentAspects: AllModuleAspectsMap) {
-    const inheritsAspects = meta.inheritsAspects ?? !meta.isExternal;
-    if (!inheritsAspects || meta.moduleAspectMap.size > 0) {
-      return;
-    }
-    parentAspects.forEach((aspect, decoratorId) => {
-      try {
-        this.aspectApplier.registerAspectOnModule(meta, decoratorId, aspect.clone());
-        if (aspect.hostModule) {
-          this.childrenMap.get(meta.modRefId)?.add(aspect.hostModule);
-        }
-      } catch (err: any) {
-        throw new NormalizationFailure(meta.name, err);
-      }
-    });
   }
 }

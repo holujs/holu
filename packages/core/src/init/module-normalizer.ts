@@ -24,12 +24,14 @@ import type { ModuleAspectApplier } from '#init/module-aspect-applier.js';
  * module decorator options. Mutation of existing metadata (aspect registration,
  * host-aspect application) is handled by {@link ModuleAspectApplier}.
  */
-export class ModuleNormalizer extends ModuleMetaProcessor {
+export class ModuleNormalizer {
   /**
    * The directory in which the class was declared.
    */
   protected rootDeclaredInDir: string;
   protected systemLogMediator: SystemLogMediator;
+
+  constructor(protected metaProcessor = new ModuleMetaProcessor()) {}
 
   /**
    * Returns normalized module metadata.
@@ -45,17 +47,17 @@ export class ModuleNormalizer extends ModuleMetaProcessor {
     this.checkAndMarkExternalModule(staticModuleOptions, meta);
 
     // Phase 1: Normalize base decorator metadata.
-    this.normalizeProvidersAndResolvedCollisions(staticModuleOptions, meta);
+    this.metaProcessor.normalizeProvidersAndResolvedCollisions(staticModuleOptions, meta);
     this.normalizeImports(staticModuleOptions, meta);
-    this.normalizeExtensions(staticModuleOptions, meta);
+    this.metaProcessor.normalizeExtensions(staticModuleOptions, meta);
 
     if (isDynamicModule(modRefId)) {
       this.normalizeDynamicModule(modRefId, meta);
     }
 
-    this.normalizeExports(staticModuleOptions, 'Static exports', meta);
+    this.metaProcessor.normalizeExports(staticModuleOptions, 'Static exports', meta);
     if (isDynamicModule(modRefId)) {
-      this.normalizeExports(modRefId, 'Dynamic exports', meta);
+      this.metaProcessor.normalizeExports(modRefId, 'Dynamic exports', meta);
     }
 
     this.assertReexportedModulesAreImported(meta);
@@ -130,7 +132,7 @@ export class ModuleNormalizer extends ModuleMetaProcessor {
     if (dynamicModule.id) {
       meta.id = dynamicModule.id;
     }
-    this.normalizeProviders(dynamicModule, meta);
+    this.metaProcessor.normalizeProviders(dynamicModule, meta);
     if (dynamicModule.extensionsMeta) {
       meta.extensionsMeta = {
         ...meta.extensionsMeta,
@@ -140,7 +142,7 @@ export class ModuleNormalizer extends ModuleMetaProcessor {
   }
 
   protected normalizeImports(staticModuleOptions: RootModuleOptions, meta: NormalizedModuleMeta) {
-    this.resolveAllForwardRefs(staticModuleOptions.imports).forEach((imp, i) => {
+    this.metaProcessor.resolveAllForwardRefs(staticModuleOptions.imports).forEach((imp, i) => {
       if (imp === undefined) {
         throw new UndefinedSymbol('Imports', meta.name, i);
       }
@@ -190,9 +192,9 @@ export class ModuleNormalizer extends ModuleMetaProcessor {
   protected processOwnModuleAspects(meta: NormalizedModuleMeta) {
     meta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
       meta.allModuleAspectsMap.set(decoratorId, moduleAspect);
-      this.ensureHostModuleImported(moduleAspect, meta);
-      this.applyAspectModuleOptions(decoratorId, moduleAspect.moduleOptions, meta);
-      this.normalizeAspectMeta(decoratorId, moduleAspect, meta);
+      this.metaProcessor.ensureHostModuleImported(moduleAspect, meta);
+      this.metaProcessor.applyAspectModuleOptions(decoratorId, moduleAspect.moduleOptions, meta);
+      this.metaProcessor.normalizeAspectMeta(decoratorId, moduleAspect, meta);
     });
   }
 

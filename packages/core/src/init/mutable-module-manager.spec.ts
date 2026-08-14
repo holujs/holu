@@ -242,6 +242,48 @@ describe('ModuleManager', () => {
       expect(mock.getNormalizedModuleMetaFromSnapshot('root')).toEqual(expectedMeta3);
       expect(mock.getNormalizedModuleMeta('root')).toEqual(expectedMeta3);
     });
+
+    it('should correctly propagate inherited aspects to dynamically added modules (Gemini Pro vs Opus test)', () => {
+      class TestAspectHandler extends ModuleAspectHandler<any> {}
+      const testAspect: ModuleAspectDecorator<any, any, any> = Reflector.makeClassDecorator(
+        (data) => new TestAspectHandler(data)
+      );
+
+      class SomeService {}
+
+      @featureModule({
+        providersPerMod: [SomeService],
+        exports: [SomeService],
+      })
+      class DynamicallyAddedModule {}
+
+      @testAspect({})
+      @rootModule({
+        imports: [],
+      })
+      class AspectAppModule {}
+
+      mock.scanRootModule(AspectAppModule);
+
+      const origGetMeta = mock['getMeta'];
+      jest.spyOn(mock as any, 'getMeta').mockImplementation((modRefId: any) => {
+        const meta = origGetMeta.call(mock, modRefId);
+        if (meta && meta.modRefId === DynamicallyAddedModule) {
+          meta.isExternal = false;
+          meta.inheritsAspects = true;
+        }
+        return meta;
+      });
+
+      mock.addImport(DynamicallyAddedModule, AspectAppModule);
+      mock.commit();
+      mock.reset();
+
+      const dynamicMeta = mock.getNormalizedModuleMeta(DynamicallyAddedModule);
+      expect(dynamicMeta).toBeDefined();
+
+      expect(dynamicMeta!.allModuleAspectsMap.has(testAspect)).toBe(true);
+    });
   });
 
   describe('dynamic removal (removeImport)', () => {
