@@ -9,6 +9,7 @@ import { resolveForwardRef, type ForwardRefFn } from '#di/forward-ref.js';
 import { isRootModule } from '#decorators/type-guards.js';
 import { clearDebugClassNames, getDebugClassName } from '#utils/get-debug-class-name.js';
 import { ModuleNormalizer } from '#init/module-normalizer.js';
+import { ModuleAspectApplier } from '#init/module-aspect-applier.js';
 import { ModuleIdNotFound, NormalizationFailure, MissingRootDecorator } from '#errors';
 import { getModule } from '#utils/get-module.js';
 
@@ -77,6 +78,7 @@ export class ModuleManager {
   constructor(
     protected systemLogMediator: SystemLogMediator,
     protected moduleNormalizer: ModuleNormalizer = new ModuleNormalizer(),
+    protected aspectApplier: ModuleAspectApplier = new ModuleAspectApplier(),
   ) {}
 
   /**
@@ -211,7 +213,7 @@ export class ModuleManager {
     const newModuleAspect = moduleAspect.clone(moduleAspect.hostAspectOptions);
     hostMeta.moduleAspectMap.set(decoratorId, newModuleAspect);
     try {
-      this.moduleNormalizer.applyHostAspectOptions(hostMeta, decoratorId, newModuleAspect);
+      this.aspectApplier.applyHostAspectOptions(hostMeta, decoratorId, newModuleAspect);
     } catch (err: any) {
       throw new NormalizationFailure(hostMeta.name, err);
     }
@@ -354,7 +356,7 @@ export class ModuleManager {
   protected checkEmptyMetaForAllModules() {
     this.normalizedMetaMap.forEach((meta) => {
       try {
-        this.moduleNormalizer.checkEmptyMeta(meta);
+        this.aspectApplier.checkEmptyMeta(meta);
       } catch (err: any) {
         throw new NormalizationFailure(meta.name, err);
       }
@@ -476,7 +478,7 @@ export class ModuleManager {
         const parentAspect = parentAspects.get(decoratorId);
         if (parentAspect) {
           try {
-            this.moduleNormalizer.registerAspectOnModule(meta, decoratorId, parentAspect.clone());
+            this.aspectApplier.registerAspectOnModule(meta, decoratorId, parentAspect.clone());
             if (parentAspect.hostModule) {
               this.childrenMap.get(meta.modRefId)?.add(parentAspect.hostModule);
             }
@@ -499,7 +501,7 @@ export class ModuleManager {
     }
     parentAspects.forEach((aspect, decoratorId) => {
       try {
-        this.moduleNormalizer.registerAspectOnModule(meta, decoratorId, aspect.clone());
+        this.aspectApplier.registerAspectOnModule(meta, decoratorId, aspect.clone());
         if (aspect.hostModule) {
           this.childrenMap.get(meta.modRefId)?.add(aspect.hostModule);
         }

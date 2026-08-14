@@ -261,7 +261,7 @@ export class MutableModuleManager extends ModuleManager {
     super.checkEmptyMetaForAllModules();
     this.state.snapshotMap.forEach((meta) => {
       try {
-        this.moduleNormalizer.checkEmptyMeta(meta);
+        this.aspectApplier.checkEmptyMeta(meta);
       } catch (err: any) {
         throw new NormalizationFailure(meta.name, err);
       }

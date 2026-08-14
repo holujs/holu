@@ -14,6 +14,7 @@ import {
 } from '#decorators/module-decorator-options.js';
 import { clearDebugClassNames } from '#utils/get-debug-class-name.js';
 import { ModuleNormalizer } from './module-normalizer.js';
+import { ModuleAspectApplier } from './module-aspect-applier.js';
 import { ProviderBuilder } from '#utils/providers.js';
 import {
   UnknownExport,
@@ -42,10 +43,12 @@ describe('ModuleNormalizer', () => {
   }
 
   let normalizer: MockModuleNormalizer;
+  let applier: ModuleAspectApplier;
 
   beforeEach(() => {
     clearDebugClassNames();
     normalizer = new MockModuleNormalizer();
+    applier = new ModuleAspectApplier();
   });
 
   describe('base module metadata', () => {
@@ -627,10 +630,8 @@ describe('ModuleNormalizer', () => {
       return new SomeModuleAspect(Object.assign({}, data));
     }
 
-    const someAspect: ModuleAspectDecorator<SomeAspectOptions, SomeAspectDynamicOptions, SomeAspectMeta> = Reflector.makeClassDecorator(
-      getModuleAspect,
-      'someAspect',
-    );
+    const someAspect: ModuleAspectDecorator<SomeAspectOptions, SomeAspectDynamicOptions, SomeAspectMeta> =
+      Reflector.makeClassDecorator(getModuleAspect, 'someAspect');
 
     it('stores metadata returned by ModuleAspectHandler.normalize() in normalizedModuleMeta.normalizedAspectMetaMap', () => {
       const moduleOptions: SomeAspectOptions = { one: 1, two: 2, flag: true };
@@ -816,11 +817,13 @@ describe('ModuleNormalizer', () => {
         }
       }
 
-      const hostInitSome: ModuleAspectDecorator<SomeAspectOptions, {}, {}> = Reflector.makeClassDecorator((data) => new HostModuleAspect(data));
+      const hostInitSome: ModuleAspectDecorator<SomeAspectOptions, {}, {}> = Reflector.makeClassDecorator(
+        (data) => new HostModuleAspect(data),
+      );
       const moduleAspect = new HostModuleAspect({}).clone({ flag: true });
 
       const normalizedModuleMeta = normalizer.normalize(HostModule);
-      normalizer.applyHostAspectOptions(normalizedModuleMeta, hostInitSome, moduleAspect as any);
+      applier.applyHostAspectOptions(normalizedModuleMeta, hostInitSome, moduleAspect as any);
 
       expect(normalizedModuleMeta.normalizedAspectMetaMap.get(hostInitSome)).toEqual({ flag: true, targetModRefId: HostModule });
     });
@@ -833,7 +836,9 @@ describe('ModuleNormalizer', () => {
         override hostModule = HostModule;
       }
 
-      const hostInitSome: ModuleAspectDecorator<SomeAspectOptions, {}, {}> = Reflector.makeClassDecorator((data) => new HostModuleAspect(data));
+      const hostInitSome: ModuleAspectDecorator<SomeAspectOptions, {}, {}> = Reflector.makeClassDecorator(
+        (data) => new HostModuleAspect(data),
+      );
 
       class Service1 {}
 
@@ -844,8 +849,6 @@ describe('ModuleNormalizer', () => {
       const normalizedModuleMeta = normalizer.normalize(Module1);
       expect(normalizedModuleMeta.importedStaticModules).toContain(HostModule);
     });
-
-
   });
 
   describe('validation errors', () => {
@@ -911,7 +914,7 @@ describe('ModuleNormalizer', () => {
       class EmptyModule {}
 
       const normalizedModuleMeta = normalizer.normalize(EmptyModule);
-      expect(() => normalizer.checkEmptyMeta(normalizedModuleMeta)).toThrow(new EmptyModuleMeta());
+      expect(() => applier.checkEmptyMeta(normalizedModuleMeta)).toThrow(new EmptyModuleMeta());
     });
 
     it('does not throw EmptyModuleMeta for a root module even with no other metadata', () => {
@@ -919,7 +922,7 @@ describe('ModuleNormalizer', () => {
       class AppModule {}
 
       const normalizedModuleMeta = normalizer.normalize(AppModule);
-      expect(() => normalizer.checkEmptyMeta(normalizedModuleMeta)).not.toThrow();
+      expect(() => applier.checkEmptyMeta(normalizedModuleMeta)).not.toThrow();
     });
   });
 
@@ -980,12 +983,7 @@ describe('ModuleNormalizer', () => {
       const holuModuleOptions = Object.assign(new FeatureModuleOptions(), {
         providersPerApp: [{ token: 'holu-token', useValue: 1 }],
       });
-      const holuDec = new DecoratorMeta(
-        dummyDecorator,
-        holuModuleOptions,
-        undefined,
-        '/user-project/node_modules/holu/packages/core',
-      );
+      const holuDec = new DecoratorMeta(dummyDecorator, holuModuleOptions, undefined, '/user-project/node_modules/holu/packages/core');
       externalModuleNormalizer.customMeta.set(HoluModule, [holuDec]);
 
       externalModuleNormalizer.normalize(AppModule);
