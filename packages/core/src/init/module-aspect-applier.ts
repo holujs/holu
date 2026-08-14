@@ -18,9 +18,8 @@ import { EmptyModuleMeta } from '#errors';
  */
 export class ModuleAspectApplier extends ModuleMetaProcessor {
   applyHostAspectOptions(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleAspect: ModuleAspectHandler) {
-    this.normalizedModuleMeta = normalizedModuleMeta;
-    this.applyAspectModuleOptions(decoratorId, moduleAspect.moduleOptions);
-    this.normalizeAspectMeta(decoratorId, moduleAspect);
+    this.applyAspectModuleOptions(decoratorId, moduleAspect.moduleOptions, normalizedModuleMeta);
+    this.normalizeAspectMeta(decoratorId, moduleAspect, normalizedModuleMeta);
   }
 
   /**
@@ -32,10 +31,9 @@ export class ModuleAspectApplier extends ModuleMetaProcessor {
    * on a module during the post-scan propagation phase.
    */
   registerAspectOnModule(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleAspect: ModuleAspectHandler): void {
-    this.normalizedModuleMeta = normalizedModuleMeta;
     normalizedModuleMeta.allModuleAspectsMap.set(decoratorId, moduleAspect);
-    this.ensureHostModuleImported(moduleAspect);
-    this.normalizeAspectMeta(decoratorId, moduleAspect);
+    this.ensureHostModuleImported(moduleAspect, normalizedModuleMeta);
+    this.normalizeAspectMeta(decoratorId, moduleAspect, normalizedModuleMeta);
     normalizedModuleMeta.moduleAspectMap.set(decoratorId, moduleAspect);
   }
 

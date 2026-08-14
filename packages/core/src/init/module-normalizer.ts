@@ -40,31 +40,31 @@ export class ModuleNormalizer extends ModuleMetaProcessor {
    */
   normalize(modRefId: ModRefId, systemLogMediator: SystemLogMediator) {
     this.systemLogMediator = systemLogMediator;
-    const normalizedModuleMeta = this.initNormalizedModuleMeta(modRefId);
-    const { staticModuleOptions } = normalizedModuleMeta;
-    this.checkAndMarkExternalModule(staticModuleOptions);
+    const meta = this.initNormalizedModuleMeta(modRefId);
+    const { staticModuleOptions } = meta;
+    this.checkAndMarkExternalModule(staticModuleOptions, meta);
 
     // Phase 1: Normalize base decorator metadata.
-    this.normalizeProvidersAndResolvedCollisions(staticModuleOptions);
-    this.normalizeImports(staticModuleOptions);
-    this.normalizeExtensions(staticModuleOptions);
+    this.normalizeProvidersAndResolvedCollisions(staticModuleOptions, meta);
+    this.normalizeImports(staticModuleOptions, meta);
+    this.normalizeExtensions(staticModuleOptions, meta);
 
     if (isDynamicModule(modRefId)) {
-      this.normalizeDynamicModule(modRefId);
+      this.normalizeDynamicModule(modRefId, meta);
     }
 
-    this.normalizeExports(staticModuleOptions, 'Static exports');
+    this.normalizeExports(staticModuleOptions, 'Static exports', meta);
     if (isDynamicModule(modRefId)) {
-      this.normalizeExports(modRefId, 'Dynamic exports');
+      this.normalizeExports(modRefId, 'Dynamic exports', meta);
     }
 
-    this.assertReexportedModulesAreImported();
+    this.assertReexportedModulesAreImported(meta);
 
     // Phase 2: Process aspect decorators applied directly to the current module.
-    this.processOwnModuleAspects();
+    this.processOwnModuleAspects(meta);
 
-    this.quickCheckMeta(staticModuleOptions);
-    return normalizedModuleMeta;
+    this.quickCheckMeta(staticModuleOptions, meta);
+    return meta;
   }
 
   protected initNormalizedModuleMeta(modRefId: ModRefId) {
@@ -82,16 +82,15 @@ export class ModuleNormalizer extends ModuleMetaProcessor {
     /**
      * Setting initial properties of metadata.
      */
-    const normalizedModuleMeta = new NormalizedModuleMeta();
-    this.normalizedModuleMeta = normalizedModuleMeta;
-    normalizedModuleMeta.name = moduleName;
-    normalizedModuleMeta.staticModuleOptions = staticModuleOptions;
-    normalizedModuleMeta.declaredInDir = decoratorMeta?.declaredInDir || '.';
-    normalizedModuleMeta.modRefId = modRefId;
+    const meta = new NormalizedModuleMeta();
+    meta.name = moduleName;
+    meta.staticModuleOptions = staticModuleOptions;
+    meta.declaredInDir = decoratorMeta?.declaredInDir || '.';
+    meta.modRefId = modRefId;
     decoratorsMeta.filter(isModuleWithModuleAspect).forEach(({ decoratorId, value }) => {
-      normalizedModuleMeta.moduleAspectMap.set(decoratorId, value);
+      meta.moduleAspectMap.set(decoratorId, value);
     });
-    return normalizedModuleMeta;
+    return meta;
   }
 
   protected getDecoratorMeta(modRefId: ModRefId): DecoratorMeta[] | undefined {
@@ -104,57 +103,58 @@ export class ModuleNormalizer extends ModuleMetaProcessor {
    * Since this method relies on the established variable {@link rootDeclaredInDir},
    * during scanning the {@link ModuleManager} must first scan the root module.
    */
-  protected checkAndMarkExternalModule(staticModuleOptions: RootModuleOptions) {
+  protected checkAndMarkExternalModule(staticModuleOptions: RootModuleOptions, meta: NormalizedModuleMeta) {
     if (this.rootDeclaredInDir) {
-      const { declaredInDir } = this.normalizedModuleMeta;
+      const { declaredInDir } = meta;
       if (declaredInDir !== '.') {
         // Case when CallsiteUtils.getCallerDir() works correctly.
-        this.normalizedModuleMeta.isExternal =
+        meta.isExternal =
           !declaredInDir.startsWith(this.rootDeclaredInDir) ||
           (!this.rootDeclaredInDir.includes('holu/packages') && declaredInDir.includes('holu/packages'));
       }
-    } else if (isRootModule(staticModuleOptions) && this.normalizedModuleMeta.declaredInDir !== '.') {
-      this.rootDeclaredInDir = this.normalizedModuleMeta.declaredInDir;
-      this.normalizedModuleMeta.isExternal = false;
+    } else if (isRootModule(staticModuleOptions) && meta.declaredInDir !== '.') {
+      this.rootDeclaredInDir = meta.declaredInDir;
+      meta.isExternal = false;
     }
 
-    if (this.normalizedModuleMeta.isExternal === undefined) {
+    if (meta.isExternal === undefined) {
       this.systemLogMediator.externalModuleDetectionFailed(this);
     }
 
     if (staticModuleOptions.inheritsAspects !== undefined) {
-      this.normalizedModuleMeta.inheritsAspects = staticModuleOptions.inheritsAspects;
+      meta.inheritsAspects = staticModuleOptions.inheritsAspects;
     }
   }
 
-  protected normalizeDynamicModule(dynamicModule: DynamicModule) {
+  protected normalizeDynamicModule(dynamicModule: DynamicModule, meta: NormalizedModuleMeta) {
     if (dynamicModule.id) {
-      this.normalizedModuleMeta.id = dynamicModule.id;
+      meta.id = dynamicModule.id;
     }
-    this.normalizeProviders(dynamicModule);
+    this.normalizeProviders(dynamicModule, meta);
     if (dynamicModule.extensionsMeta) {
-      this.normalizedModuleMeta.extensionsMeta = {
-        ...this.normalizedModuleMeta.extensionsMeta,
+      meta.extensionsMeta = {
+        ...meta.extensionsMeta,
         ...dynamicModule.extensionsMeta,
       };
     }
   }
 
-  protected normalizeImports(staticModuleOptions: RootModuleOptions) {
+  protected normalizeImports(staticModuleOptions: RootModuleOptions, meta: NormalizedModuleMeta) {
     this.resolveAllForwardRefs(staticModuleOptions.imports).forEach((imp, i) => {
       if (imp === undefined) {
-        throw new UndefinedSymbol('Imports', this.normalizedModuleMeta.name, i);
+        throw new UndefinedSymbol('Imports', meta.name, i);
       }
       if (isDynamicModule(imp)) {
-        this.normalizedModuleMeta.importedDynamicModules.push(imp);
+        meta.importedDynamicModules.push(imp);
       } else {
-        this.normalizedModuleMeta.importedStaticModules.push(imp);
+        meta.importedStaticModules.push(imp);
       }
     });
   }
 
   protected assertResolvedCollisionTokensOnly(
     staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
+    meta: NormalizedModuleMeta,
   ) {
     const resolvedCollisionsPerLevel: [any, ModRefId | ForwardRefFn][] = [];
     (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
@@ -167,36 +167,36 @@ export class ModuleNormalizer extends ModuleMetaProcessor {
       provider = resolveForwardRef(provider);
       if (isNormalizedProvider(provider)) {
         const providerName = provider.token.name || provider.token;
-        throw new ResolvedCollisionTokensOnly(this.normalizedModuleMeta.name, providerName);
+        throw new ResolvedCollisionTokensOnly(meta.name, providerName);
       }
     });
   }
 
-  protected assertReexportedModulesAreImported() {
-    if (isRootModule(this.normalizedModuleMeta)) {
+  protected assertReexportedModulesAreImported(meta: NormalizedModuleMeta) {
+    if (isRootModule(meta)) {
       // Allow exporting from the root module without importing.
       return;
     }
-    const imports = [...this.normalizedModuleMeta.importedStaticModules, ...this.normalizedModuleMeta.importedDynamicModules];
-    const exports = [...this.normalizedModuleMeta.exportedStaticModules, ...this.normalizedModuleMeta.exportedDynamicModules];
+    const imports = [...meta.importedStaticModules, ...meta.importedDynamicModules];
+    const exports = [...meta.exportedStaticModules, ...meta.exportedDynamicModules];
 
     exports.forEach((modRefId) => {
       if (!imports.includes(modRefId)) {
-        throw new ReexportFailure(this.normalizedModuleMeta.name, getDebugClassName(modRefId) || '""');
+        throw new ReexportFailure(meta.name, getDebugClassName(modRefId) || '""');
       }
     });
   }
 
-  protected processOwnModuleAspects() {
-    this.normalizedModuleMeta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
-      this.normalizedModuleMeta.allModuleAspectsMap.set(decoratorId, moduleAspect);
-      this.ensureHostModuleImported(moduleAspect);
-      this.applyAspectModuleOptions(decoratorId, moduleAspect.moduleOptions);
-      this.normalizeAspectMeta(decoratorId, moduleAspect);
+  protected processOwnModuleAspects(meta: NormalizedModuleMeta) {
+    meta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
+      meta.allModuleAspectsMap.set(decoratorId, moduleAspect);
+      this.ensureHostModuleImported(moduleAspect, meta);
+      this.applyAspectModuleOptions(decoratorId, moduleAspect.moduleOptions, meta);
+      this.normalizeAspectMeta(decoratorId, moduleAspect, meta);
     });
   }
 
-  protected quickCheckMeta(staticModuleOptions: RootModuleOptions) {
-    this.assertResolvedCollisionTokensOnly(staticModuleOptions);
+  protected quickCheckMeta(staticModuleOptions: RootModuleOptions, meta: NormalizedModuleMeta) {
+    this.assertResolvedCollisionTokensOnly(staticModuleOptions, meta);
   }
 }
