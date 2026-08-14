@@ -6,6 +6,12 @@ import type { ModulesMap } from '#init/module-manager.js';
 import type { ModuleAspectApplier } from '#init/module-aspect-applier.js';
 import { NormalizationFailure } from '#errors';
 
+/**
+ * Orchestrates the propagation and aggregation of module aspects across the dependency graph.
+ * 
+ * Handles the application of host aspect options, top-down aspect propagation to child modules, 
+ * and bottom-up accumulation of aspects into parent modules.
+ */
 export class ModuleAspectPropagator {
   constructor(
     protected aspectApplier: ModuleAspectApplier,

@@ -16,6 +16,7 @@ import { UndefinedSymbol, ResolvedCollisionTokensOnly, MissingModuleDecorator, I
 import { ModuleMetaProcessor } from '#init/module-meta-processor.js';
 import type { ModuleManager } from '#init/module-manager.js';
 import type { ModuleAspectApplier } from '#init/module-aspect-applier.js';
+import type { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
 
 /**
  * Normalizes and validates module metadata.
@@ -38,7 +39,7 @@ export class ModuleNormalizer {
    *
    * Only processes the module's own decorators. Cross-module aspect propagation
    * (for dynamic modules with `aspectOptions` or static modules without own decorators)
-   * is handled separately by {@link ModuleManager} after the scan phase completes.
+   * is handled separately by {@link ModuleAspectPropagator} after the scan phase completes.
    */
   normalize(modRefId: ModRefId, systemLogMediator: SystemLogMediator) {
     this.systemLogMediator = systemLogMediator;

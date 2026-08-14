@@ -25,7 +25,7 @@ import { isDynamicModule, isModuleDecorator, isFeatureModule, isDynamicModuleWra
 import { UndefinedSymbol, InvalidExtension, UnknownExport, ForbiddenNormalizedExport, ForbiddenAppExport } from '#errors';
 
 /**
- * Base class containing shared metadata-processing methods used by both
+ * A stateless utility service containing shared metadata-processing methods used by both
  * {@link ModuleNormalizer} (creation of new metadata) and {@link ModuleAspectApplier}
  * (mutation of existing metadata).
  */
