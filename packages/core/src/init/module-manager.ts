@@ -23,7 +23,8 @@ export type ModuleId = string | ModRefId;
  * Essentially, `ModRefId` is the form in which a module is passed in the `imports` array — that is,
  * either the static module class itself (`StaticModule`) or a dynamic module configuration object (`DynamicModule`).
  *
- * `ModuleManager` also stores module-level DI injectors, manages application-scoped providers, and coordinates aspect propagation via `ModuleAspectPropagator`.
+ * `ModuleManager` also stores module-level DI injectors, manages application-scoped providers,
+ * and coordinates aspect propagation via `ModuleAspectPropagator`.
  */
 export class ModuleManager {
   protected injectorPerModMap = new Map<ModRefId, Injector>();

@@ -263,12 +263,23 @@ export class MutableModuleManager extends ModuleManager {
   }
 
   protected override checkEmptyMetaForAllModules() {
-    super.checkEmptyMetaForAllModules();
-    this.state.snapshotMap.forEach((meta) => {
+    const checked = new Set<ModRefId>();
+    this.state.snapshotMap.forEach((meta, modRefId) => {
+      checked.add(modRefId);
       try {
         this.aspectApplier.checkEmptyMeta(meta);
       } catch (err: any) {
         throw new NormalizationFailure(meta.name, err);
+      }
+    });
+
+    this.normalizedMetaMap.forEach((meta, modRefId) => {
+      if (!checked.has(modRefId)) {
+        try {
+          this.aspectApplier.checkEmptyMeta(meta);
+        } catch (err: any) {
+          throw new NormalizationFailure(meta.name, err);
+        }
       }
     });
   }
