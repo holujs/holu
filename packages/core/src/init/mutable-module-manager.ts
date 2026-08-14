@@ -253,82 +253,8 @@ export class MutableModuleManager extends ModuleManager {
     }
   }
 
-  protected override propagateAspectsTopDown(startModule: ModRefId, parentAspects?: Map<any, any>, visited?: Set<ModRefId>) {
-    // Override to fallback to snapshotMap if not in normalizedMetaMap
-    if (!visited) {
-      visited = new Set<ModRefId>();
-    }
-    if (!parentAspects) {
-      parentAspects = new Map();
-    }
-    if (visited.has(startModule)) {
-      return;
-    }
-    visited.add(startModule);
-
-    const meta = this.normalizedMetaMap.get(startModule) || this.state.snapshotMap.get(startModule);
-    if (!meta) {
-      return;
-    }
-
-    const activeAspects = new Map(parentAspects);
-    meta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
-      activeAspects.set(decoratorId, moduleAspect);
-    });
-
-    this.applyAspectsForDynamicModule(meta, activeAspects);
-    this.inheritParentAspects(meta, activeAspects);
-
-    meta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
-      activeAspects.set(decoratorId, moduleAspect);
-    });
-
-    const children = this.childrenMap.get(startModule);
-    if (children) {
-      for (const child of children) {
-        this.propagateAspectsTopDown(child, activeAspects, visited);
-      }
-    }
-  }
-
-  protected override accumulateAspectsBottomUp(startModule: ModRefId, visited?: Set<ModRefId>) {
-    if (!visited) {
-      visited = new Set<ModRefId>();
-    }
-    if (visited.has(startModule)) {
-      return;
-    }
-    visited.add(startModule);
-
-    const meta = this.normalizedMetaMap.get(startModule) || this.state.snapshotMap.get(startModule);
-    if (!meta) {
-      return;
-    }
-
-    const children = this.childrenMap.get(startModule);
-    if (children) {
-      for (const child of children) {
-        this.accumulateAspectsBottomUp(child, visited);
-      }
-
-      for (const child of children) {
-        const childMeta = this.normalizedMetaMap.get(child) || this.state.snapshotMap.get(child);
-        childMeta?.allModuleAspectsMap.forEach((aspect, decoratorId) => {
-          if (!meta.allModuleAspectsMap.has(decoratorId)) {
-            meta.allModuleAspectsMap.set(decoratorId, aspect);
-          }
-        });
-      }
-    }
-
-    meta.allModuleAspectsMap.forEach((aspect, decoratorId) => {
-      if (!meta.moduleAspectMap.has(decoratorId) && !meta.normalizedAspectMetaMap.has(decoratorId)) {
-        const readOnlyMeta = aspect.clone().normalize(meta);
-        if (readOnlyMeta) {
-          meta.normalizedAspectMetaMap.set(decoratorId, readOnlyMeta);
-        }
-      }
-    });
+  protected override getMeta(modRefId: ModRefId): NormalizedModuleMeta | undefined {
+    return this.normalizedMetaMap.get(modRefId) || this.state.snapshotMap.get(modRefId);
   }
 
   protected override checkEmptyMetaForAllModules() {

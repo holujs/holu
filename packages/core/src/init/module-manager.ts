@@ -89,12 +89,12 @@ export class ModuleManager {
     this.providersPerApp = [];
     this.childrenMap.clear();
     const normalizedModuleMeta = this.scanModule(appModule);
+    this.moduleIdMap.set('root', appModule);
     this.finalizeRootScan(appModule);
     this.injectorPerModMap.clear();
     this.unfinishedScanModules.clear();
     this.scannedModules.clear();
     clearDebugClassNames();
-    this.moduleIdMap.set('root', appModule);
     return normalizedModuleMeta;
   }
 
@@ -156,6 +156,10 @@ export class ModuleManager {
   protected accumulateProvidersPerApp(normalizedModuleMeta: NormalizedModuleMeta) {
     const providersPerApp = isRootModule(normalizedModuleMeta) ? [] : normalizedModuleMeta.providersPerApp;
     this.providersPerApp.push(...providersPerApp);
+  }
+
+  protected getMeta(modRefId: ModRefId): NormalizedModuleMeta | undefined {
+    return this.normalizedMetaMap.get(modRefId);
   }
 
   protected setNormalizedModuleMeta(modRefId: ModRefId, normalizedModuleMeta: NormalizedModuleMeta) {
@@ -264,7 +268,7 @@ export class ModuleManager {
     }
     visited.add(startModule);
 
-    const meta = this.normalizedMetaMap.get(startModule);
+    const meta = this.getMeta(startModule);
     if (!meta) {
       return;
     }
@@ -309,7 +313,7 @@ export class ModuleManager {
     }
     visited.add(startModule);
 
-    const meta = this.normalizedMetaMap.get(startModule);
+    const meta = this.getMeta(startModule);
     if (!meta) {
       return;
     }
@@ -323,7 +327,7 @@ export class ModuleManager {
 
       // Now add children's aspects to the current module's allModuleAspectsMap.
       for (const child of children) {
-        const childMeta = this.normalizedMetaMap.get(child);
+        const childMeta = this.getMeta(child);
         childMeta?.allModuleAspectsMap.forEach((aspect, decoratorId) => {
           if (!meta.allModuleAspectsMap.has(decoratorId)) {
             meta.allModuleAspectsMap.set(decoratorId, aspect);
@@ -365,8 +369,8 @@ export class ModuleManager {
    * @param moduleId Can be the string alias `'root'`, an explicit module ID, or a `ModRefId` reference.
    * @param throwErrIfNotFound If set to `true`, throws a {@link ModuleIdNotFound} error when the module cannot be resolved.
    */
-  getNormalizedModuleMeta(moduleId: ModuleId, throwErrIfNotFound?: boolean): NormalizedModuleMeta | undefined;
   getNormalizedModuleMeta(moduleId: ModuleId, throwErrIfNotFound: true): NormalizedModuleMeta;
+  getNormalizedModuleMeta(moduleId: ModuleId, throwErrIfNotFound?: false): NormalizedModuleMeta | undefined;
   getNormalizedModuleMeta(moduleId: ModuleId, throwErrIfNotFound?: boolean) {
     let normalizedModuleMeta: NormalizedModuleMeta | undefined;
     if (typeof moduleId == 'string') {
