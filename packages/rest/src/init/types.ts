@@ -70,7 +70,7 @@ export interface ImportModulesShallowConfig {
   moduleManager: ModuleManager;
   appProviders: AppProviders;
   modRefId: ModRefId;
-  unfinishedScanModules: Set<ModRefId>;
+  scanningModules: Set<ModRefId>;
   prefixPerMod: string;
   guardsPerMod?: ModuleScopedGuard[];
   isAppends?: boolean;

@@ -30,7 +30,7 @@ export class ModuleManager {
   protected injectorPerModMap = new Map<ModRefId, Injector>();
   protected normalizedMetaMap: ModulesMap = new Map();
   protected moduleIdMap = new Map<'root' | (string & {}), ModRefId>();
-  protected unfinishedScanModules = new Set<ModRefId>();
+  protected scanningModules = new Set<ModRefId>();
   protected scannedModules = new Set<ModRefId>();
   protected propsWithModules = [
     'importedStaticModules',
@@ -95,7 +95,7 @@ export class ModuleManager {
     this.moduleIdMap.set('root', appModule);
     this.finalizeRootScan(appModule);
     this.injectorPerModMap.clear();
-    this.unfinishedScanModules.clear();
+    this.scanningModules.clear();
     this.scannedModules.clear();
     clearDebugClassNames();
     return normalizedModuleMeta;
@@ -120,12 +120,12 @@ export class ModuleManager {
 
     for (const child of this.getModulesToScan(normalizedModuleMeta)) {
       children.add(child);
-      if (this.unfinishedScanModules.has(child) || this.scannedModules.has(child)) {
+      if (this.scanningModules.has(child) || this.scannedModules.has(child)) {
         continue;
       }
-      this.unfinishedScanModules.add(child);
+      this.scanningModules.add(child);
       this.scanModule(child);
-      this.unfinishedScanModules.delete(child);
+      this.scanningModules.delete(child);
       this.scannedModules.add(child);
     }
 
@@ -192,9 +192,9 @@ export class ModuleManager {
   protected scanNewlyAddedModules(modulesToScan: Set<ModRefId>) {
     for (const input of modulesToScan) {
       if (!this.scannedModules.has(input)) {
-        this.unfinishedScanModules.add(input);
+        this.scanningModules.add(input);
         this.scanModule(input);
-        this.unfinishedScanModules.delete(input);
+        this.scanningModules.delete(input);
         this.scannedModules.add(input);
       }
     }
@@ -312,8 +312,8 @@ export class ModuleManager {
       return this.moduleNormalizer.normalize(modRefId, this.systemLogMediator);
     } catch (err: any) {
       const moduleName = getDebugClassName(modRefId);
-      let path = [...this.unfinishedScanModules].map((id) => getDebugClassName(id)).join(' -> ');
-      path = this.unfinishedScanModules.size > 1 ? `${moduleName} (${path})` : `${moduleName}`;
+      let path = [...this.scanningModules].map((id) => getDebugClassName(id)).join(' -> ');
+      path = this.scanningModules.size > 1 ? `${moduleName} (${path})` : `${moduleName}`;
       throw new NormalizationFailure(path, err);
     }
   }

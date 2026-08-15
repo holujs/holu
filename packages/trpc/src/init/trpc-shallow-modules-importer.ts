@@ -31,7 +31,7 @@ export class TrpcShallowModulesImporter {
   protected glProviders: AppProviders;
   protected trpcGlProviders: TrpcAppProviders;
   protected shallowModuleImportsMap = new Map<ModRefId, TrpcShallowModuleImports>();
-  protected unfinishedScanModules = new Set<ModRefId>();
+  protected scanningModules = new Set<ModRefId>();
   protected unfinishedExportModules = new Set<ModRefId>();
   protected moduleManager: ModuleManager;
 
@@ -62,7 +62,7 @@ export class TrpcShallowModulesImporter {
     moduleManager,
     appProviders,
     modRefId,
-    unfinishedScanModules,
+    scanningModules,
     guardsPerMod,
   }: ImportModulesShallowConfig): Map<ModRefId, TrpcShallowModuleImports> {
     this.moduleManager = moduleManager;
@@ -73,7 +73,7 @@ export class TrpcShallowModulesImporter {
     this.trpcGlProviders = appProviders.aspectValueMap.get(aspectTrpcModule) as TrpcAppProviders;
     this.moduleName = normalizedModuleMeta.name;
     this.guardsPerMod = guardsPerMod || [];
-    this.unfinishedScanModules = unfinishedScanModules;
+    this.scanningModules = scanningModules;
     this.importModules(
       [...this.normalizedModuleMeta.importedStaticModules, ...this.normalizedModuleMeta.importedDynamicModules],
       true,
@@ -98,21 +98,21 @@ export class TrpcShallowModulesImporter {
   protected importModules(modRefIdss: TrpcModRefId[], isImport?: boolean) {
     for (const modRefId of modRefIdss) {
       const normalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta(modRefId, true);
-      if (this.unfinishedScanModules.has(modRefId)) {
+      if (this.scanningModules.has(modRefId)) {
         continue;
       }
       const meta = this.getAspectMeta(normalizedModuleMeta);
       const { guardsPerMod } = this.getPrefixAndGuards(modRefId, meta, isImport);
       const shallowModulesImporter = new TrpcShallowModulesImporter();
-      this.unfinishedScanModules.add(modRefId);
+      this.scanningModules.add(modRefId);
       const shallowModuleImportsBase = shallowModulesImporter.importModulesShallow({
         moduleManager: this.moduleManager,
         appProviders: this.glProviders,
         modRefId,
-        unfinishedScanModules: this.unfinishedScanModules,
+        scanningModules: this.scanningModules,
         guardsPerMod,
       });
-      this.unfinishedScanModules.delete(modRefId);
+      this.scanningModules.delete(modRefId);
 
       shallowModuleImportsBase.forEach((val, key) => this.shallowModuleImportsMap.set(key, val));
     }

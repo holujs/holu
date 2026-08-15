@@ -63,7 +63,7 @@ export class ShallowModulesImporter {
    */
   protected appProviders: AppProviders;
   protected shallowModuleImportsMap = new Map<ModRefId, ShallowModuleImports>();
-  protected unfinishedScanModules = new Set<ModRefId>();
+  protected scanningModules = new Set<ModRefId>();
   protected unfinishedExportModules = new Set<ModRefId>();
   protected moduleManager: ModuleManager;
 
@@ -100,18 +100,18 @@ export class ShallowModulesImporter {
     appProviders,
     modRefId,
     moduleManager,
-    unfinishedScanModules,
+    scanningModules,
   }: {
     appProviders: AppProviders;
     modRefId: ModRefId;
     moduleManager: ModuleManager;
-    unfinishedScanModules: Set<ModRefId>;
+    scanningModules: Set<ModRefId>;
   }): Map<ModRefId, ShallowModuleImports> {
     const normalizedModuleMeta = moduleManager.getNormalizedModuleMeta(modRefId, true);
     this.moduleManager = moduleManager;
     this.appProviders = appProviders;
     this.moduleName = normalizedModuleMeta.name;
-    this.unfinishedScanModules = unfinishedScanModules;
+    this.scanningModules = scanningModules;
     this.normalizedModuleMeta = normalizedModuleMeta;
     this.importAndScanModules();
 
@@ -177,7 +177,7 @@ export class ShallowModulesImporter {
     this.normalizedModuleMeta.allModuleAspectsMap.forEach((moduleAspect, decorator) => {
       const meta = this.normalizedModuleMeta.normalizedAspectMetaMap.get(decorator);
       for (const modRefId of moduleAspect.getModulesToScan(meta)) {
-        if (this.unfinishedScanModules.has(modRefId)) {
+        if (this.scanningModules.has(modRefId)) {
           continue;
         }
         this.scanModule(modRefId);
@@ -192,7 +192,7 @@ export class ShallowModulesImporter {
     for (const modRefId of modRefIdss) {
       const normalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta(modRefId, true);
       this.importProvidersAndExtensions(normalizedModuleMeta);
-      if (this.unfinishedScanModules.has(modRefId)) {
+      if (this.scanningModules.has(modRefId)) {
         continue;
       }
       this.scanModule(modRefId);
@@ -202,14 +202,14 @@ export class ShallowModulesImporter {
 
   protected scanModule(modRefId: ModRefId) {
     const shallowModulesImporter = new ShallowModulesImporter();
-    this.unfinishedScanModules.add(modRefId);
+    this.scanningModules.add(modRefId);
     const shallowModuleImportsMap = shallowModulesImporter.importModulesShallow({
       appProviders: this.appProviders,
       modRefId,
       moduleManager: this.moduleManager,
-      unfinishedScanModules: this.unfinishedScanModules,
+      scanningModules: this.scanningModules,
     });
-    this.unfinishedScanModules.delete(modRefId);
+    this.scanningModules.delete(modRefId);
     shallowModuleImportsMap.forEach((val, key) => this.shallowModuleImportsMap.set(key, val));
   }
 

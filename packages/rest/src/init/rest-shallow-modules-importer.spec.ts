@@ -53,13 +53,13 @@ describe('shallow importing modules', () => {
       appProviders: new AppProviders(),
       modRefId,
       moduleManager,
-      unfinishedScanModules: new Set(),
+      scanningModules: new Set(),
     });
     const appProviders = new ShallowModulesImporterBase().exportAppProviders(moduleManager);
     return mock.importModulesShallow({
       modRefId: modRefId,
       appProviders,
-      unfinishedScanModules: new Set(),
+      scanningModules: new Set(),
       moduleManager,
       prefixPerMod: '',
     });

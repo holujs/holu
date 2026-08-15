@@ -92,7 +92,7 @@ export class ModuleAspectHandler<T1 extends StaticAspectOptions = StaticAspectOp
     moduleManager: ModuleManager;
     appProviders: AppProviders;
     modRefId: ModRefId;
-    unfinishedScanModules: Set<ModRefId>;
+    scanningModules: Set<ModRefId>;
   }): Map<ModRefId, { normalizedModuleMeta: NormalizedModuleMeta } & AnyObj> {
     return new Map();
   }

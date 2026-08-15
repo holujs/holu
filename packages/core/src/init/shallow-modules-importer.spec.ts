@@ -55,7 +55,7 @@ describe('ShallowModulesImporter', () => {
       appProviders: new AppProviders(),
       modRefId,
       moduleManager,
-      unfinishedScanModules: new Set(),
+      scanningModules: new Set(),
     });
   }
 

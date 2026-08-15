@@ -43,7 +43,7 @@ export class RestShallowModulesImporter {
   protected appProviders: AppProviders;
   protected restGlProviders: RestAppProviders;
   protected shallowModuleImportsMap = new Map<ModRefId, RestShallowModuleImports>();
-  protected unfinishedScanModules = new Set<ModRefId>();
+  protected scanningModules = new Set<ModRefId>();
   protected unfinishedExportModules = new Set<ModRefId>();
   protected moduleManager: ModuleManager;
 
@@ -74,7 +74,7 @@ export class RestShallowModulesImporter {
     moduleManager,
     appProviders,
     modRefId,
-    unfinishedScanModules,
+    scanningModules,
     prefixPerMod,
     guardsPerMod,
     isAppends,
@@ -88,7 +88,7 @@ export class RestShallowModulesImporter {
     this.prefixPerMod = prefixPerMod || '';
     this.moduleName = normalizedModuleMeta.name;
     this.guardsPerMod = guardsPerMod || [];
-    this.unfinishedScanModules = unfinishedScanModules;
+    this.scanningModules = scanningModules;
     this.checkImportsAndAppends(normalizedModuleMeta, this.meta);
     this.importAndAppendModules();
 
@@ -130,23 +130,23 @@ export class RestShallowModulesImporter {
   protected importOrAppendModules(modRefIdss: RestModRefId[], isImport?: boolean) {
     for (const modRefId of modRefIdss) {
       const normalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta(modRefId, true);
-      if (this.unfinishedScanModules.has(modRefId)) {
+      if (this.scanningModules.has(modRefId)) {
         continue;
       }
       const meta = this.getAspectMeta(normalizedModuleMeta);
       const { prefixPerMod, guardsPerMod } = this.getPrefixAndGuards(modRefId, meta, isImport);
       const shallowModulesImporter = new RestShallowModulesImporter();
-      this.unfinishedScanModules.add(modRefId);
+      this.scanningModules.add(modRefId);
       const shallowModuleImportsBase = shallowModulesImporter.importModulesShallow({
         moduleManager: this.moduleManager,
         appProviders: this.appProviders,
         modRefId,
-        unfinishedScanModules: this.unfinishedScanModules,
+        scanningModules: this.scanningModules,
         prefixPerMod,
         guardsPerMod,
         isAppends: !isImport,
       });
-      this.unfinishedScanModules.delete(modRefId);
+      this.scanningModules.delete(modRefId);
 
       shallowModuleImportsBase.forEach((val, key) => this.shallowModuleImportsMap.set(key, val));
     }

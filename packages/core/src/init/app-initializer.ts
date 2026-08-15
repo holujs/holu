@@ -173,7 +173,7 @@ export class AppInitializer implements BaseAppInitializer {
       appProviders,
       modRefId,
       moduleManager,
-      unfinishedScanModules: new Set(),
+      scanningModules: new Set(),
     });
     if (allModuleAspectsMap.size == 0) {
       return shallowModuleImportsMap;
@@ -185,7 +185,7 @@ export class AppInitializer implements BaseAppInitializer {
         moduleManager,
         appProviders,
         modRefId,
-        unfinishedScanModules: new Set(),
+        scanningModules: new Set(),
       });
       shallowModuleImportsMap.forEach((shallowModuleImports, modRefId) => {
         const shallowImportedModule = val.get(modRefId)!;
