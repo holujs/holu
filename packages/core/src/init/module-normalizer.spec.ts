@@ -7,6 +7,7 @@ import { FeatureModuleOptions, DynamicModule } from '#decorators/module-decorato
 import { clearDebugClassNames } from '#utils/get-debug-class-name.js';
 import { ModuleNormalizer } from './module-normalizer.js';
 import { ModuleAspectApplier } from './module-aspect-applier.js';
+import { ModuleManager } from './module-manager.js';
 import { ProviderBuilder } from '#utils/providers.js';
 import {
   InvalidModRefId,
@@ -14,6 +15,7 @@ import {
   EmptyModuleMeta,
   ResolvedCollisionTokensOnly,
   UndefinedSymbol,
+  NormalizationFailure,
 } from '#error/core-errors.js';
 import { injectable } from '#di/decorators.js';
 import type { MultiProvider } from '#di/utils.js';
@@ -379,7 +381,10 @@ describe('ModuleNormalizer', () => {
       class EmptyModule {}
 
       const normalizedModuleMeta = normalizer.normalize(EmptyModule);
-      expect(() => applier.checkEmptyMeta(normalizedModuleMeta)).toThrow(new EmptyModuleMeta());
+      const manager = new ModuleManager(null as any);
+      expect(() => (manager as any).checkFeatureModuleHasMeaningfulMetadata(normalizedModuleMeta)).toThrow(
+        new NormalizationFailure('EmptyModule', new EmptyModuleMeta()),
+      );
     });
 
     it('does not throw EmptyModuleMeta for a root module even with no other metadata', () => {
@@ -387,7 +392,8 @@ describe('ModuleNormalizer', () => {
       class AppModule {}
 
       const normalizedModuleMeta = normalizer.normalize(AppModule);
-      expect(() => applier.checkEmptyMeta(normalizedModuleMeta)).not.toThrow();
+      const manager = new ModuleManager(null as any);
+      expect(() => (manager as any).checkFeatureModuleHasMeaningfulMetadata(normalizedModuleMeta)).not.toThrow();
     });
   });
 

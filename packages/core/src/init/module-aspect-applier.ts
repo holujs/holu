@@ -4,8 +4,6 @@ import type { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import type { ModuleManager } from '#init/module-manager.js';
 import type { ModuleNormalizer } from '#init/module-normalizer.js';
 import { ModuleMetaProcessor } from '#init/module-meta-processor.js';
-import { isRootModule } from '#decorators/type-guards.js';
-import { EmptyModuleMeta } from '#errors';
 
 /**
  * Handles mutation and validation of existing {@link NormalizedModuleMeta} instances.
@@ -37,21 +35,5 @@ export class ModuleAspectApplier {
     this.metaProcessor.ensureHostModuleImported(moduleAspect, normalizedModuleMeta);
     this.metaProcessor.normalizeAspectMeta(decoratorId, moduleAspect, normalizedModuleMeta);
     normalizedModuleMeta.moduleAspectMap.set(decoratorId, moduleAspect);
-  }
-
-  checkEmptyMeta(normalizedModuleMeta: NormalizedModuleMeta) {
-    if (
-      !isRootModule(normalizedModuleMeta) &&
-      !normalizedModuleMeta.moduleAspectMap.size &&
-      !normalizedModuleMeta.exportedProvidersPerMod.length &&
-      !normalizedModuleMeta.exportedMultiProvidersPerMod.length &&
-      !normalizedModuleMeta.exportedStaticModules.length &&
-      !normalizedModuleMeta.providersPerApp.length &&
-      !normalizedModuleMeta.exportedDynamicModules.length &&
-      !normalizedModuleMeta.exportedExtensionProviders.length &&
-      !normalizedModuleMeta.extensionProviders.length
-    ) {
-      throw new EmptyModuleMeta();
-    }
   }
 }

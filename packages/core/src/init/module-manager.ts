@@ -10,7 +10,7 @@ import { clearDebugClassNames, getDebugClassName } from '#utils/get-debug-class-
 import { ModuleNormalizer } from '#init/module-normalizer.js';
 import { ModuleAspectApplier } from '#init/module-aspect-applier.js';
 import { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
-import { ModuleIdNotFound, NormalizationFailure, MissingRootDecorator } from '#errors';
+import { ModuleIdNotFound, NormalizationFailure, MissingRootDecorator, EmptyModuleMeta } from '#errors';
 import { getModule } from '#utils/get-module.js';
 
 export type ModulesMap = Map<ModRefId, NormalizedModuleMeta>;
@@ -186,7 +186,7 @@ export class ModuleManager {
     const rootModule = this.moduleIdMap.get('root') || resolveForwardRef(modRefId);
     propagator.propagateAspectsTopDown(rootModule);
     propagator.accumulateAspectsBottomUp(rootModule);
-    this.checkEmptyMetaForAllModules();
+    this.checkModulesHaveMeaningfulMetadata();
   }
 
   protected scanNewlyAddedModules(modulesToScan: Set<ModRefId>) {
@@ -204,14 +204,24 @@ export class ModuleManager {
    * Validates all modules in active registries, verifying that no module possesses completely empty metadata
    * (which typically indicates missing module decorators or invalid import structures).
    */
-  protected checkEmptyMetaForAllModules() {
-    this.normalizedMetaMap.forEach((meta) => {
-      try {
-        this.aspectApplier.checkEmptyMeta(meta);
-      } catch (err: any) {
-        throw new NormalizationFailure(meta.name, err);
-      }
-    });
+  protected checkModulesHaveMeaningfulMetadata() {
+    this.normalizedMetaMap.forEach(this.checkFeatureModuleHasMeaningfulMetadata);
+  }
+
+  protected checkFeatureModuleHasMeaningfulMetadata(normalizedModuleMeta: NormalizedModuleMeta) {
+    if (
+      !isRootModule(normalizedModuleMeta) &&
+      !normalizedModuleMeta.moduleAspectMap.size &&
+      !normalizedModuleMeta.exportedProvidersPerMod.length &&
+      !normalizedModuleMeta.exportedMultiProvidersPerMod.length &&
+      !normalizedModuleMeta.exportedStaticModules.length &&
+      !normalizedModuleMeta.providersPerApp.length &&
+      !normalizedModuleMeta.exportedDynamicModules.length &&
+      !normalizedModuleMeta.exportedExtensionProviders.length &&
+      !normalizedModuleMeta.extensionProviders.length
+    ) {
+      throw new NormalizationFailure(normalizedModuleMeta.name, new EmptyModuleMeta());
+    }
   }
 
   /**
