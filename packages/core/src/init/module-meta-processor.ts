@@ -29,22 +29,22 @@ import { UndefinedSymbol, InvalidExtension, UnknownExport, ForbiddenNormalizedEx
  * (mutation of existing metadata during aspect propagation).
  */
 export class ModuleMetaProcessor {
-  applyHostAspectOptions(hostMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleAspect: ModuleAspectHandler) {
-    this.applyAspectModuleOptions(decoratorId, moduleAspect.moduleOptions, hostMeta);
-    this.normalizeAspectMeta(decoratorId, moduleAspect, hostMeta);
+  applyHostAspectOptions(hostMeta: NormalizedModuleMeta, decoratorId: AnyFn, aspectHandler: ModuleAspectHandler) {
+    this.applyAspectModuleOptions(decoratorId, aspectHandler.moduleOptions, hostMeta);
+    this.normalizeAspectMeta(decoratorId, aspectHandler, hostMeta);
   }
 
-  applyAspectModuleOptions(decoratorId: AnyFn, aspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
-    this.applyAspectImports(decoratorId, aspectOptions, meta);
-    this.applyAspectExports(aspectOptions, meta);
-    this.normalizeExtensions(aspectOptions, meta);
-    this.normalizeProvidersAndResolvedCollisions(aspectOptions, meta);
-    this.normalizeExports(aspectOptions, 'Static exports', meta);
+  applyAspectModuleOptions(decoratorId: AnyFn, staticAspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
+    this.applyAspectImports(decoratorId, staticAspectOptions, meta);
+    this.applyAspectExports(staticAspectOptions, meta);
+    this.normalizeExtensions(staticAspectOptions, meta);
+    this.normalizeProvidersAndResolvedCollisions(staticAspectOptions, meta);
+    this.normalizeExports(staticAspectOptions, 'Static exports', meta);
   }
 
-  applyAspectImports(decoratorId: AnyFn, aspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
-    if (aspectOptions.imports) {
-      this.resolveAllForwardRefs(aspectOptions.imports).forEach((imp) => {
+  applyAspectImports(decoratorId: AnyFn, staticAspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
+    if (staticAspectOptions.imports) {
+      this.resolveAllForwardRefs(staticAspectOptions.imports).forEach((imp) => {
         if (isDynamicModule(imp)) {
           const params = { ...imp };
           this.mergeAspectOptionsIntoDynamicModule(decoratorId, params, imp, meta);
@@ -62,9 +62,9 @@ export class ModuleMetaProcessor {
     }
   }
 
-  applyAspectExports(aspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
-    if (aspectOptions.exports) {
-      this.resolveAllForwardRefs(aspectOptions.exports).forEach((exp) => {
+  applyAspectExports(staticAspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
+    if (staticAspectOptions.exports) {
+      this.resolveAllForwardRefs(staticAspectOptions.exports).forEach((exp) => {
         if (isDynamicModule(exp)) {
           if (!meta.exportedDynamicModules.includes(exp)) {
             meta.exportedDynamicModules.push(exp);
@@ -122,11 +122,11 @@ export class ModuleMetaProcessor {
   }
 
   normalizeProvidersAndResolvedCollisions(
-    staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
+    staticAspectOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
     meta: NormalizedModuleMeta,
   ) {
-    this.normalizeProviders(staticModuleOptions, meta);
-    this.normalizeResolvedCollisions(staticModuleOptions, meta);
+    this.normalizeProviders(staticAspectOptions, meta);
+    this.normalizeResolvedCollisions(staticAspectOptions, meta);
   }
 
   normalizeExports(moduleOptions: { exports?: any[] }, action: 'Static exports' | 'Dynamic exports', meta: NormalizedModuleMeta) {
@@ -158,8 +158,8 @@ export class ModuleMetaProcessor {
     });
   }
 
-  normalizeAspectMeta(decoratorId: AnyFn, moduleAspect: ModuleAspectHandler, meta: NormalizedModuleMeta) {
-    const aspectMeta = moduleAspect.normalize(meta);
+  normalizeAspectMeta(decoratorId: AnyFn, aspectHandler: ModuleAspectHandler, meta: NormalizedModuleMeta) {
+    const aspectMeta = aspectHandler.normalize(meta);
     if (aspectMeta) {
       meta.normalizedAspectMetaMap.set(decoratorId, aspectMeta);
     }
@@ -173,11 +173,11 @@ export class ModuleMetaProcessor {
    * This is the single entry point used by {@link ModuleAspectPropagator} to register an aspect
    * on a module during the post-scan propagation phase.
    */
-  registerAspectOnModule(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleAspect: ModuleAspectHandler): void {
-    normalizedModuleMeta.allModuleAspectsMap.set(decoratorId, moduleAspect);
-    this.ensureHostModuleImported(moduleAspect, normalizedModuleMeta);
-    this.normalizeAspectMeta(decoratorId, moduleAspect, normalizedModuleMeta);
-    normalizedModuleMeta.moduleAspectMap.set(decoratorId, moduleAspect);
+  registerAspectOnModule(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, aspectHandler: ModuleAspectHandler): void {
+    normalizedModuleMeta.allModuleAspectsMap.set(decoratorId, aspectHandler);
+    this.ensureHostModuleImported(aspectHandler, normalizedModuleMeta);
+    this.normalizeAspectMeta(decoratorId, aspectHandler, normalizedModuleMeta);
+    normalizedModuleMeta.moduleAspectMap.set(decoratorId, aspectHandler);
   }
 
   normalizeProviders(moduleOptions: Partial<ProvidersByLevel>, meta: NormalizedModuleMeta) {
@@ -191,13 +191,13 @@ export class ModuleMetaProcessor {
   }
 
   normalizeResolvedCollisions(
-    staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
+    staticAspectOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
     meta: NormalizedModuleMeta,
   ) {
     (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
       const resolvedCollisionKey = `resolvedCollisionsPer${level}` as const;
-      if (staticModuleOptions[resolvedCollisionKey]) {
-        staticModuleOptions[resolvedCollisionKey].forEach(([token, module]) => {
+      if (staticAspectOptions[resolvedCollisionKey]) {
+        staticAspectOptions[resolvedCollisionKey].forEach(([token, module]) => {
           token = resolveForwardRef(token);
           module = resolveForwardRef(module);
           if (isDynamicModule(module)) {
@@ -259,8 +259,8 @@ export class ModuleMetaProcessor {
    * Ensures the host module (if any) is added to `importedStaticModules` for the current module,
    * unless the current module itself is the host module.
    */
-  ensureHostModuleImported(moduleAspect: ModuleAspectHandler, meta: NormalizedModuleMeta): void {
-    const { hostModule } = moduleAspect;
+  ensureHostModuleImported(aspectHandler: ModuleAspectHandler, meta: NormalizedModuleMeta): void {
+    const { hostModule } = aspectHandler;
     if (hostModule && hostModule !== meta.modRefId && !meta.importedStaticModules.includes(hostModule)) {
       meta.importedStaticModules.push(hostModule);
     }
