@@ -529,13 +529,13 @@ describe('ModuleMetaProcessor', () => {
       expect(normalizedModuleMeta.importedStaticModules).toContain(HostModule);
     });
 
-    it('applies hostAspectOptions via applyHostAspectOptions method', () => {
+    it('applies hostStaticAspectOptions via applyHostStaticAspectOptions method', () => {
       @featureModule()
       class HostModule {}
 
       class HostModuleAspect extends ModuleAspectHandler<SomeAspectOptions> {
         override hostModule = HostModule;
-        override hostAspectOptions = { flag: true };
+        override hostStaticAspectOptions = { flag: true };
 
         override normalize(normalizedModuleMeta: NormalizedModuleMeta): SomeAspectMeta {
           return {
@@ -552,7 +552,7 @@ describe('ModuleMetaProcessor', () => {
 
       const normalizedModuleMeta = normalizer.normalize(HostModule);
       const metaProcessor = new ModuleMetaProcessor();
-      metaProcessor.applyHostAspectOptions(normalizedModuleMeta, hostInitSome, moduleAspect as any);
+      metaProcessor.applyHostStaticAspectOptions(normalizedModuleMeta, hostInitSome, moduleAspect as any);
 
       expect(normalizedModuleMeta.normalizedAspectMetaMap.get(hostInitSome)).toEqual({ flag: true, targetModRefId: HostModule });
     });

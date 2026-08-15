@@ -37,10 +37,10 @@ export class ModuleAspectHandler<T1 extends StaticAspectOptions = StaticAspectOp
    * Instead, pass its aspect options here:
    *
    * ```ts
-   * override hostAspectOptions: YourMetadataType = { one: 1, two: 2 };
+   * override hostStaticAspectOptions: YourMetadataType = { one: 1, two: 2 };
    * ```
    */
-  declare hostAspectOptions?: T1;
+  declare hostStaticAspectOptions?: T1;
 
   constructor(public staticAspectOptions: T1) {
     this.staticAspectOptions ??= {} as T1;

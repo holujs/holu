@@ -30,7 +30,7 @@ export class ModuleAspectPropagator {
    *
    * @param scanNewlyAddedModules - Callback invoked with any newly discovered modules that need scanning.
    */
-  applyHostAspectOptions(scanNewlyAddedModules: (modulesToScan: Set<ModRefId>) => void) {
+  applyHostStaticAspectOptions(scanNewlyAddedModules: (modulesToScan: Set<ModRefId>) => void) {
     let hasNewModules = true;
     while (hasNewModules) {
       hasNewModules = false;
@@ -38,7 +38,7 @@ export class ModuleAspectPropagator {
 
       this.normalizedMetaMap.forEach((meta) => {
         meta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
-          if (moduleAspect.hostModule && moduleAspect.hostAspectOptions) {
+          if (moduleAspect.hostModule && moduleAspect.hostStaticAspectOptions) {
             const hostMeta = this.normalizedMetaMap.get(moduleAspect.hostModule);
             if (hostMeta && !hostMeta.moduleAspectMap.has(decoratorId)) {
               const isAdded = this.applyHostAspectAndGatherDependencies(hostMeta, decoratorId, moduleAspect, modulesToScan);
@@ -60,10 +60,10 @@ export class ModuleAspectPropagator {
     moduleAspect: ModuleAspectHandler,
     modulesToScan: Set<ModRefId>,
   ): boolean {
-    const newModuleAspect = moduleAspect.clone(moduleAspect.hostAspectOptions);
+    const newModuleAspect = moduleAspect.clone(moduleAspect.hostStaticAspectOptions);
     hostMeta.moduleAspectMap.set(decoratorId, newModuleAspect);
     try {
-      this.metaProcessor.applyHostAspectOptions(hostMeta, decoratorId, newModuleAspect);
+      this.metaProcessor.applyHostStaticAspectOptions(hostMeta, decoratorId, newModuleAspect);
     } catch (err: any) {
       throw new NormalizationFailure(hostMeta.name, err);
     }

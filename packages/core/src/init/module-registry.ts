@@ -180,7 +180,7 @@ export class ModuleRegistry {
       this.scannedModules,
       this.propsWithModules,
     );
-    propagator.applyHostAspectOptions((modulesToScan) => this.scanNewlyAddedModules(modulesToScan));
+    propagator.applyHostStaticAspectOptions((modulesToScan) => this.scanNewlyAddedModules(modulesToScan));
 
     const rootModule = this.moduleIdMap.get('root') || resolveForwardRef(modRefId);
     propagator.propagateAspectsTopDown(rootModule);

@@ -29,7 +29,7 @@ import { UndefinedSymbol, InvalidExtension, UnknownExport, ForbiddenNormalizedEx
  * (mutation of existing metadata during aspect propagation).
  */
 export class ModuleMetaProcessor {
-  applyHostAspectOptions(hostMeta: NormalizedModuleMeta, decoratorId: AnyFn, aspectHandler: ModuleAspectHandler) {
+  applyHostStaticAspectOptions(hostMeta: NormalizedModuleMeta, decoratorId: AnyFn, aspectHandler: ModuleAspectHandler) {
     this.applyAspectModuleOptions(decoratorId, aspectHandler.staticAspectOptions, hostMeta);
     this.normalizeAspectMeta(decoratorId, aspectHandler, hostMeta);
   }

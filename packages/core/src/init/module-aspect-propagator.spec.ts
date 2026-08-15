@@ -56,22 +56,22 @@ describe('ModuleAspectPropagator', () => {
 
     class AspectHandler1 extends ModuleAspectHandler<any> {
       override hostModule = HostModule1;
-      override hostAspectOptions = { one: 1 };
+      override hostStaticAspectOptions = { one: 1 };
     }
 
     class AspectHandler2 extends ModuleAspectHandler<any> {
       override hostModule = HostModule2;
-      override hostAspectOptions = { two: 2 };
+      override hostStaticAspectOptions = { two: 2 };
     }
 
     class AspectHandler3 extends ModuleAspectHandler<any> {
       override hostModule = HostModule3;
-      override hostAspectOptions = { three: 3 };
+      override hostStaticAspectOptions = { three: 3 };
     }
 
     class AspectHandler4 extends ModuleAspectHandler<any> {
       override hostModule = HostModule4;
-      override hostAspectOptions = { four: 4 };
+      override hostStaticAspectOptions = { four: 4 };
     }
 
     it('should propagate allModuleAspectsMap so that they only contain module aspects imported into the current module', () => {
@@ -313,7 +313,7 @@ describe('ModuleAspectPropagator', () => {
       expect(getParams(dynamicModule3)).toEqual([{ three: 'someAspect2-3' }, { one: 'someAspect1-3' }]);
     });
 
-    it('should successfully apply hostAspectOptions to a host module even if it is imported before the aspect module', () => {
+    it('should successfully apply hostStaticAspectOptions to a host module even if it is imported before the aspect module', () => {
       @featureModule()
       class HostModule {}
 
@@ -323,7 +323,7 @@ describe('ModuleAspectPropagator', () => {
 
       class AspectHandler1 extends ModuleAspectHandler<any> {
         override hostModule = HostModule;
-        override hostAspectOptions = { customProp: 'works' };
+        override hostStaticAspectOptions = { customProp: 'works' };
 
         override normalize(normalizedModuleMeta: NormalizedModuleMeta): any {
           return createAspectMetaProxy(normalizedModuleMeta, AspectMeta);
@@ -361,7 +361,7 @@ describe('ModuleAspectPropagator', () => {
 
       class AspectHandler1 extends ModuleAspectHandler<any> {
         override hostModule = HostModule;
-        override hostAspectOptions = {};
+        override hostStaticAspectOptions = {};
 
         override normalize(normalizedModuleMeta: NormalizedModuleMeta): any {
           return createAspectMetaProxy(normalizedModuleMeta, AspectMeta);
