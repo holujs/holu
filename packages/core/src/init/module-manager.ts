@@ -205,7 +205,7 @@ export class ModuleManager {
    * (which typically indicates missing module decorators or invalid import structures).
    */
   protected checkModulesHaveMeaningfulMetadata() {
-    this.normalizedMetaMap.forEach(this.checkFeatureModuleHasMeaningfulMetadata);
+    this.normalizedMetaMap.forEach((meta) => this.checkFeatureModuleHasMeaningfulMetadata(meta));
   }
 
   protected checkFeatureModuleHasMeaningfulMetadata(normalizedModuleMeta: NormalizedModuleMeta) {
