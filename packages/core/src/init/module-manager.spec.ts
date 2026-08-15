@@ -55,7 +55,7 @@ describe('ModuleManager', () => {
   });
 
   describe('constructor()', () => {
-    it('should use ModuleNormalizer passed through constructor', () => {
+    it('should use the provided ModuleNormalizer instance if passed to the constructor', () => {
       @rootModule()
       class AppModule {}
 
@@ -72,7 +72,7 @@ describe('ModuleManager', () => {
   });
 
   describe('scanRootModule()', () => {
-    it('should scan the root module first among all modules (due to moduleNormalizer.checkAndMarkExternalModule())', () => {
+    it('should scan and normalize the root module before any imported modules', () => {
       class Service1 {}
       class Service2 {}
 
@@ -95,12 +95,12 @@ describe('ModuleManager', () => {
       expect(mock.normalizeMeta).toHaveBeenNthCalledWith(3, Module1);
     });
 
-    it('should throw MissingRootDecorator error if the module lacks a root module decorator', () => {
+    it('should throw a MissingRootDecorator error if the given module is missing the @rootModule decorator', () => {
       class AppModule {}
       expect(() => mock.scanRootModule(AppModule)).toThrow(new MissingRootDecorator('AppModule'));
     });
 
-    it('should throw NormalizationFailure if metadata normalization fails', () => {
+    it('should throw a NormalizationFailure error if metadata normalization fails', () => {
       class NotAModule {}
 
       @rootModule({ imports: [NotAModule] })
@@ -145,18 +145,18 @@ describe('ModuleManager', () => {
     })
     class AppModule {}
 
-    it('should collect providers from exports array without importing them', () => {
+    it('should successfully collect app-level providers from the exported modules', () => {
       mock.scanRootModule(AppModule);
       const providersPerApp = mock.providersPerApp;
       expect(providersPerApp.includes(Service0)).toBe(true);
     });
 
-    it('should collect providers in a particular order', () => {
+    it('should collect app-level providers in the correct order of module resolution', () => {
       mock.scanRootModule(AppModule);
       expect(mock.providersPerApp).toEqual([Service1, Service2, Service3, Service4, Service5, Service6, Service0]);
     });
 
-    it('should work with dynamicModule', () => {
+    it('should successfully collect app-level providers from dynamic modules', () => {
       @featureModule({})
       class Module6 {}
 
@@ -167,7 +167,7 @@ describe('ModuleManager', () => {
   });
 
   describe('circular imports', () => {
-    it('should support circular imports of modules "Module1 -> Module3 -> Module2 -> Module1" using forwardRef()', () => {
+    it('should support circular module imports (e.g., Module1 -> Module3 -> Module2 -> Module1) using forwardRef()', () => {
       @featureModule({ providersPerApp: [Service1], imports: [forwardRef(() => Module3)] })
       class Module1 {}
 
@@ -196,17 +196,17 @@ describe('ModuleManager', () => {
     @rootModule({ providersPerApp: [Service1] })
     class AppModule {}
 
-    it('should return undefined if module is not found and throwErrIfNotFound is false', () => {
+    it('should return undefined when the module is not found and throwErrIfNotFound is false', () => {
       mock.scanRootModule(AppModule);
       expect(mock.getNormalizedModuleMeta('non-existent')).toBeUndefined();
     });
 
-    it('should throw ModuleIdNotFound if module is not found and throwErrIfNotFound is true', () => {
+    it('should throw a ModuleIdNotFound error when the module is not found and throwErrIfNotFound is true', () => {
       mock.scanRootModule(AppModule);
       expect(() => mock.getNormalizedModuleMeta('non-existent', true)).toThrow(new ModuleIdNotFound('non-existent'));
     });
 
-    it('should return the metadata by ref ID or string ID', () => {
+    it('should successfully retrieve module metadata using either its reference or string ID', () => {
       const moduleId = 'my-custom-id';
       @featureModule({ providersPerApp: [Service1] })
       class Module1 {}
@@ -233,7 +233,7 @@ describe('ModuleManager', () => {
     @rootModule({ imports: [dynamicModule] })
     class AppModule {}
 
-    it('should set and get injectors per module correctly', () => {
+    it('should correctly set and retrieve injectors for a specific module', () => {
       mock.scanRootModule(AppModule);
       const fakeInjector = {} as any;
 
@@ -243,13 +243,13 @@ describe('ModuleManager', () => {
       expect(mock.getInjectorPerMod('root')).toBeUndefined();
     });
 
-    it('should throw ModuleIdNotFound on setInjectorPerMod if target module string ID is not found in moduleIdMap', () => {
+    it('should throw a ModuleIdNotFound error when setting an injector for an unregistered module string ID', () => {
       mock.scanRootModule(AppModule);
       const fakeInjector = {} as any;
       expect(() => mock.setInjectorPerMod('non-existent', fakeInjector)).toThrow(new ModuleIdNotFound('non-existent'));
     });
 
-    it('should throw ModuleIdNotFound if throwErrIfNotFound is true and injector is not found', () => {
+    it('should throw a ModuleIdNotFound error when getting an injector for an unknown module and throwErrIfNotFound is true', () => {
       mock.scanRootModule(AppModule);
       expect(() => mock.getInjectorPerMod('non-existent', true)).toThrow(new ModuleIdNotFound('non-existent'));
     });
@@ -269,7 +269,7 @@ describe('ModuleManager', () => {
     @rootModule({ imports: [dynamicModule] })
     class AppModule {}
 
-    it('should return instance of module using ref ID or string ID', () => {
+    it('should return the cached module instance using either its reference or string ID', () => {
       mock.scanRootModule(AppModule);
 
       const mockInstance = new SomeModuleClass();
@@ -284,19 +284,19 @@ describe('ModuleManager', () => {
       expect(fakeInjector.get).toHaveBeenCalledWith(Module1);
     });
 
-    it('should throw ModuleIdNotFound if throwErrIfNotFound is true and module injector is not found', () => {
+    it('should throw a ModuleIdNotFound error when the module injector is missing and throwErrIfNotFound is true', () => {
       mock.scanRootModule(AppModule);
       expect(() => mock.getInstanceOf('non-existent', true)).toThrow(new ModuleIdNotFound('non-existent'));
     });
 
-    it('should return undefined if throwErrIfNotFound is false and module injector is not found', () => {
+    it('should return undefined when the module injector is missing and throwErrIfNotFound is false', () => {
       mock.scanRootModule(AppModule);
       expect(mock.getInstanceOf('non-existent', false)).toBeUndefined();
     });
   });
 
   describe('extensions', () => {
-    it('should handle root module with imported some extension', () => {
+    it('should correctly process a root module that imports a module containing extensions', () => {
       @injectable()
       class Extension1 implements Extension<void> {
         async stage1() {}
@@ -344,7 +344,7 @@ describe('ModuleManager', () => {
       expect(mock.getNormalizedModuleMeta(Module1)).toMatchObject(expectedMeta1);
     });
 
-    it('should handle root module with exported and applied some extension', () => {
+    it('should correctly process a root module that both imports and exports a module containing extensions', () => {
       @injectable()
       class Extension1 implements Extension<void> {
         async stage1() {}
@@ -395,8 +395,8 @@ describe('ModuleManager', () => {
     });
   });
 
-  describe('split multi providers', () => {
-    it('should split multi providers and common providers correctly', () => {
+  describe('multi-providers', () => {
+    it('should correctly separate multi-providers from regular providers during normalization', () => {
       const providersPerMod: Provider[] = [
         { token: Service2, useValue: 'val4', multi: true },
         { token: Service1, useValue: 'val1', multi: true },
