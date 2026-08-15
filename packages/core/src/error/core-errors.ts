@@ -188,10 +188,10 @@ export class AppCollisionNotFound extends CustomError {
 /**
  * `this module should have "providersPerApp", or exports, or extensions.`
  */
-export class EmptyModuleMeta extends CustomError {
-  constructor() {
+export class MeaninglessModuleMetadata extends CustomError {
+  constructor(moduleName: string) {
     super({
-      msg1: 'this module should have "providersPerApp", or exports, or extensions.',
+      msg1: `Normalization of ${moduleName} failed: this module should have "providersPerApp", or exports, or extensions.`,
       level: 'fatal',
     });
   }

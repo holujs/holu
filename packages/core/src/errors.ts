@@ -10,7 +10,7 @@ export {
   InvalidCollisionResolution,
   AppProviderMissingToken,
   AppCollisionNotFound,
-  EmptyModuleMeta,
+  MeaninglessModuleMetadata,
   ForbiddenAppExport,
   ForbiddenNormalizedExport,
   UnknownExport,

@@ -20,7 +20,7 @@ import {
   UnknownExport,
   ForbiddenNormalizedExport,
   InvalidExtension,
-  EmptyModuleMeta,
+  MeaninglessModuleMetadata,
   NormalizationFailure,
   MissingRootDecorator,
 } from '@holu/core/errors';
@@ -69,7 +69,7 @@ describe('ModuleManager', () => {
       @featureModule({ providersPerMod: [Provider1] })
       class Module1 {}
 
-      const err = new NormalizationFailure('Module1', new EmptyModuleMeta());
+      const err = new MeaninglessModuleMetadata('Module1');
       expect(() => mock.scanModule(Module1)).toThrow(err);
     });
 

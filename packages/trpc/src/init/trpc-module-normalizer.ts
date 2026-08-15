@@ -1,6 +1,6 @@
 import type { Class, NormalizedModuleMeta } from '@holu/core';
 import { isFeatureModule, Reflector, getDuplicates, createAspectMetaProxy } from '@holu/core';
-import { EmptyModuleMeta } from '@holu/core/errors';
+import { MeaninglessModuleMetadata } from '@holu/core/errors';
 
 import type { TrpcStaticOptions } from '#decorators/trpc-module-aspects.js';
 import { TrpcAspectMeta } from '#decorators/trpc-module-aspects.js';
@@ -50,7 +50,7 @@ export class TrpcModuleNormalizer {
       !meta.exportedMultiProvidersPerReq.length &&
       !meta.controllers.length
     ) {
-      throw new EmptyModuleMeta();
+      throw new MeaninglessModuleMetadata(this.normalizedModuleMeta.name);
     }
   }
 

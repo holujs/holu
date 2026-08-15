@@ -10,7 +10,7 @@ import {
   createAspectMetaProxy,
   isRootModule,
 } from '@holu/core';
-import { ForbiddenNormalizedExport, EmptyModuleMeta } from '@holu/core/errors';
+import { ForbiddenNormalizedExport, MeaninglessModuleMetadata } from '@holu/core/errors';
 
 import type { RestAppendOptions, RestStaticOptions } from '#init/rest-aspect-raw-meta.js';
 import type { RestModRefId } from '#init/rest-aspect-meta.js';
@@ -135,7 +135,7 @@ export class RestModuleNormalizer {
       !meta.controllers.length &&
       !meta.appendsWithOpts.length
     ) {
-      throw new EmptyModuleMeta();
+      throw new MeaninglessModuleMetadata(this.normalizedModuleMeta.name);
     }
   }
 

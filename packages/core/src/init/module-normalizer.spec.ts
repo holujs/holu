@@ -12,10 +12,9 @@ import { ProviderBuilder } from '#utils/providers.js';
 import {
   InvalidModRefId,
   MissingModuleDecorator,
-  EmptyModuleMeta,
+  MeaninglessModuleMetadata,
   ResolvedCollisionTokensOnly,
   UndefinedSymbol,
-  NormalizationFailure,
 } from '#error/core-errors.js';
 import { injectable } from '#di/decorators.js';
 import type { MultiProvider } from '#di/utils.js';
@@ -383,7 +382,7 @@ describe('ModuleNormalizer', () => {
       const normalizedModuleMeta = normalizer.normalize(EmptyModule);
       const manager = new ModuleManager(null as any);
       expect(() => (manager as any).checkFeatureModuleHasMeaningfulMetadata(normalizedModuleMeta)).toThrow(
-        new NormalizationFailure('EmptyModule', new EmptyModuleMeta()),
+        new MeaninglessModuleMetadata('EmptyModule'),
       );
     });
 

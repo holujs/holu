@@ -8,13 +8,7 @@ import type { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import type { ModRefId, StaticModule } from '#decorators/module-decorator-options.js';
 import { isDynamicModule } from '#decorators/type-guards.js';
 import { getDebugClassName } from '#utils/get-debug-class-name.js';
-import {
-  ImportAdditionFailure,
-  ImportRemovalFailure,
-  ForbiddenRollback,
-  ForbiddenSavingSnapshot,
-  NormalizationFailure,
-} from '#errors';
+import { ImportAdditionFailure, ImportRemovalFailure, ForbiddenRollback, ForbiddenSavingSnapshot } from '#errors';
 
 /**
  * @experimental The mutability of the module graph is an experimental feature.

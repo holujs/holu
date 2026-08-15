@@ -10,7 +10,7 @@ import { clearDebugClassNames, getDebugClassName } from '#utils/get-debug-class-
 import { ModuleNormalizer } from '#init/module-normalizer.js';
 import { ModuleAspectApplier } from '#init/module-aspect-applier.js';
 import { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
-import { ModuleIdNotFound, NormalizationFailure, MissingRootDecorator, EmptyModuleMeta } from '#errors';
+import { ModuleIdNotFound, NormalizationFailure, MissingRootDecorator, MeaninglessModuleMetadata } from '#errors';
 import { getModule } from '#utils/get-module.js';
 
 export type ModulesMap = Map<ModRefId, NormalizedModuleMeta>;
@@ -220,7 +220,7 @@ export class ModuleManager {
       !normalizedModuleMeta.exportedExtensionProviders.length &&
       !normalizedModuleMeta.extensionProviders.length
     ) {
-      throw new NormalizationFailure(normalizedModuleMeta.name, new EmptyModuleMeta());
+      throw new MeaninglessModuleMetadata(normalizedModuleMeta.name);
     }
   }
 
