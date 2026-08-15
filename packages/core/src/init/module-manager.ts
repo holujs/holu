@@ -8,7 +8,7 @@ import { resolveForwardRef, type ForwardRefFn } from '#di/forward-ref.js';
 import { isRootModule } from '#decorators/type-guards.js';
 import { clearDebugClassNames, getDebugClassName } from '#utils/get-debug-class-name.js';
 import { ModuleNormalizer } from '#init/module-normalizer.js';
-import { ModuleAspectApplier } from '#init/module-aspect-applier.js';
+import { ModuleMetaProcessor } from '#init/module-meta-processor.js';
 import { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
 import { ModuleIdNotFound, NormalizationFailure, MissingRootDecorator, MeaninglessModuleMetadata } from '#errors';
 import { getModule } from '#utils/get-module.js';
@@ -79,7 +79,7 @@ export class ModuleManager {
   constructor(
     protected systemLogMediator: SystemLogMediator,
     protected moduleNormalizer: ModuleNormalizer = new ModuleNormalizer(),
-    protected aspectApplier: ModuleAspectApplier = new ModuleAspectApplier(),
+    protected metaProcessor: ModuleMetaProcessor = new ModuleMetaProcessor(),
   ) {}
 
   /**
@@ -175,7 +175,7 @@ export class ModuleManager {
 
   protected propagateAspectsAndValidate(modRefId: ModRefId) {
     const propagator = new ModuleAspectPropagator(
-      this.aspectApplier,
+      this.metaProcessor,
       this.activeMetaMap,
       this.childrenMap,
       this.scannedModules,

@@ -3,18 +3,18 @@ import type { ModRefId, DynamicModule } from '#decorators/module-decorator-optio
 import type { ModuleAspectHandler, AllModuleAspectsMap } from '#decorators/module-aspects.js';
 import type { NormalizedModuleMeta, BaseNormalizedModuleMeta } from '#init/normalized-meta.js';
 import type { ModulesMap } from '#init/module-manager.js';
-import type { ModuleAspectApplier } from '#init/module-aspect-applier.js';
+import type { ModuleMetaProcessor } from '#init/module-meta-processor.js';
 import { NormalizationFailure } from '#errors';
 
 /**
  * Orchestrates the propagation and aggregation of module aspects across the dependency graph.
- * 
- * Handles the application of host aspect options, top-down aspect propagation to child modules, 
+ *
+ * Handles the application of host aspect options, top-down aspect propagation to child modules,
  * and bottom-up accumulation of aspects into parent modules.
  */
 export class ModuleAspectPropagator {
   constructor(
-    protected aspectApplier: ModuleAspectApplier,
+    protected metaProcessor: ModuleMetaProcessor,
     protected normalizedMetaMap: ModulesMap,
     protected childrenMap: Map<ModRefId, Set<ModRefId>>,
     protected scannedModules: Set<ModRefId>,
@@ -54,7 +54,7 @@ export class ModuleAspectPropagator {
     const newModuleAspect = moduleAspect.clone(moduleAspect.hostAspectOptions);
     hostMeta.moduleAspectMap.set(decoratorId, newModuleAspect);
     try {
-      this.aspectApplier.applyHostAspectOptions(hostMeta, decoratorId, newModuleAspect);
+      this.metaProcessor.applyHostAspectOptions(hostMeta, decoratorId, newModuleAspect);
     } catch (err: any) {
       throw new NormalizationFailure(hostMeta.name, err);
     }
@@ -164,7 +164,7 @@ export class ModuleAspectPropagator {
         const parentAspect = parentAspects.get(decoratorId);
         if (parentAspect) {
           try {
-            this.aspectApplier.registerAspectOnModule(meta, decoratorId, parentAspect.clone());
+            this.metaProcessor.registerAspectOnModule(meta, decoratorId, parentAspect.clone());
             if (parentAspect.hostModule) {
               this.childrenMap.get(meta.modRefId)?.add(parentAspect.hostModule);
             }
@@ -183,7 +183,7 @@ export class ModuleAspectPropagator {
     }
     parentAspects.forEach((aspect, decoratorId) => {
       try {
-        this.aspectApplier.registerAspectOnModule(meta, decoratorId, aspect.clone());
+        this.metaProcessor.registerAspectOnModule(meta, decoratorId, aspect.clone());
         if (aspect.hostModule) {
           this.childrenMap.get(meta.modRefId)?.add(aspect.hostModule);
         }

@@ -15,7 +15,6 @@ import { isDynamicModule, isRootModule, isModuleDecorator, isModuleWithModuleAsp
 import { UndefinedSymbol, ResolvedCollisionTokensOnly, MissingModuleDecorator, InvalidModRefId, ReexportFailure } from '#errors';
 import { ModuleMetaProcessor } from '#init/module-meta-processor.js';
 import type { ModuleManager } from '#init/module-manager.js';
-import type { ModuleAspectApplier } from '#init/module-aspect-applier.js';
 import type { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
 
 /**
@@ -23,7 +22,7 @@ import type { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
  *
  * Responsible for **creating** new {@link NormalizedModuleMeta} instances from
  * module decorator options. Mutation of existing metadata (aspect registration,
- * host-aspect application) is handled by {@link ModuleAspectApplier}.
+ * host-aspect application) is handled by {@link ModuleManager} during aspect propagation.
  */
 export class ModuleNormalizer {
   /**

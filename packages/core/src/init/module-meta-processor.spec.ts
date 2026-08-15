@@ -9,7 +9,7 @@ import { ModRefId } from '#decorators/module-decorator-options.js';
 import { DynamicModuleOptions, DynamicModuleWithAspectOptions, DynamicModule } from '#decorators/module-decorator-options.js';
 import { clearDebugClassNames } from '#utils/get-debug-class-name.js';
 import { ModuleNormalizer } from './module-normalizer.js';
-import { ModuleAspectApplier } from './module-aspect-applier.js';
+import { ModuleMetaProcessor } from './module-meta-processor.js';
 import {
   UnknownExport,
   ForbiddenNormalizedExport,
@@ -31,12 +31,10 @@ describe('ModuleMetaProcessor', () => {
   }
 
   let normalizer: MockModuleNormalizer;
-  let applier: ModuleAspectApplier;
 
   beforeEach(() => {
     clearDebugClassNames();
     normalizer = new MockModuleNormalizer();
-    applier = new ModuleAspectApplier();
   });
 
   describe('provider exports', () => {
@@ -529,6 +527,34 @@ describe('ModuleMetaProcessor', () => {
 
       const normalizedModuleMeta = normalizer.normalize(Module1);
       expect(normalizedModuleMeta.importedStaticModules).toContain(HostModule);
+    });
+
+    it('applies hostAspectOptions via applyHostAspectOptions method', () => {
+      @featureModule()
+      class HostModule {}
+
+      class HostModuleAspect extends ModuleAspectHandler<SomeAspectOptions> {
+        override hostModule = HostModule;
+        override hostAspectOptions = { flag: true };
+
+        override normalize(normalizedModuleMeta: NormalizedModuleMeta): SomeAspectMeta {
+          return {
+            flag: this.moduleOptions.flag,
+            targetModRefId: normalizedModuleMeta.modRefId,
+          } as SomeAspectMeta;
+        }
+      }
+
+      const hostInitSome: ModuleAspectDecorator<SomeAspectOptions, {}, {}> = Reflector.makeClassDecorator(
+        (data) => new HostModuleAspect(data),
+      );
+      const moduleAspect = new HostModuleAspect({}).clone({ flag: true });
+
+      const normalizedModuleMeta = normalizer.normalize(HostModule);
+      const metaProcessor = new ModuleMetaProcessor();
+      metaProcessor.applyHostAspectOptions(normalizedModuleMeta, hostInitSome, moduleAspect as any);
+
+      expect(normalizedModuleMeta.normalizedAspectMetaMap.get(hostInitSome)).toEqual({ flag: true, targetModRefId: HostModule });
     });
   });
 });

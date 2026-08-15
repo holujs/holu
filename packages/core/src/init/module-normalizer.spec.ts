@@ -6,7 +6,6 @@ import { ModRefId, type StaticModule } from '#decorators/module-decorator-option
 import { FeatureModuleOptions, DynamicModule } from '#decorators/module-decorator-options.js';
 import { clearDebugClassNames } from '#utils/get-debug-class-name.js';
 import { ModuleNormalizer } from './module-normalizer.js';
-import { ModuleAspectApplier } from './module-aspect-applier.js';
 import { ModuleManager } from './module-manager.js';
 import { ProviderBuilder } from '#utils/providers.js';
 import {
@@ -29,12 +28,10 @@ describe('ModuleNormalizer', () => {
   }
 
   let normalizer: MockModuleNormalizer;
-  let applier: ModuleAspectApplier;
 
   beforeEach(() => {
     clearDebugClassNames();
     normalizer = new MockModuleNormalizer();
-    applier = new ModuleAspectApplier();
   });
 
   describe('base module metadata', () => {

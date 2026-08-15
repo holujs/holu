@@ -12,7 +12,6 @@ import type { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import type { MultiProvider } from '#di/utils.js';
 import type { RootModuleOptions } from '#decorators/root-module.js';
 import type { ModuleNormalizer } from '#init/module-normalizer.js';
-import type { ModuleAspectApplier } from '#init/module-aspect-applier.js';
 import { normalizeExtensionConfig } from '#extension/extension-providers-and-configs.js';
 import { resolveForwardRef } from '#di/forward-ref.js';
 import { getToken, getTokens } from '#utils/get-tokens.js';
@@ -26,10 +25,30 @@ import { UndefinedSymbol, InvalidExtension, UnknownExport, ForbiddenNormalizedEx
 
 /**
  * A stateless utility service containing shared metadata-processing methods used by both
- * {@link ModuleNormalizer} (creation of new metadata) and {@link ModuleAspectApplier}
- * (mutation of existing metadata).
+ * {@link ModuleNormalizer} (creation of new metadata) and {@link ModuleManager}
+ * (mutation of existing metadata during aspect propagation).
  */
 export class ModuleMetaProcessor {
+  applyHostAspectOptions(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleAspect: ModuleAspectHandler) {
+    this.applyAspectModuleOptions(decoratorId, moduleAspect.moduleOptions, normalizedModuleMeta);
+    this.normalizeAspectMeta(decoratorId, moduleAspect, normalizedModuleMeta);
+  }
+
+  /**
+   * Registers a cloned module aspect on the given module: adds it to `allModuleAspectsMap`
+   * and `moduleAspectMap`, ensures the host module is imported, normalizes the aspect
+   * metadata, and applies it to the module's `normalizedAspectMetaMap`.
+   *
+   * This is the single entry point used by {@link ModuleAspectPropagator} to register an aspect
+   * on a module during the post-scan propagation phase.
+   */
+  registerAspectOnModule(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleAspect: ModuleAspectHandler): void {
+    normalizedModuleMeta.allModuleAspectsMap.set(decoratorId, moduleAspect);
+    this.ensureHostModuleImported(moduleAspect, normalizedModuleMeta);
+    this.normalizeAspectMeta(decoratorId, moduleAspect, normalizedModuleMeta);
+    normalizedModuleMeta.moduleAspectMap.set(decoratorId, moduleAspect);
+  }
+
   normalizeProvidersAndResolvedCollisions(
     staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
     meta: NormalizedModuleMeta,
@@ -67,11 +86,7 @@ export class ModuleMetaProcessor {
     });
   }
 
-  normalizeExports(
-    moduleOptions: { exports?: any[] },
-    action: 'Static exports' | 'Dynamic exports',
-    meta: NormalizedModuleMeta,
-  ) {
+  normalizeExports(moduleOptions: { exports?: any[] }, action: 'Static exports' | 'Dynamic exports', meta: NormalizedModuleMeta) {
     if (!moduleOptions.exports) {
       return;
     }
@@ -231,12 +246,7 @@ export class ModuleMetaProcessor {
     }
   }
 
-  mergeAspectOptionsIntoDynamicModule(
-    decoratorId: AnyFn,
-    params: AnyObj,
-    dynamicModule: DynamicModule,
-    meta: NormalizedModuleMeta,
-  ) {
+  mergeAspectOptionsIntoDynamicModule(decoratorId: AnyFn, params: AnyObj, dynamicModule: DynamicModule, meta: NormalizedModuleMeta) {
     delete params.module;
     delete params.aspectOptions;
     dynamicModule.aspectOptions ??= new Map();

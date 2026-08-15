@@ -52,7 +52,6 @@ export { ModuleManager } from '#init/module-manager.js';
 export { MutableModuleManager } from '#init/mutable-module-manager.js';
 export { ModuleNormalizer } from '#init/module-normalizer.js';
 export { ModuleMetaProcessor } from '#init/module-meta-processor.js';
-export { ModuleAspectApplier } from '#init/module-aspect-applier.js';
 export { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
 export { ModuleGraphState } from '#init/module-graph-state.js';
 export { Logger, LoggerConfig, InputLogLevel, OutputLogLevel } from '#logger/logger.js';
