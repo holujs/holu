@@ -1,4 +1,4 @@
-import { AppReinitializer, MutableModuleManager, DynamicModule, skipSelf } from '@holu/core';
+import { AppReinitializer, MutableModuleRegistry, DynamicModule, skipSelf } from '@holu/core';
 import { controller, route, RequestContext, RestDynamicOptions } from '@holu/rest';
 
 import { SecondModule } from '../second.module.js';
@@ -10,7 +10,7 @@ const thirdDynamicModule: DynamicModule = { module: ThirdModule };
 @controller()
 export class FirstController {
   constructor(
-    @skipSelf() private moduleManager: MutableModuleManager,
+    @skipSelf() private moduleRegistry: MutableModuleRegistry,
     @skipSelf() private appReinitializer: AppReinitializer,
   ) {}
 
@@ -21,25 +21,25 @@ export class FirstController {
 
   @route('GET', 'add-2')
   async addSecondModule(ctx: RequestContext) {
-    this.moduleManager.addImport(secondDynamicModule);
+    this.moduleRegistry.addImport(secondDynamicModule);
     await this.reinitApp(ctx, 'second', 'importing');
   }
 
   @route('GET', 'del-2')
   async removeSecondModule(ctx: RequestContext) {
-    this.moduleManager.removeImport(secondDynamicModule);
+    this.moduleRegistry.removeImport(secondDynamicModule);
     await this.reinitApp(ctx, 'second', 'removing');
   }
 
   @route('GET', 'add-3')
   async addThirdModule(ctx: RequestContext) {
-    this.moduleManager.addImport(thirdDynamicModule);
+    this.moduleRegistry.addImport(thirdDynamicModule);
     await this.reinitApp(ctx, 'third', 'importing');
   }
 
   @route('GET', 'del-3')
   async removeThirdModule(ctx: RequestContext) {
-    this.moduleManager.removeImport(thirdDynamicModule);
+    this.moduleRegistry.removeImport(thirdDynamicModule);
     await this.reinitApp(ctx, 'third', 'removing');
   }
 

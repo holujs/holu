@@ -1,7 +1,7 @@
 import type { SystemLogMediator } from '#logger/system-log-mediator.js';
 import { defaultExtensionProviders } from '#extension/default-extensions-providers.js';
 import { defaultProvidersPerApp } from './default-providers-per-app.js';
-import type { ModuleManager } from '#init/module-manager.js';
+import type { ModuleRegistry } from '#init/module-registry.js';
 import { BaseAppOptions } from '#init/base-app-options.js';
 import type { BaseImportRegistry, ShallowModuleImports } from '#init/types.js';
 import type { ResolvedModuleMeta } from '#types/metadata-per-mod.js';
@@ -37,23 +37,23 @@ export class DeepModulesImporter {
   protected extensionsTokens: any[] = [];
   protected extensionCounters = new ExtensionCounters();
 
-  protected moduleManager: ModuleManager;
+  protected moduleRegistry: ModuleRegistry;
   protected shallowModuleImportsMap: Map<ModRefId, ShallowModuleImports>;
   protected providersPerApp: Provider[];
   protected log: SystemLogMediator;
 
   constructor({
-    moduleManager,
+    moduleRegistry,
     shallowModuleImportsMap,
     providersPerApp,
     log,
   }: {
-    moduleManager: ModuleManager;
+    moduleRegistry: ModuleRegistry;
     shallowModuleImportsMap: Map<ModRefId, ShallowModuleImports>;
     providersPerApp: Provider[];
     log: SystemLogMediator;
   }) {
-    this.moduleManager = moduleManager;
+    this.moduleRegistry = moduleRegistry;
     this.shallowModuleImportsMap = shallowModuleImportsMap;
     this.providersPerApp = providersPerApp;
     this.log = log;
@@ -84,7 +84,7 @@ export class DeepModulesImporter {
             const deepImports = moduleAspect.importModulesDeep({
               parent: this,
               shallowModuleImports: shallowImportedModule,
-              moduleManager: this.moduleManager,
+              moduleRegistry: this.moduleRegistry,
               shallowModuleImportsMap: this.shallowModuleImportsMap,
               providersPerApp: this.providersPerApp,
               log: this.log,
@@ -221,7 +221,7 @@ export class DeepModulesImporter {
     path: any[] = [],
     childLevels: string[] = [],
   ) {
-    const srcNormalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta(srcModRefId, true);
+    const srcNormalizedModuleMeta = this.moduleRegistry.getNormalizedModuleMeta(srcModRefId, true);
 
     for (const dep of this.getDependencies(provider)) {
       let found: boolean = false;
@@ -313,7 +313,7 @@ export class DeepModulesImporter {
   }
 
   protected hasUnresolvedDeps(srcModRefId: ModRefId, provider: Provider, levels: Level[]) {
-    const normalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta(srcModRefId, true);
+    const normalizedModuleMeta = this.moduleRegistry.getNormalizedModuleMeta(srcModRefId, true);
 
     for (const dep of this.getDependencies(provider)) {
       let found: boolean = false;

@@ -5,7 +5,7 @@ import {
   injectable,
   Logger,
   ModuleInfo,
-  ModuleManager,
+  ModuleRegistry,
   DynamicModule,
   Provider,
   rootModule,
@@ -26,13 +26,13 @@ function getImportedTokens(map: Map<any, ImportedProvider<Provider>> | undefined
 describe('RestAppInitializer', () => {
   @injectable()
   class AppInitializerMock extends RestAppInitializer {
-    override collectProvidersShallow(moduleManager: ModuleManager) {
-      return super.collectProvidersShallow(moduleManager);
+    override collectProvidersShallow(moduleRegistry: ModuleRegistry) {
+      return super.collectProvidersShallow(moduleRegistry);
     }
   }
 
   let mock: AppInitializerMock;
-  let moduleManager: ModuleManager;
+  let moduleRegistry: ModuleRegistry;
 
   describe('exports/imports', () => {
     class Provider0 {}
@@ -101,11 +101,11 @@ describe('RestAppInitializer', () => {
 
     beforeAll(() => {
       const systemLogMediator = new SystemLogMediator({ moduleName: 'fakeName' });
-      moduleManager = new ModuleManager(systemLogMediator);
+      moduleRegistry = new ModuleRegistry(systemLogMediator);
       const appOptions = new AppOptions();
-      mock = new AppInitializerMock(appOptions, moduleManager, systemLogMediator);
-      moduleManager.scanRootModule(AppModule);
-      shallowModuleImportsBase = mock.collectProvidersShallow(moduleManager);
+      mock = new AppInitializerMock(appOptions, moduleRegistry, systemLogMediator);
+      moduleRegistry.scanRootModule(AppModule);
+      shallowModuleImportsBase = mock.collectProvidersShallow(moduleRegistry);
     });
 
     function checkAppProviders(shallowModuleImports: ShallowModuleImports | undefined) {
@@ -183,8 +183,8 @@ describe('RestAppInitializer', () => {
     });
 
     it('Module4', async () => {
-      moduleManager.scanRootModule(AppModule);
-      const shallowModuleImportsBase = mock.collectProvidersShallow(moduleManager);
+      moduleRegistry.scanRootModule(AppModule);
+      const shallowModuleImportsBase = mock.collectProvidersShallow(moduleRegistry);
       const mod4 = shallowModuleImportsBase.get(module4WithOpts);
       expect(mod4?.normalizedModuleMeta.providersPerApp).toEqual([]);
       const moduleInfo: ModuleInfo = { path: '', moduleName: 'Module4', isExternal: false };
@@ -195,8 +195,8 @@ describe('RestAppInitializer', () => {
     });
 
     it('AppModule', async () => {
-      moduleManager.scanRootModule(AppModule);
-      const shallowModuleImportsBase = mock.collectProvidersShallow(moduleManager);
+      moduleRegistry.scanRootModule(AppModule);
+      const shallowModuleImportsBase = mock.collectProvidersShallow(moduleRegistry);
       const root1 = shallowModuleImportsBase.get(AppModule);
       expect(root1?.normalizedModuleMeta.providersPerApp.slice(0, 2)).toEqual([Logger, { token: Router, useValue: 'fake' }]);
       const moduleInfo: ModuleInfo = { path: '', moduleName: 'AppModule', isExternal: false };
@@ -219,7 +219,7 @@ describe('RestAppInitializer', () => {
     @featureModule()
     class Module7 {}
 
-    const meta = moduleManager.scanRootModule(Module7);
+    const meta = moduleRegistry.scanRootModule(Module7);
     const providersPerApp = mock.collectProvidersPerApp(meta);
     expect(providersPerApp).toEqual([]);
   });

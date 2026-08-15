@@ -27,8 +27,8 @@ export class StandaloneApplication extends BaseApplication {
     const app = new this();
     try {
       app.init(baseOptions);
-      const moduleManager = app.scanRootModule(appModule);
-      const appInitializer = new AppInitializer(app.baseAppOptions, moduleManager, app.log);
+      const moduleRegistry = app.scanRootModule(appModule);
+      const appInitializer = new AppInitializer(app.baseAppOptions, moduleRegistry, app.log);
       await app.bootstrapApplication(appInitializer);
       return app;
     } catch (err: any) {

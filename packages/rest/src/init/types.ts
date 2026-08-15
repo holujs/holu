@@ -3,7 +3,7 @@ import type {
   NormalizedModuleMeta,
   AppProviders,
   ModRefId,
-  ModuleManager,
+  ModuleRegistry,
   SystemLogMediator,
   DeepModulesImporter,
   ShallowModuleImports,
@@ -61,13 +61,13 @@ export class RestResolvedModuleMeta {
 }
 
 export interface ExportAppProvidersConfig {
-  moduleManager: ModuleManager;
+  moduleRegistry: ModuleRegistry;
   appProviders: AppProviders;
   normalizedModuleMeta: NormalizedModuleMeta;
 }
 
 export interface ImportModulesShallowConfig {
-  moduleManager: ModuleManager;
+  moduleRegistry: ModuleRegistry;
   appProviders: AppProviders;
   modRefId: ModRefId;
   scanningModules: Set<ModRefId>;
@@ -79,7 +79,7 @@ export interface ImportModulesShallowConfig {
 export interface DeepModulesImporterConfig {
   parent: DeepModulesImporter;
   shallowModuleImports: RestShallowModuleImports;
-  moduleManager: ModuleManager;
+  moduleRegistry: ModuleRegistry;
   shallowModuleImportsMap: Map<ModRefId, ShallowModuleImports>;
   providersPerApp: Provider[];
   log: SystemLogMediator;

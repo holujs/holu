@@ -127,11 +127,11 @@ export class SystemLogMediator extends LogMediator {
   }
 
   /**
-   * `warn: skipping autocommit of changes for config of moduleManager.`
+   * `warn: skipping autocommit of changes for config of moduleRegistry.`
    */
   skippingAutocommitModulesConfig(self: object) {
     const className = self.constructor.name;
-    this.setLog('warn', `${className}: skipping autocommit of changes for config of moduleManager.`);
+    this.setLog('warn', `${className}: skipping autocommit of changes for config of moduleRegistry.`);
   }
 
   /**
@@ -150,20 +150,20 @@ export class SystemLogMediator extends LogMediator {
   }
 
   /**
-   * `debug: start rollback of changes for config of moduleManager during reinit the application.`
+   * `debug: start rollback of changes for config of moduleRegistry during reinit the application.`
    */
   startRollbackModuleConfigChanges(self: object) {
     const className = self.constructor.name;
-    const msg = `${className}: start rollback of changes for config of moduleManager during reinit the application.`;
+    const msg = `${className}: start rollback of changes for config of moduleRegistry during reinit the application.`;
     this.setLog('debug', msg);
   }
 
   /**
-   * `debug: successful rollback of changes for config of moduleManager during reinit the application.`
+   * `debug: successful rollback of changes for config of moduleRegistry during reinit the application.`
    */
   successfulRollbackModuleConfigChanges(self: object) {
     const className = self.constructor.name;
-    const msg = `${className}: successful rollback of changes for config of moduleManager during reinit the application.`;
+    const msg = `${className}: successful rollback of changes for config of moduleRegistry during reinit the application.`;
     this.setLog('debug', msg);
   }
 

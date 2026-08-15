@@ -1,6 +1,6 @@
 import { Reflector } from '#di/reflector.js';
 import type { NormalizedModuleMeta } from '#init/normalized-meta.js';
-import type { ModuleManager } from '#init/module-manager.js';
+import type { ModuleRegistry } from '#init/module-registry.js';
 import type { AppProviders } from '#types/metadata-per-mod.js';
 import { ImportedProvider } from '#types/metadata-per-mod.js';
 import type { Level, AnyObj } from '#types/mix.js';
@@ -65,11 +65,11 @@ export class ShallowModulesImporter {
   protected shallowModuleImportsMap = new Map<ModRefId, ShallowModuleImports>();
   protected scanningModules = new Set<ModRefId>();
   protected unfinishedExportModules = new Set<ModRefId>();
-  protected moduleManager: ModuleManager;
+  protected moduleRegistry: ModuleRegistry;
 
-  exportAppProviders(moduleManager: ModuleManager): AppProviders {
-    this.moduleManager = moduleManager;
-    const normalizedModuleMeta = moduleManager.getNormalizedModuleMeta('root', true);
+  exportAppProviders(moduleRegistry: ModuleRegistry): AppProviders {
+    this.moduleRegistry = moduleRegistry;
+    const normalizedModuleMeta = moduleRegistry.getNormalizedModuleMeta('root', true);
     this.moduleName = normalizedModuleMeta.name;
     this.normalizedModuleMeta = normalizedModuleMeta;
     this.importProvidersAndExtensions(normalizedModuleMeta);
@@ -89,7 +89,7 @@ export class ShallowModulesImporter {
     };
 
     normalizedModuleMeta.allModuleAspectsMap.forEach((moduleAspect, decorator) => {
-      const val = moduleAspect.exportAppProviders({ moduleManager, appProviders, normalizedModuleMeta });
+      const val = moduleAspect.exportAppProviders({ moduleRegistry, appProviders, normalizedModuleMeta });
       aspectValueMap.set(decorator, val);
     });
 
@@ -99,16 +99,16 @@ export class ShallowModulesImporter {
   importModulesShallow({
     appProviders,
     modRefId,
-    moduleManager,
+    moduleRegistry,
     scanningModules,
   }: {
     appProviders: AppProviders;
     modRefId: ModRefId;
-    moduleManager: ModuleManager;
+    moduleRegistry: ModuleRegistry;
     scanningModules: Set<ModRefId>;
   }): Map<ModRefId, ShallowModuleImports> {
-    const normalizedModuleMeta = moduleManager.getNormalizedModuleMeta(modRefId, true);
-    this.moduleManager = moduleManager;
+    const normalizedModuleMeta = moduleRegistry.getNormalizedModuleMeta(modRefId, true);
+    this.moduleRegistry = moduleRegistry;
     this.appProviders = appProviders;
     this.moduleName = normalizedModuleMeta.name;
     this.scanningModules = scanningModules;
@@ -190,7 +190,7 @@ export class ShallowModulesImporter {
       this.normalizedModuleMeta.importedDynamicModules as any[],
     ) as ModRefId[];
     for (const modRefId of modRefIdss) {
-      const normalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta(modRefId, true);
+      const normalizedModuleMeta = this.moduleRegistry.getNormalizedModuleMeta(modRefId, true);
       this.importProvidersAndExtensions(normalizedModuleMeta);
       if (this.scanningModules.has(modRefId)) {
         continue;
@@ -206,7 +206,7 @@ export class ShallowModulesImporter {
     const shallowModuleImportsMap = shallowModulesImporter.importModulesShallow({
       appProviders: this.appProviders,
       modRefId,
-      moduleManager: this.moduleManager,
+      moduleRegistry: this.moduleRegistry,
       scanningModules: this.scanningModules,
     });
     this.scanningModules.delete(modRefId);
@@ -225,7 +225,7 @@ export class ShallowModulesImporter {
       if (this.unfinishedExportModules.has(modRefId2)) {
         continue;
       }
-      const normalizedModuleMeta2 = this.moduleManager.getNormalizedModuleMeta(modRefId2, true);
+      const normalizedModuleMeta2 = this.moduleRegistry.getNormalizedModuleMeta(modRefId2, true);
       this.unfinishedExportModules.add(normalizedModuleMeta2.modRefId);
       this.importProvidersAndExtensions(normalizedModuleMeta2, normalizedModuleMeta1.modRefId); // Reexports module
       this.unfinishedExportModules.delete(normalizedModuleMeta2.modRefId);
@@ -300,7 +300,7 @@ export class ShallowModulesImporter {
     const [token2, modRefId2] = this.normalizedModuleMeta[`resolvedCollisionsPer${level}`].find(([token2]) => token1 === token2)!;
     const moduleName = getDebugClassName(modRefId2) || '""';
     const tokenName = token2.name || token2;
-    const normalizedModuleMeta2 = this.moduleManager.getNormalizedModuleMeta(modRefId2);
+    const normalizedModuleMeta2 = this.moduleRegistry.getNormalizedModuleMeta(modRefId2);
     if (!normalizedModuleMeta2) {
       throw new AppCollisionNotFound(this.moduleName, moduleName, level, tokenName);
     }
@@ -342,7 +342,7 @@ export class ShallowModulesImporter {
   }
 
   protected checkAllCollisionsWithLevelsMix() {
-    this.checkCollisionsWithLevelsMix(this.moduleManager.providersPerApp, ['Mod', 'Rou', 'Req']);
+    this.checkCollisionsWithLevelsMix(this.moduleRegistry.providersPerApp, ['Mod', 'Rou', 'Req']);
     const providersPerMod = [
       ...defaultProvidersPerMod,
       ...this.normalizedModuleMeta.providersPerMod,
@@ -366,7 +366,7 @@ export class ShallowModulesImporter {
         const collision = importedTokens.includes(token) && ![...declaredTokens, ...resolvedTokens].includes(token);
         if (collision) {
           const importedProvider = this[`importedProvidersPer${level}`].get(token)!;
-          const hostModulePath = this.moduleManager.getNormalizedModuleMeta(importedProvider.modRefId)?.declaredInDir || '.';
+          const hostModulePath = this.moduleRegistry.getNormalizedModuleMeta(importedProvider.modRefId)?.declaredInDir || '.';
           const decorMeta = Reflector.getClassLevelMeta(token, hasDeclaredInDir)?.at(0);
           const collisionWithPath = decorMeta?.declaredInDir || '.';
           if (hostModulePath !== '.' && collisionWithPath !== '.' && collisionWithPath.startsWith(hostModulePath)) {

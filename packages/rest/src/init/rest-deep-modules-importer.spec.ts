@@ -5,7 +5,7 @@ import {
   inject,
   injectable,
   Injector,
-  ModuleManager,
+  ModuleRegistry,
   StaticModule,
   Provider,
   rootModule,
@@ -30,22 +30,22 @@ describe('DeepModulesImporter', () => {
   class AppInitializerMock extends AppInitializer {
     override normalizedModuleMeta = new NormalizedModuleMeta();
 
-    override collectProvidersShallow(moduleManager: ModuleManager) {
-      return super.collectProvidersShallow(moduleManager);
+    override collectProvidersShallow(moduleRegistry: ModuleRegistry) {
+      return super.collectProvidersShallow(moduleRegistry);
     }
   }
 
   function getResolvedModuleMeta(rootModule: StaticModule) {
     const systemLogMediator = new SystemLogMediator({ moduleName: 'fakeName' });
-    const moduleManager = new ModuleManager(systemLogMediator);
-    moduleManager.scanRootModule(rootModule);
+    const moduleRegistry = new ModuleRegistry(systemLogMediator);
+    moduleRegistry.scanRootModule(rootModule);
     const baseAppOptions = new BaseAppOptions();
-    const initializer = new AppInitializerMock(baseAppOptions, moduleManager, systemLogMediator);
+    const initializer = new AppInitializerMock(baseAppOptions, moduleRegistry, systemLogMediator);
     initializer.bootstrapProvidersPerApp();
     systemLogMediator.flush();
-    const shallowModuleImportsMap = initializer.collectProvidersShallow(moduleManager);
+    const shallowModuleImportsMap = initializer.collectProvidersShallow(moduleRegistry);
     const deepModulesImporter = new DeepModulesImporter({
-      moduleManager,
+      moduleRegistry,
       shallowModuleImportsMap,
       providersPerApp: initializer.normalizedModuleMeta.providersPerApp,
       log: systemLogMediator,

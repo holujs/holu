@@ -8,7 +8,7 @@ import {
   AppInitializer,
   LogMediator,
   rootModule,
-  ModuleManager,
+  ModuleRegistry,
   LoggerConfig,
   BaseAppOptions,
 } from '@holu/core';
@@ -86,8 +86,8 @@ describe('RestApplication', () => {
     @rootModule({})
     class AppModule {}
 
-    it('should return instance of ModuleManager', () => {
-      expect(mock.scanRootModule(AppModule)).toBeInstanceOf(ModuleManager);
+    it('should return instance of ModuleRegistry', () => {
+      expect(mock.scanRootModule(AppModule)).toBeInstanceOf(ModuleRegistry);
     });
   });
 
@@ -101,8 +101,8 @@ describe('RestApplication', () => {
     class AppModule {}
 
     it('should replace systemLogMediator during call bootstrapApplication()', async () => {
-      const moduleManager = mock.scanRootModule(AppModule);
-      const appInitializer = new AppInitializer(new AppOptions(), moduleManager, new SystemLogMediator({ moduleName: '' }));
+      const moduleRegistry = mock.scanRootModule(AppModule);
+      const appInitializer = new AppInitializer(new AppOptions(), moduleRegistry, new SystemLogMediator({ moduleName: '' }));
       const { log } = mock;
       await mock.bootstrapApplication(appInitializer);
       expect(mock.log !== log).toBe(true);

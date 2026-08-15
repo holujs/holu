@@ -27,7 +27,7 @@ export class TrpcAppInitializer extends AppInitializer {
   }
 
   protected getTrpcRootObject() {
-    const mod = this.moduleManager.getInstanceOf('root', true) as Partial<TrpcRootModule>;
+    const mod = this.moduleRegistry.getInstanceOf('root', true) as Partial<TrpcRootModule>;
     return initTRPC.create(mod.setTrpcCreateOptions?.());
   }
 
@@ -47,7 +47,7 @@ export class TrpcAppInitializer extends AppInitializer {
   }
 
   async resetRequestListener() {
-    const injectorPerMod = this.moduleManager.getInjectorPerMod('root', true);
+    const injectorPerMod = this.moduleRegistry.getInjectorPerMod('root', true);
     const trpcInternalService = injectorPerMod.get(TrpcInternalService) as TrpcInternalService;
     trpcInternalService.setTrpcRouter(this.normalizedModuleMeta);
   }

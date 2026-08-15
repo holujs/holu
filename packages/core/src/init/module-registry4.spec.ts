@@ -1,7 +1,7 @@
 import { featureModule } from '#decorators/feature-module.js';
 import { injectable } from '#di/decorators.js';
 import { forwardRef } from '#di/forward-ref.js';
-import { Module3 } from './module-manager3.spec.js';
+import { Module3 } from './module-registry3.spec.js';
 
 @injectable()
 class Provider1 {}

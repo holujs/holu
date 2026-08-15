@@ -14,7 +14,7 @@ import { Reflector } from '#di/reflector.js';
 import { isDynamicModule, isRootModule, isModuleDecorator, isModuleWithModuleAspect } from '#decorators/type-guards.js';
 import { UndefinedSymbol, ResolvedCollisionTokensOnly, MissingModuleDecorator, InvalidModRefId, ReexportFailure } from '#errors';
 import { ModuleMetaProcessor } from '#init/module-meta-processor.js';
-import type { ModuleManager } from '#init/module-manager.js';
+import type { ModuleRegistry } from '#init/module-registry.js';
 import type { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
 
 /**
@@ -22,7 +22,7 @@ import type { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
  *
  * Responsible for **creating** new {@link NormalizedModuleMeta} instances from
  * module decorator options. Mutation of existing metadata (aspect registration,
- * host-aspect application) is handled by {@link ModuleManager} during aspect propagation.
+ * host-aspect application) is handled by {@link ModuleRegistry} during aspect propagation.
  */
 export class ModuleNormalizer {
   /**
@@ -103,7 +103,7 @@ export class ModuleNormalizer {
 
   /**
    * Since this method relies on the established variable {@link rootDeclaredInDir},
-   * during scanning the {@link ModuleManager} must first scan the root module.
+   * during scanning the {@link ModuleRegistry} must first scan the root module.
    */
   protected checkAndMarkExternalModule(staticModuleOptions: RootModuleOptions, meta: NormalizedModuleMeta) {
     if (this.rootDeclaredInDir) {

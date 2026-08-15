@@ -539,12 +539,12 @@ export class ForbiddenRollback extends CustomError {
   }
 }
 /**
- * `${moduleId} not found in ModuleManager.`
+ * `${moduleId} not found in ModuleRegistry.`
  */
 export class ModuleIdNotFound extends CustomError {
   constructor(moduleId: string) {
     super({
-      msg1: `${moduleId} not found in ModuleManager.`,
+      msg1: `${moduleId} not found in ModuleRegistry.`,
       level: 'warn',
     });
   }

@@ -1,4 +1,4 @@
-import type { ModuleManager } from '#init/module-manager.js';
+import type { ModuleRegistry } from '#init/module-registry.js';
 import type { ShallowModuleImports } from '#init/types.js';
 import type { SystemLogMediator } from '#logger/system-log-mediator.js';
 import type { AnyObj } from '#types/mix.js';
@@ -64,7 +64,7 @@ export class ModuleAspectHandler<T1 extends StaticAspectOptions = StaticAspectOp
   }
 
   /**
-   * The returned array of {@link ModRefId} will be scanned by {@link ModuleManager}.
+   * The returned array of {@link ModRefId} will be scanned by {@link ModuleRegistry}.
    *
    * @param meta Metadata returned by the {@link normalize | this.normalize()} method.
    */
@@ -77,7 +77,7 @@ export class ModuleAspectHandler<T1 extends StaticAspectOptions = StaticAspectOp
    * providers from the {@link FeatureModuleOptions.exports | exports } property.
    */
   exportAppProviders(config: {
-    moduleManager: ModuleManager;
+    moduleRegistry: ModuleRegistry;
     appProviders: AppProviders;
     normalizedModuleMeta: NormalizedModuleMeta;
   }) {
@@ -89,7 +89,7 @@ export class ModuleAspectHandler<T1 extends StaticAspectOptions = StaticAspectOp
    * but does not take provider dependencies into account.
    */
   importModulesShallow(config: {
-    moduleManager: ModuleManager;
+    moduleRegistry: ModuleRegistry;
     appProviders: AppProviders;
     modRefId: ModRefId;
     scanningModules: Set<ModRefId>;
@@ -104,7 +104,7 @@ export class ModuleAspectHandler<T1 extends StaticAspectOptions = StaticAspectOp
   importModulesDeep(config: {
     parent: AnyObj;
     shallowModuleImports: { normalizedModuleMeta: NormalizedModuleMeta } & AnyObj;
-    moduleManager: ModuleManager;
+    moduleRegistry: ModuleRegistry;
     shallowModuleImportsMap: Map<ModRefId, ShallowModuleImports>;
     providersPerApp: Provider[];
     log: SystemLogMediator;

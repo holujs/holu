@@ -7,8 +7,8 @@ import { ExtensionStatistics } from '#extension/counter.js';
 import { defaultProvidersPerApp } from './default-providers-per-app.js';
 import { ExtensionContext } from '#extension/extensions-context.js';
 import { ExtensionManager, InternalExtensionManager } from '#extension/extension-manager.js';
-import { ModuleManager } from '#init/module-manager.js';
-import { MutableModuleManager } from '#init/mutable-module-manager.js';
+import { ModuleRegistry } from '#init/module-registry.js';
+import { MutableModuleRegistry } from '#init/mutable-module-registry.js';
 import type { ModRefId } from '#decorators/module-decorator-options.js';
 import type { Provider } from '#di/top/types-and-models.js';
 import type { ExtensionClass } from '#extension/extension-types.js';
@@ -49,7 +49,7 @@ export class AppInitializer implements BaseAppInitializer {
 
   constructor(
     protected baseAppOptions: BaseAppOptions,
-    protected moduleManager: ModuleManager,
+    protected moduleRegistry: ModuleRegistry,
     public log: SystemLogMediator,
   ) {}
 
@@ -57,7 +57,7 @@ export class AppInitializer implements BaseAppInitializer {
    * _Note:_ after call this method, you need call `this.systemLogMediator.flush()`.
    */
   bootstrapProvidersPerApp() {
-    this.normalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta('root', true);
+    this.normalizedModuleMeta = this.moduleRegistry.getNormalizedModuleMeta('root', true);
     this.prepareProvidersPerApp();
     this.addDefaultProvidersPerApp();
     this.createInjectorAndSetLogMediator();
@@ -71,7 +71,7 @@ export class AppInitializer implements BaseAppInitializer {
   protected prepareProvidersPerApp() {
     // Here we work only with providers declared at the application level.
 
-    const exportedProviders = this.moduleManager.providersPerApp;
+    const exportedProviders = this.moduleRegistry.providersPerApp;
     const exportedNormProviders = normalizeProviders(exportedProviders);
     const exportedTokens = exportedNormProviders.map((np) => np.token);
     const exportedMultiTokens = exportedNormProviders.filter((np) => np.multi).map((np) => np.token);
@@ -95,7 +95,7 @@ export class AppInitializer implements BaseAppInitializer {
   protected findModulesCausedCollisions(collisions: any[]) {
     const modulesNames: string[] = [];
 
-    this.moduleManager.modulesMap.forEach((meta) => {
+    this.moduleRegistry.modulesMap.forEach((meta) => {
       const tokens = getTokens(meta.providersPerApp);
       const moduleCausesCollisions = tokens.some((t) => collisions.includes(t));
       if (moduleCausesCollisions) {
@@ -107,12 +107,12 @@ export class AppInitializer implements BaseAppInitializer {
   }
 
   protected getResolvedCollisionsPerApp() {
-    const rootModuleName = this.moduleManager.getNormalizedModuleMeta('root', true).name;
+    const rootModuleName = this.moduleRegistry.getNormalizedModuleMeta('root', true).name;
     const resolvedProviders: Provider[] = [];
     this.normalizedModuleMeta.resolvedCollisionsPerApp.forEach(([token, modRefId]) => {
       const moduleName = getDebugClassName(modRefId) || 'unknown';
       const tokenName = token.name || token;
-      const normalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta(modRefId);
+      const normalizedModuleMeta = this.moduleRegistry.getNormalizedModuleMeta(modRefId);
       if (!normalizedModuleMeta) {
         throw new ModuleNotImported(rootModuleName, moduleName, tokenName);
       }
@@ -131,8 +131,8 @@ export class AppInitializer implements BaseAppInitializer {
 
   async bootstrapModulesAndExtensions() {
     const deepModulesImporter = new DeepModulesImporter({
-      moduleManager: this.moduleManager,
-      shallowModuleImportsMap: this.collectProvidersShallow(this.moduleManager),
+      moduleRegistry: this.moduleRegistry,
+      shallowModuleImportsMap: this.collectProvidersShallow(this.moduleRegistry),
       providersPerApp: this.normalizedModuleMeta.providersPerApp,
       log: this.log,
     });
@@ -145,11 +145,11 @@ export class AppInitializer implements BaseAppInitializer {
     const providers: Provider[] = [
       ...defaultProvidersPerApp,
       { token: BaseAppOptions, useValue: this.baseAppOptions },
-      { token: ModuleManager, useValue: this.moduleManager },
+      { token: ModuleRegistry, useValue: this.moduleRegistry },
       { token: BaseAppInitializer, useValue: this },
     ];
-    if (this.moduleManager instanceof MutableModuleManager) {
-      providers.push(AppReinitializer, { token: MutableModuleManager, useValue: this.moduleManager });
+    if (this.moduleRegistry instanceof MutableModuleRegistry) {
+      providers.push(AppReinitializer, { token: MutableModuleRegistry, useValue: this.moduleRegistry });
     }
     this.normalizedModuleMeta.providersPerApp.unshift(...providers);
   }
@@ -163,16 +163,16 @@ export class AppInitializer implements BaseAppInitializer {
     return this.injectorPerApp;
   }
 
-  protected collectProvidersShallow(moduleManager: ModuleManager) {
+  protected collectProvidersShallow(moduleRegistry: ModuleRegistry) {
     const shallowModulesImporter1 = new ShallowModulesImporter();
-    const appProviders = shallowModulesImporter1.exportAppProviders(moduleManager);
+    const appProviders = shallowModulesImporter1.exportAppProviders(moduleRegistry);
     this.log.printAppProviders(this, appProviders);
     const shallowModulesImporter2 = new ShallowModulesImporter();
-    const { modRefId, allModuleAspectsMap } = moduleManager.getNormalizedModuleMeta('root', true);
+    const { modRefId, allModuleAspectsMap } = moduleRegistry.getNormalizedModuleMeta('root', true);
     const shallowModuleImportsMap = shallowModulesImporter2.importModulesShallow({
       appProviders,
       modRefId,
-      moduleManager,
+      moduleRegistry,
       scanningModules: new Set(),
     });
     if (allModuleAspectsMap.size == 0) {
@@ -182,7 +182,7 @@ export class AppInitializer implements BaseAppInitializer {
     // @todo Refactor this.
     allModuleAspectsMap.forEach((moduleAspect, decorator) => {
       const val = moduleAspect.importModulesShallow({
-        moduleManager,
+        moduleRegistry,
         appProviders,
         modRefId,
         scanningModules: new Set(),
@@ -260,7 +260,7 @@ export class AppInitializer implements BaseAppInitializer {
     for (const [modRefId, { normalizedModuleMeta }] of resolvedModuleMetaMap) {
       try {
         const injectorPerMod = await this.initModuleAndGetInjectorPerMod(normalizedModuleMeta);
-        this.moduleManager.setInjectorPerMod(modRefId, injectorPerMod);
+        this.moduleRegistry.setInjectorPerMod(modRefId, injectorPerMod);
       } catch (err: any) {
         const debugModuleName = getDebugClassName(modRefId) || 'unknown';
         throw new ModuleInjectorCreationFailure(debugModuleName, err);
@@ -273,7 +273,7 @@ export class AppInitializer implements BaseAppInitializer {
           if (!ext.stage2) {
             continue;
           }
-          const injectorPerMod = this.moduleManager.getInjectorPerMod(modRefId, true);
+          const injectorPerMod = this.moduleRegistry.getInjectorPerMod(modRefId, true);
           await ext.stage2(injectorPerMod);
         } catch (err: any) {
           const debugModuleName = getDebugClassName(modRefId) || 'unknown';

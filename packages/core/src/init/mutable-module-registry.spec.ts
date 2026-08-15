@@ -4,8 +4,8 @@ import { Reflector } from '#di/reflector.js';
 import { featureModule } from '#decorators/feature-module.js';
 import { rootModule } from '#decorators/root-module.js';
 import { SystemLogMediator } from '#logger/system-log-mediator.js';
-import { ModuleId } from './module-manager.js';
-import { MutableModuleManager } from './mutable-module-manager.js';
+import { ModuleId } from './module-registry.js';
+import { MutableModuleRegistry } from './mutable-module-registry.js';
 import { ModuleAspectDecorator, ModuleAspectHandler } from '#decorators/module-aspects.js';
 import { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { ModuleGraphState } from '#init/module-graph-state.js';
@@ -17,7 +17,7 @@ import { injectable } from '#di/decorators.js';
 import { forwardRef } from '#di/forward-ref.js';
 import type { Provider } from '#di/top/types-and-models.js';
 
-describe('ModuleManager', () => {
+describe('ModuleRegistry', () => {
   describe('scanRootModule()', () => {
     it('should log a warning and return root metadata if scanned twice', () => {
       @rootModule({ providersPerApp: [Service1] })
@@ -26,7 +26,7 @@ describe('ModuleManager', () => {
       const systemLogMediator = new SystemLogMediator({ moduleName: 'fakeName' });
       jest.spyOn(systemLogMediator, 'externalModuleDetectionFailed').mockImplementation(() => {});
       const spy = jest.spyOn(systemLogMediator, 'forbiddenRescanRootModule').mockImplementation(() => {});
-      const manager = new MockModuleManager(systemLogMediator);
+      const manager = new MockModuleRegistry(systemLogMediator);
 
       const meta1 = manager.scanRootModule(AppModule);
       const meta2 = manager.scanRootModule(AppModule);
@@ -43,7 +43,7 @@ describe('ModuleManager', () => {
   @injectable()
   class Service3 {}
 
-  class MockModuleManager extends MutableModuleManager {
+  class MockModuleRegistry extends MutableModuleRegistry {
     declare systemLogMediator: SystemLogMediator;
     declare normalizedMetaMap: Map<ModRefId, NormalizedModuleMeta>;
     declare moduleIdMap: Map<string, ModRefId>;
@@ -63,13 +63,13 @@ describe('ModuleManager', () => {
     }
   }
 
-  let mock: MockModuleManager;
+  let mock: MockModuleRegistry;
 
   beforeEach(() => {
     clearDebugClassNames();
     const systemLogMediator = new SystemLogMediator({ moduleName: 'fakeName' });
     jest.spyOn(systemLogMediator, 'externalModuleDetectionFailed').mockImplementation(() => {});
-    mock = new MockModuleManager(systemLogMediator);
+    mock = new MockModuleRegistry(systemLogMediator);
   });
 
   afterEach(() => {

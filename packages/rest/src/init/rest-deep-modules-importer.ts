@@ -1,4 +1,4 @@
-import type { ModRefId, Provider, ModuleManager, SystemLogMediator, DeepModulesImporter, ShallowModuleImports } from '@holu/core';
+import type { ModRefId, Provider, ModuleRegistry, SystemLogMediator, DeepModulesImporter, ShallowModuleImports } from '@holu/core';
 
 import type { DeepModulesImporterConfig, RestResolvedModuleMeta, RestShallowModuleImports } from './types.js';
 
@@ -8,7 +8,7 @@ import type { DeepModulesImporterConfig, RestResolvedModuleMeta, RestShallowModu
  */
 export class RestDeepModulesImporter {
   protected shallowModuleImports: RestShallowModuleImports;
-  protected moduleManager: ModuleManager;
+  protected moduleRegistry: ModuleRegistry;
   protected shallowModuleImportsMap: Map<ModRefId, ShallowModuleImports>;
   protected providersPerApp: Provider[];
   protected log: SystemLogMediator;
@@ -17,14 +17,14 @@ export class RestDeepModulesImporter {
   constructor({
     parent,
     shallowModuleImports,
-    moduleManager,
+    moduleRegistry,
     shallowModuleImportsMap,
     providersPerApp,
     log,
   }: DeepModulesImporterConfig) {
     this.parent = parent;
     this.shallowModuleImports = shallowModuleImports;
-    this.moduleManager = moduleManager;
+    this.moduleRegistry = moduleRegistry;
     this.shallowModuleImportsMap = shallowModuleImportsMap;
     this.providersPerApp = providersPerApp;
     this.log = log;

@@ -4,8 +4,8 @@ import { SystemLogMediator } from '#logger/system-log-mediator.js';
 import type { StaticModule } from '#decorators/module-decorator-options.js';
 import type { AppInitializer } from '#init/app-initializer.js';
 import { LogMediator } from '#logger/log-mediator.js';
-import { ModuleManager } from '#init/module-manager.js';
-import { MutableModuleManager } from '#init/mutable-module-manager.js';
+import { ModuleRegistry } from '#init/module-registry.js';
+import { MutableModuleRegistry } from '#init/mutable-module-registry.js';
 import { ModuleNormalizer } from '#init/module-normalizer.js';
 import type { Injector } from '#di/injector.js';
 import { SHUTDOWN_SIGNALS } from '#init/hooks.js';
@@ -14,7 +14,7 @@ export abstract class BaseApplication {
   protected baseAppOptions: BaseAppOptions;
   protected log: SystemLogMediator;
   protected injectorPerApp?: Injector;
-  protected moduleManager?: ModuleManager;
+  protected moduleRegistry?: ModuleRegistry;
   protected isShuttingDown = false;
   protected shutdownListeners: (() => void)[] = [];
 
@@ -100,18 +100,18 @@ export abstract class BaseApplication {
   }
 
   /**
-   * Initializes the ModuleManager and starts the recursive scanning process
+   * Initializes the ModuleRegistry and starts the recursive scanning process
    * for the root module and all its dependencies.
    */
   protected scanRootModule(appModule: StaticModule) {
     const moduleNormalizer = this.baseAppOptions.moduleNormalizerFactory?.() ?? new ModuleNormalizer();
     if (this.baseAppOptions.allowRuntimeReinit) {
-      this.moduleManager = new MutableModuleManager(this.log, moduleNormalizer);
+      this.moduleRegistry = new MutableModuleRegistry(this.log, moduleNormalizer);
     } else {
-      this.moduleManager = new ModuleManager(this.log, moduleNormalizer);
+      this.moduleRegistry = new ModuleRegistry(this.log, moduleNormalizer);
     }
-    this.moduleManager.scanRootModule(appModule);
-    return this.moduleManager;
+    this.moduleRegistry.scanRootModule(appModule);
+    return this.moduleRegistry;
   }
 
   /**
@@ -151,8 +151,8 @@ export abstract class BaseApplication {
     if (this.injectorPerApp) {
       activeInjectors.push(this.injectorPerApp);
     }
-    if (this.moduleManager) {
-      const moduleInjectors = this.moduleManager.injectorsPerMod.values();
+    if (this.moduleRegistry) {
+      const moduleInjectors = this.moduleRegistry.injectorsPerMod.values();
       activeInjectors.push(...moduleInjectors);
     }
 

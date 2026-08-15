@@ -6,7 +6,7 @@ import { ModRefId, type StaticModule } from '#decorators/module-decorator-option
 import { FeatureModuleOptions, DynamicModule } from '#decorators/module-decorator-options.js';
 import { clearDebugClassNames } from '#utils/get-debug-class-name.js';
 import { ModuleNormalizer } from './module-normalizer.js';
-import { ModuleManager } from './module-manager.js';
+import { ModuleRegistry } from './module-registry.js';
 import { ProviderBuilder } from '#utils/providers.js';
 import {
   InvalidModRefId,
@@ -377,7 +377,7 @@ describe('ModuleNormalizer', () => {
       class EmptyModule {}
 
       const normalizedModuleMeta = normalizer.normalize(EmptyModule);
-      const manager = new ModuleManager(null as any);
+      const manager = new ModuleRegistry(null as any);
       expect(() => (manager as any).checkFeatureModuleHasMeaningfulMetadata(normalizedModuleMeta)).toThrow(
         new MeaninglessModuleMetadata('EmptyModule'),
       );
@@ -388,7 +388,7 @@ describe('ModuleNormalizer', () => {
       class AppModule {}
 
       const normalizedModuleMeta = normalizer.normalize(AppModule);
-      const manager = new ModuleManager(null as any);
+      const manager = new ModuleRegistry(null as any);
       expect(() => (manager as any).checkFeatureModuleHasMeaningfulMetadata(normalizedModuleMeta)).not.toThrow();
     });
   });

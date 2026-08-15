@@ -4,7 +4,7 @@ import { Reflector } from '#di/reflector.js';
 import { featureModule } from '#decorators/feature-module.js';
 import { rootModule } from '#decorators/root-module.js';
 import { SystemLogMediator } from '#logger/system-log-mediator.js';
-import { ModuleManager } from './module-manager.js';
+import { ModuleRegistry } from './module-registry.js';
 import { StaticAspectOptions, ModuleAspectDecorator, ModuleAspectHandler } from '#decorators/module-aspects.js';
 import { BaseNormalizedModuleMeta, NormalizedModuleMeta, createAspectMetaProxy } from '#init/normalized-meta.js';
 import { DynamicModuleOptions, ModRefId } from '#decorators/module-decorator-options.js';
@@ -21,7 +21,7 @@ describe('ModuleAspectPropagator', () => {
   @injectable()
   class Service3 {}
 
-  class MockModuleManager extends ModuleManager {
+  class MockModuleRegistry extends ModuleRegistry {
     declare systemLogMediator: SystemLogMediator;
     override get childrenMap() {
       return super.childrenMap;
@@ -31,13 +31,13 @@ describe('ModuleAspectPropagator', () => {
     }
   }
 
-  let mock: MockModuleManager;
+  let mock: MockModuleRegistry;
 
   beforeEach(() => {
     clearDebugClassNames();
     const systemLogMediator = new SystemLogMediator({ moduleName: 'fakeName' });
     jest.spyOn(systemLogMediator, 'externalModuleDetectionFailed').mockImplementation(() => {});
-    mock = new MockModuleManager(systemLogMediator);
+    mock = new MockModuleRegistry(systemLogMediator);
   });
 
   afterEach(() => {
@@ -422,11 +422,11 @@ describe('ModuleAspectPropagator', () => {
       @rootModule({ imports: [ModuleB, ModuleA] })
       class AppModuleOrder2 {}
 
-      const mock1 = new MockModuleManager(new SystemLogMediator({ moduleName: '1' }));
+      const mock1 = new MockModuleRegistry(new SystemLogMediator({ moduleName: '1' }));
       mock1.scanRootModule(AppModuleOrder1);
       const meta1 = mock1.getNormalizedModuleMeta(AppModuleOrder1);
 
-      const mock2 = new MockModuleManager(new SystemLogMediator({ moduleName: '2' }));
+      const mock2 = new MockModuleRegistry(new SystemLogMediator({ moduleName: '2' }));
       mock2.scanRootModule(AppModuleOrder2);
       const meta2 = mock2.getNormalizedModuleMeta(AppModuleOrder2);
 

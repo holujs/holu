@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 import {
   DynamicModule,
-  ModuleManager,
+  ModuleRegistry,
   NormalizedModuleMeta,
   clearDebugClassNames,
   SystemLogMediator,
@@ -33,11 +33,11 @@ import { CanActivate, guard } from '#interceptors/guard.js';
 import { RequestContext } from '#services/request-context.js';
 import { RestModule } from './rest.module.js';
 
-describe('ModuleManager', () => {
+describe('ModuleRegistry', () => {
   // console.log = jest.fn();
   type ModuleId = string | ModRefId;
 
-  class MockModuleManager extends ModuleManager {
+  class MockModuleRegistry extends ModuleRegistry {
     declare normalizedMetaMap: Map<ModRefId, NormalizedModuleMeta>;
     declare moduleIdMap: Map<string, ModRefId>;
 
@@ -48,7 +48,7 @@ describe('ModuleManager', () => {
     }
   }
 
-  let mock: MockModuleManager;
+  let mock: MockModuleRegistry;
   function getAspectMeta(moduleId: ModuleId) {
     const normalizedModuleMeta = mock.getNormalizedModuleMeta(moduleId);
     // console.log(normalizedModuleMeta);
@@ -59,7 +59,7 @@ describe('ModuleManager', () => {
     clearDebugClassNames();
     const systemLogMediator = new SystemLogMediator({ moduleName: 'fakeName' });
     jest.spyOn(systemLogMediator, 'externalModuleDetectionFailed').mockImplementation(() => {});
-    mock = new MockModuleManager(systemLogMediator);
+    mock = new MockModuleRegistry(systemLogMediator);
   });
 
   describe('quickCheckMeta()', () => {

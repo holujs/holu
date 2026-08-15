@@ -1,14 +1,14 @@
 import { jest } from '@jest/globals';
 import type { BaseAppInitializer } from '#init/base-app-initializer.js';
 import { AppReinitializer } from '#init/app-reinitializer.js';
-import type { MutableModuleManager } from '#init/mutable-module-manager.js';
+import type { MutableModuleRegistry } from '#init/mutable-module-registry.js';
 import type { SystemLogMediator } from '#logger/system-log-mediator.js';
 import { LogMediator } from '#logger/log-mediator.js';
 
 describe('AppReinitializer', () => {
   let appReinitializer: AppReinitializer;
   let mockAppInitializer: jest.Mocked<BaseAppInitializer>;
-  let mockModuleManager: jest.Mocked<MutableModuleManager>;
+  let mockModuleRegistry: jest.Mocked<MutableModuleRegistry>;
   let mockLog: jest.Mocked<SystemLogMediator>;
 
   beforeEach(() => {
@@ -17,12 +17,12 @@ describe('AppReinitializer', () => {
       bootstrapModulesAndExtensions: jest.fn(),
     } as unknown as jest.Mocked<BaseAppInitializer>;
 
-    mockModuleManager = {
+    mockModuleRegistry = {
       startTransaction: jest.fn(),
       reset: jest.fn(),
       commit: jest.fn(),
       rollback: jest.fn(),
-    } as unknown as jest.Mocked<MutableModuleManager>;
+    } as unknown as jest.Mocked<MutableModuleRegistry>;
 
     mockLog = {
       flush: jest.fn(),
@@ -37,7 +37,7 @@ describe('AppReinitializer', () => {
       updateOutputLogLevel: jest.fn(),
     } as unknown as jest.Mocked<SystemLogMediator>;
 
-    appReinitializer = new AppReinitializer(mockAppInitializer, mockModuleManager, mockLog);
+    appReinitializer = new AppReinitializer(mockAppInitializer, mockModuleRegistry, mockLog);
   });
 
   afterEach(() => {
@@ -52,12 +52,12 @@ describe('AppReinitializer', () => {
       expect(mockLog.preserveLogger).toHaveBeenCalled();
       expect(mockLog.startReinitApp).toHaveBeenCalledWith(appReinitializer);
 
-      expect(mockModuleManager.startTransaction).toHaveBeenCalled();
-      expect(mockModuleManager.reset).toHaveBeenCalled();
+      expect(mockModuleRegistry.startTransaction).toHaveBeenCalled();
+      expect(mockModuleRegistry.reset).toHaveBeenCalled();
       expect(mockAppInitializer.bootstrapProvidersPerApp).toHaveBeenCalled();
 
       expect(mockAppInitializer.bootstrapModulesAndExtensions).toHaveBeenCalled();
-      expect(mockModuleManager.commit).toHaveBeenCalled();
+      expect(mockModuleRegistry.commit).toHaveBeenCalled();
       expect(mockLog.finishReinitApp).toHaveBeenCalledWith(appReinitializer);
 
       expect(LogMediator.bufferLogs).toBe(false);
@@ -66,14 +66,14 @@ describe('AppReinitializer', () => {
     it('should successfully reinit the app and skip autocommit', async () => {
       await appReinitializer.reinit(false);
 
-      expect(mockModuleManager.commit).not.toHaveBeenCalled();
+      expect(mockModuleRegistry.commit).not.toHaveBeenCalled();
       expect(mockLog.skippingAutocommitModulesConfig).toHaveBeenCalledWith(appReinitializer);
       expect(mockLog.finishReinitApp).toHaveBeenCalledWith(appReinitializer);
     });
 
     it('should handle error during reset/bootstrapProvidersPerApp', async () => {
       const error = new Error('Test error');
-      mockModuleManager.reset.mockImplementation(() => {
+      mockModuleRegistry.reset.mockImplementation(() => {
         throw error;
       });
 
@@ -83,7 +83,7 @@ describe('AppReinitializer', () => {
       expect(mockLog.restorePreviousLogger).toHaveBeenCalled();
       expect(mockLog.printReinitError).toHaveBeenCalledWith(appReinitializer, error);
       expect(mockLog.startRollbackModuleConfigChanges).toHaveBeenCalledWith(appReinitializer);
-      expect(mockModuleManager.rollback).toHaveBeenCalled();
+      expect(mockModuleRegistry.rollback).toHaveBeenCalled();
       expect(mockAppInitializer.bootstrapProvidersPerApp).toHaveBeenCalled();
       expect(mockAppInitializer.bootstrapModulesAndExtensions).toHaveBeenCalled();
       expect(mockLog.successfulRollbackModuleConfigChanges).toHaveBeenCalledWith(appReinitializer);
@@ -99,7 +99,7 @@ describe('AppReinitializer', () => {
       expect(mockLog.restorePreviousLogger).not.toHaveBeenCalled();
       expect(mockLog.printReinitError).toHaveBeenCalledWith(appReinitializer, error);
       expect(mockLog.startRollbackModuleConfigChanges).toHaveBeenCalledWith(appReinitializer);
-      expect(mockModuleManager.rollback).toHaveBeenCalled();
+      expect(mockModuleRegistry.rollback).toHaveBeenCalled();
       expect(mockAppInitializer.bootstrapProvidersPerApp).toHaveBeenCalled();
       expect(mockAppInitializer.bootstrapModulesAndExtensions).toHaveBeenCalled();
       expect(mockLog.successfulRollbackModuleConfigChanges).toHaveBeenCalledWith(appReinitializer);

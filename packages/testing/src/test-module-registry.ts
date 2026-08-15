@@ -1,7 +1,7 @@
 import type { ModRefId, NormalizedModuleMeta } from '@holu/core';
-import { getModule, MutableModuleManager } from '@holu/core';
+import { getModule, MutableModuleRegistry } from '@holu/core';
 
-export class TestModuleManager extends MutableModuleManager {
+export class TestModuleRegistry extends MutableModuleRegistry {
   protected externalModules = new Set<ModRefId>();
 
   markModuleAsExternal(...modRefIds: ModRefId[]) {

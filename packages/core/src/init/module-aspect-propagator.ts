@@ -2,7 +2,7 @@ import type { AnyFn } from '#di/top/types-and-models.js';
 import type { ModRefId, DynamicModule } from '#decorators/module-decorator-options.js';
 import type { ModuleAspectHandler, AllModuleAspectsMap } from '#decorators/module-aspects.js';
 import type { NormalizedModuleMeta, BaseNormalizedModuleMeta } from '#init/normalized-meta.js';
-import type { ModulesMap } from '#init/module-manager.js';
+import type { ModulesMap } from '#init/module-registry.js';
 import type { ModuleMetaProcessor } from '#init/module-meta-processor.js';
 import { NormalizationFailure } from '#errors';
 

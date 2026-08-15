@@ -1,4 +1,4 @@
-import { AnyFn, AnyObj, NormalizedModuleMeta, getModule, inject, injectable, ModRefId, ModuleManager, Context } from '@holu/core';
+import { AnyFn, AnyObj, NormalizedModuleMeta, getModule, inject, injectable, ModRefId, ModuleRegistry, Context } from '@holu/core';
 
 import { TRPC_ROOT } from '#types/constants.js';
 import { TrpcRouterOpts, TrpcRootObject, ModuleWithTrpcRoutes, RouterOptions, TrpcRootModule } from '#types/types.js';
@@ -11,7 +11,7 @@ export class TrpcInternalService {
   constructor(
     protected requestDispatcher: TrpcRequestDispatcher,
     protected trpcService: TrpcService,
-    protected moduleManager: ModuleManager,
+    protected moduleRegistry: ModuleRegistry,
     @inject(TRPC_ROOT) protected t: TrpcRootObject<any>,
   ) {}
 
@@ -22,7 +22,7 @@ export class TrpcInternalService {
    * an [HTTP handler](https://trpc.io/docs/server/adapters/standalone#adding-a-handler-to-an-custom-http-server).
    */
   setTrpcRouter(normalizedModuleMeta: NormalizedModuleMeta) {
-    const injectorPerMod = this.moduleManager.getInjectorPerMod('root', true);
+    const injectorPerMod = this.moduleRegistry.getInjectorPerMod('root', true);
     const mod = injectorPerMod.get(normalizedModuleMeta.modRefId) as Partial<TrpcRootModule>;
     const routerOpts = (mod.setAppRouterOptions?.() || {}) as unknown as TrpcRouterOpts;
     routerOpts.router = this.t.mergeRouters(...this.getRouters());
@@ -31,7 +31,7 @@ export class TrpcInternalService {
   }
 
   protected getRouters() {
-    const rootNormalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta('root', true);
+    const rootNormalizedModuleMeta = this.moduleRegistry.getNormalizedModuleMeta('root', true);
     const modulesWithTrpcRoutes = (rootNormalizedModuleMeta.importedStaticModules as ModRefId[]).concat(
       rootNormalizedModuleMeta.importedDynamicModules,
     );
@@ -41,7 +41,7 @@ export class TrpcInternalService {
   }
 
   protected getModuleTrpcConfigs(modRefId: ModRefId<ModuleWithTrpcRoutes>) {
-    const normalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta(modRefId, true);
+    const normalizedModuleMeta = this.moduleRegistry.getNormalizedModuleMeta(modRefId, true);
     const importedModulesWithTrpcRoutes = new Map<AnyFn, ModRefId<ModuleWithTrpcRoutes>>();
     (normalizedModuleMeta.importedStaticModules as ModRefId[]).concat(normalizedModuleMeta.importedDynamicModules).forEach((imp) => {
       if (isModuleWithTrpcRoutes(imp)) {
@@ -70,7 +70,7 @@ export class TrpcInternalService {
           trpcRouterConfig[prop] = this.getModuleTrpcConfigs(importedModRefId);
         } else {
           // Case with `{ property: ControllerClass.prototype.someMethod }`
-          const injectorPerMod = this.moduleManager.getInjectorPerMod(currentModRefId, true);
+          const injectorPerMod = this.moduleRegistry.getInjectorPerMod(currentModRefId, true);
           const ctx = injectorPerMod.get(Context) as Context;
           trpcRouterConfig[prop] = ctx.get(val) as any;
         }

@@ -4,7 +4,7 @@ import { featureModule } from '#decorators/feature-module.js';
 import { rootModule } from '#decorators/root-module.js';
 import { BaseNormalizedModuleMeta, createAspectMetaProxy, NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { ShallowModulesImporter } from '#init/shallow-modules-importer.js';
-import { ModuleManager } from '#init/module-manager.js';
+import { ModuleRegistry } from '#init/module-registry.js';
 import { AppProviders, ImportedProvider } from '#types/metadata-per-mod.js';
 import { Level } from '#types/mix.js';
 import { StaticModule, ModRefId } from '#decorators/module-decorator-options.js';
@@ -34,8 +34,8 @@ describe('ShallowModulesImporter', () => {
     override importedMultiProvidersPerMod = new Map<ModRefId, Provider[]>();
     override importedExtensionProviders = new Map<ModRefId, Provider[]>();
 
-    override exportAppProviders(moduleManager: ModuleManager) {
-      return super.exportAppProviders(moduleManager);
+    override exportAppProviders(moduleRegistry: ModuleRegistry) {
+      return super.exportAppProviders(moduleRegistry);
     }
 
     override getResolvedCollisionsPerLevel(level: Level, token1: any) {
@@ -43,31 +43,31 @@ describe('ShallowModulesImporter', () => {
     }
   }
 
-  class MockModuleManager extends ModuleManager {
+  class MockModuleRegistry extends ModuleRegistry {
     override scanModule(modRefId: ModRefId | ForwardRefFn<ModRefId>) {
       return super.scanModule(modRefId);
     }
   }
 
   function importModulesShallow(modRefId: ModRefId) {
-    moduleManager.scanModule(modRefId);
+    moduleRegistry.scanModule(modRefId);
     return mock.importModulesShallow({
       appProviders: new AppProviders(),
       modRefId,
-      moduleManager,
+      moduleRegistry,
       scanningModules: new Set(),
     });
   }
 
   let mock: MockShallowModulesImporter;
-  let moduleManager: MockModuleManager;
+  let moduleRegistry: MockModuleRegistry;
 
   beforeEach(() => {
     clearDebugClassNames();
     mock = new MockShallowModulesImporter();
     const systemLogMediator = new SystemLogMediator({ moduleName: 'fakeName' });
     jest.spyOn(systemLogMediator, 'externalModuleDetectionFailed').mockImplementation(() => {});
-    moduleManager = new MockModuleManager(systemLogMediator);
+    moduleRegistry = new MockModuleRegistry(systemLogMediator);
   });
 
   describe('exportAppProviders()', () => {
@@ -91,8 +91,8 @@ describe('ShallowModulesImporter', () => {
       })
       class AppModule {}
 
-      expect(() => moduleManager.scanRootModule(AppModule)).not.toThrow();
-      expect(() => mock.exportAppProviders(moduleManager)).not.toThrow();
+      expect(() => moduleRegistry.scanRootModule(AppModule)).not.toThrow();
+      expect(() => mock.exportAppProviders(moduleRegistry)).not.toThrow();
       expect(getImportedProviders(mock.importedProvidersPerMod)).toEqual([Provider1, Provider2, Provider3, Provider4]);
     });
 
@@ -117,8 +117,8 @@ describe('ShallowModulesImporter', () => {
       })
       class AppModule {}
 
-      expect(() => moduleManager.scanRootModule(AppModule)).not.toThrow();
-      expect(() => mock.exportAppProviders(moduleManager)).not.toThrow();
+      expect(() => moduleRegistry.scanRootModule(AppModule)).not.toThrow();
+      expect(() => mock.exportAppProviders(moduleRegistry)).not.toThrow();
       expect(getImportedProviders(mock.importedProvidersPerMod)).toEqual([Provider1, Provider2, Provider3]);
 
       const importedProvider = new ImportedProvider();
@@ -156,8 +156,8 @@ describe('ShallowModulesImporter', () => {
       })
       class AppModule {}
 
-      expect(() => moduleManager.scanRootModule(AppModule)).not.toThrow();
-      expect(() => mock.exportAppProviders(moduleManager)).not.toThrow();
+      expect(() => moduleRegistry.scanRootModule(AppModule)).not.toThrow();
+      expect(() => mock.exportAppProviders(moduleRegistry)).not.toThrow();
       expect(getImportedProviders(mock.importedProvidersPerMod)).toEqual([Provider1, Provider2]);
     });
 
@@ -180,9 +180,9 @@ describe('ShallowModulesImporter', () => {
       })
       class AppModule {}
 
-      expect(() => moduleManager.scanRootModule(AppModule)).not.toThrow();
+      expect(() => moduleRegistry.scanRootModule(AppModule)).not.toThrow();
       const err = new ProvidersCollision('AppModule', [Provider1], ['Module1', 'Module2'], 'Mod');
-      expect(() => mock.exportAppProviders(moduleManager)).toThrow(err);
+      expect(() => mock.exportAppProviders(moduleRegistry)).toThrow(err);
     });
 
     it('cyclic dependencies between modules', () => {
@@ -212,8 +212,8 @@ describe('ShallowModulesImporter', () => {
       })
       class AppModule {}
 
-      expect(() => moduleManager.scanRootModule(AppModule)).not.toThrow();
-      expect(() => mock.exportAppProviders(moduleManager)).not.toThrow();
+      expect(() => moduleRegistry.scanRootModule(AppModule)).not.toThrow();
+      expect(() => mock.exportAppProviders(moduleRegistry)).not.toThrow();
       expect(getImportedProviders(mock.importedProvidersPerMod)).toEqual([Provider1, Provider2]);
     });
 
@@ -234,7 +234,7 @@ describe('ShallowModulesImporter', () => {
 
       const cause = new UnknownExport('Module2', 'Provider1');
       const err = new NormalizationFailure('Module2', cause);
-      expect(() => moduleManager.scanRootModule(AppModule)).toThrow(err);
+      expect(() => moduleRegistry.scanRootModule(AppModule)).toThrow(err);
     });
 
     it('allow reexports module', () => {
@@ -256,8 +256,8 @@ describe('ShallowModulesImporter', () => {
       })
       class AppModule {}
 
-      expect(() => moduleManager.scanRootModule(AppModule)).not.toThrow();
-      expect(() => mock.exportAppProviders(moduleManager)).not.toThrow();
+      expect(() => moduleRegistry.scanRootModule(AppModule)).not.toThrow();
+      expect(() => mock.exportAppProviders(moduleRegistry)).not.toThrow();
       expect(getImportedProviders(mock.importedProvidersPerMod)).toEqual([Provider1]);
     });
 
@@ -279,10 +279,10 @@ describe('ShallowModulesImporter', () => {
       @rootModule({ imports: [Module1, Module2], exports: [Module1, Module2] })
       class AppModule {}
 
-      moduleManager.scanRootModule(AppModule);
+      moduleRegistry.scanRootModule(AppModule);
       let msg = 'Importing providers to AppModule failed: exports from Module1, ';
       msg += 'Module2 causes collision with Provider1';
-      expect(() => mock.exportAppProviders(moduleManager)).toThrow(msg);
+      expect(() => mock.exportAppProviders(moduleRegistry)).toThrow(msg);
     });
 
     it('resolving collision in root module', () => {
@@ -307,8 +307,8 @@ describe('ShallowModulesImporter', () => {
       })
       class AppModule {}
 
-      moduleManager.scanRootModule(AppModule);
-      expect(() => mock.exportAppProviders(moduleManager)).not.toThrow();
+      moduleRegistry.scanRootModule(AppModule);
+      expect(() => mock.exportAppProviders(moduleRegistry)).not.toThrow();
     });
 
     it('identical duplicates but not collision with exported providers', () => {
@@ -333,8 +333,8 @@ describe('ShallowModulesImporter', () => {
       })
       class AppModule {}
 
-      moduleManager.scanRootModule(AppModule);
-      expect(() => mock.exportAppProviders(moduleManager)).not.toThrow();
+      moduleRegistry.scanRootModule(AppModule);
+      expect(() => mock.exportAppProviders(moduleRegistry)).not.toThrow();
     });
   });
 

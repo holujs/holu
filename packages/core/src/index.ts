@@ -48,8 +48,8 @@ export { ExtensionManager, InternalExtensionManager } from '#extension/extension
 export { LogMediator } from '#logger/log-mediator.js';
 export { LogEntry } from '#logger/types.js';
 export { SystemLogMediator } from '#logger/system-log-mediator.js';
-export { ModuleManager } from '#init/module-manager.js';
-export { MutableModuleManager } from '#init/mutable-module-manager.js';
+export { ModuleRegistry } from '#init/module-registry.js';
+export { MutableModuleRegistry } from '#init/mutable-module-registry.js';
 export { ModuleNormalizer } from '#init/module-normalizer.js';
 export { ModuleMetaProcessor } from '#init/module-meta-processor.js';
 export { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';

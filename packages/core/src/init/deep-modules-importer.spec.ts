@@ -3,7 +3,7 @@ import { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { Level } from '#types/mix.js';
 import { ModRefId } from '#decorators/module-decorator-options.js';
 import { Provider } from '#di/top/types-and-models.js';
-import { ModuleManager } from '#init/module-manager.js';
+import { ModuleRegistry } from '#init/module-registry.js';
 import { SystemLogMediator } from '#logger/system-log-mediator.js';
 import { clearDebugClassNames } from '#utils/get-debug-class-name.js';
 import { CyclicImports } from '#error/core-errors.js';
@@ -26,15 +26,15 @@ describe('DeepModulesImporter', () => {
   }
 
   let mock: DeepModulesImporterMock;
-  let moduleManager: ModuleManager;
+  let moduleRegistry: ModuleRegistry;
   let systemLogMediator: SystemLogMediator;
 
   beforeEach(() => {
     clearDebugClassNames();
     systemLogMediator = new SystemLogMediator({ moduleName: 'fakeName' });
-    moduleManager = new ModuleManager(systemLogMediator);
+    moduleRegistry = new ModuleRegistry(systemLogMediator);
     mock = new DeepModulesImporterMock({
-      moduleManager,
+      moduleRegistry,
       log: null as any,
       providersPerApp: null as any,
       shallowModuleImportsMap: null as any,

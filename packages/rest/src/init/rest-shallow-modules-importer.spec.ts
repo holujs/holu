@@ -6,7 +6,7 @@ import {
   AppProviders,
   injectable,
   ModRefId,
-  ModuleManager,
+  ModuleRegistry,
   StaticModule,
   DynamicModule,
   NormalizedModuleMeta,
@@ -37,30 +37,30 @@ class MockShallowModulesImporter extends RestShallowModulesImporter {
 }
 
 let mock: MockShallowModulesImporter;
-let moduleManager: ModuleManager;
+let moduleRegistry: ModuleRegistry;
 
 beforeEach(() => {
   clearDebugClassNames();
   mock = new MockShallowModulesImporter();
   const systemLogMediator = new SystemLogMediator({ moduleName: 'fakeName' });
-  moduleManager = new ModuleManager(systemLogMediator);
+  moduleRegistry = new ModuleRegistry(systemLogMediator);
 });
 
 describe('shallow importing modules', () => {
   function importModulesShallow(modRefId: StaticModule) {
-    expect(() => moduleManager.scanRootModule(modRefId)).not.toThrow();
+    expect(() => moduleRegistry.scanRootModule(modRefId)).not.toThrow();
     new ShallowModulesImporterBase().importModulesShallow({
       appProviders: new AppProviders(),
       modRefId,
-      moduleManager,
+      moduleRegistry,
       scanningModules: new Set(),
     });
-    const appProviders = new ShallowModulesImporterBase().exportAppProviders(moduleManager);
+    const appProviders = new ShallowModulesImporterBase().exportAppProviders(moduleRegistry);
     return mock.importModulesShallow({
       modRefId: modRefId,
       appProviders,
       scanningModules: new Set(),
-      moduleManager,
+      moduleRegistry,
       prefixPerMod: '',
     });
   }
@@ -99,10 +99,10 @@ describe('shallow importing modules', () => {
     })
     class AppModule {}
 
-    const normalizedModuleMeta = moduleManager.scanRootModule(AppModule);
+    const normalizedModuleMeta = moduleRegistry.scanRootModule(AppModule);
     const moduleAspect = normalizedModuleMeta.allModuleAspectsMap.get(restAspect)!;
     moduleAspect.exportAppProviders({
-      moduleManager,
+      moduleRegistry,
       appProviders: new AppProviders(),
       normalizedModuleMeta,
     });

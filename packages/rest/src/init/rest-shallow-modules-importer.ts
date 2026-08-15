@@ -1,4 +1,4 @@
-import type { Provider, ModRefId, ModuleManager, NormalizedModuleMeta, AppProviders } from '@holu/core';
+import type { Provider, ModRefId, ModuleRegistry, NormalizedModuleMeta, AppProviders } from '@holu/core';
 import {
   isDynamicModule,
   getTokens,
@@ -45,18 +45,18 @@ export class RestShallowModulesImporter {
   protected shallowModuleImportsMap = new Map<ModRefId, RestShallowModuleImports>();
   protected scanningModules = new Set<ModRefId>();
   protected unfinishedExportModules = new Set<ModRefId>();
-  protected moduleManager: ModuleManager;
+  protected moduleRegistry: ModuleRegistry;
 
   exportAppProviders({
-    moduleManager,
+    moduleRegistry,
     appProviders,
     normalizedModuleMeta,
   }: {
-    moduleManager: ModuleManager;
+    moduleRegistry: ModuleRegistry;
     appProviders: AppProviders;
     normalizedModuleMeta: NormalizedModuleMeta;
   }): RestAppProviders {
-    this.moduleManager = moduleManager;
+    this.moduleRegistry = moduleRegistry;
     this.appProviders = appProviders;
     this.moduleName = normalizedModuleMeta.name;
     this.normalizedModuleMeta = normalizedModuleMeta;
@@ -71,7 +71,7 @@ export class RestShallowModulesImporter {
    * @param modRefId Module that will bootstrapped.
    */
   importModulesShallow({
-    moduleManager,
+    moduleRegistry,
     appProviders,
     modRefId,
     scanningModules,
@@ -79,8 +79,8 @@ export class RestShallowModulesImporter {
     guardsPerMod,
     isAppends,
   }: ImportModulesShallowConfig): Map<ModRefId, RestShallowModuleImports> {
-    this.moduleManager = moduleManager;
-    const normalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta(modRefId, true);
+    this.moduleRegistry = moduleRegistry;
+    const normalizedModuleMeta = this.moduleRegistry.getNormalizedModuleMeta(modRefId, true);
     this.normalizedModuleMeta = normalizedModuleMeta;
     this.meta = this.getAspectMeta(normalizedModuleMeta);
     this.appProviders = appProviders;
@@ -129,7 +129,7 @@ export class RestShallowModulesImporter {
 
   protected importOrAppendModules(modRefIdss: RestModRefId[], isImport?: boolean) {
     for (const modRefId of modRefIdss) {
-      const normalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta(modRefId, true);
+      const normalizedModuleMeta = this.moduleRegistry.getNormalizedModuleMeta(modRefId, true);
       if (this.scanningModules.has(modRefId)) {
         continue;
       }
@@ -138,7 +138,7 @@ export class RestShallowModulesImporter {
       const shallowModulesImporter = new RestShallowModulesImporter();
       this.scanningModules.add(modRefId);
       const shallowModuleImportsBase = shallowModulesImporter.importModulesShallow({
-        moduleManager: this.moduleManager,
+        moduleRegistry: this.moduleRegistry,
         appProviders: this.appProviders,
         modRefId,
         scanningModules: this.scanningModules,
@@ -201,7 +201,7 @@ export class RestShallowModulesImporter {
     const [token2, modRefId2] = this.meta[`resolvedCollisionsPer${level}`].find(([token2]) => token1 === token2)!;
     const moduleName = getDebugClassName(modRefId2) || '""';
     const tokenName = token2.name || token2;
-    const normalizedModuleMeta2 = this.moduleManager.getNormalizedModuleMeta(modRefId2);
+    const normalizedModuleMeta2 = this.moduleRegistry.getNormalizedModuleMeta(modRefId2);
     const meta2 = normalizedModuleMeta2?.normalizedAspectMetaMap.get(restAspect);
     if (!normalizedModuleMeta2) {
       throw new AppCollisionNotFound(this.moduleName, moduleName, level, tokenName);
@@ -216,7 +216,7 @@ export class RestShallowModulesImporter {
 
   protected checkImportsAndAppends(normalizedModuleMeta: NormalizedModuleMeta, meta1: RestAspectMeta) {
     meta1.appendsModules.concat(meta1.appendsWithOpts as any[]).forEach((modRefId) => {
-      const appendedNormalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta(modRefId, true);
+      const appendedNormalizedModuleMeta = this.moduleRegistry.getNormalizedModuleMeta(modRefId, true);
       const meta2 = this.getAspectMeta(appendedNormalizedModuleMeta);
       if (!meta2.controllers.length) {
         throw new ModuleMustHaveControllers(normalizedModuleMeta.name, appendedNormalizedModuleMeta.name);

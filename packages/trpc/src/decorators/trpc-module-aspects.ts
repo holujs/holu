@@ -7,7 +7,7 @@ import type {
   DynamicModuleOptions,
   StaticModule,
   Class,
-  ModuleManager,
+  ModuleRegistry,
   AppProviders,
   DeepModulesImporter,
   ShallowModuleImports,
@@ -103,13 +103,13 @@ export class TrpcModuleAspectHandler extends ModuleAspectHandler<TrpcStaticOptio
 }
 
 export interface ExportAppProvidersConfig {
-  moduleManager: ModuleManager;
+  moduleRegistry: ModuleRegistry;
   appProviders: AppProviders;
   normalizedModuleMeta: NormalizedModuleMeta;
 }
 
 export interface ImportModulesShallowConfig {
-  moduleManager: ModuleManager;
+  moduleRegistry: ModuleRegistry;
   appProviders: AppProviders;
   modRefId: ModRefId;
   scanningModules: Set<ModRefId>;
@@ -119,7 +119,7 @@ export interface ImportModulesShallowConfig {
 export interface DeepModulesImporterConfig {
   parent: DeepModulesImporter;
   shallowModuleImports: TrpcShallowModuleImports;
-  moduleManager: ModuleManager;
+  moduleRegistry: ModuleRegistry;
   shallowModuleImportsMap: Map<ModRefId, ShallowModuleImports>;
   providersPerApp: Provider[];
   log: SystemLogMediator;

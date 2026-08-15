@@ -4,7 +4,7 @@ import { featureModule } from '#decorators/feature-module.js';
 import { rootModule } from '#decorators/root-module.js';
 import { Extension } from '#extension/extension-types.js';
 import { SystemLogMediator } from '#logger/system-log-mediator.js';
-import { ModuleManager } from './module-manager.js';
+import { ModuleRegistry } from './module-registry.js';
 import { ModuleNormalizer } from './module-normalizer.js';
 import { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { ModRefId } from '#decorators/module-decorator-options.js';
@@ -16,7 +16,7 @@ import { forwardRef, type ForwardRefFn } from '#di/forward-ref.js';
 import type { Provider } from '#di/top/types-and-models.js';
 import { isMultiProvider } from '#di/utils.js';
 
-describe('ModuleManager', () => {
+describe('ModuleRegistry', () => {
   @injectable()
   class Service1 {}
   @injectable()
@@ -24,7 +24,7 @@ describe('ModuleManager', () => {
   @injectable()
   class Service3 {}
 
-  class MockModuleManager extends ModuleManager {
+  class MockModuleRegistry extends ModuleRegistry {
     declare systemLogMediator: SystemLogMediator;
     declare normalizedMetaMap: Map<ModRefId, NormalizedModuleMeta>;
     declare moduleIdMap: Map<string, ModRefId>;
@@ -41,13 +41,13 @@ describe('ModuleManager', () => {
     }
   }
 
-  let mock: MockModuleManager;
+  let mock: MockModuleRegistry;
 
   beforeEach(() => {
     clearDebugClassNames();
     const systemLogMediator = new SystemLogMediator({ moduleName: 'fakeName' });
     jest.spyOn(systemLogMediator, 'externalModuleDetectionFailed').mockImplementation(() => {});
-    mock = new MockModuleManager(systemLogMediator);
+    mock = new MockModuleRegistry(systemLogMediator);
   });
 
   afterEach(() => {
@@ -63,7 +63,7 @@ describe('ModuleManager', () => {
       jest.spyOn(systemLogMediator, 'externalModuleDetectionFailed').mockImplementation(() => {});
       const moduleNormalizer = new ModuleNormalizer();
       const normalizeSpy = jest.spyOn(moduleNormalizer, 'normalize');
-      const manager = new MockModuleManager(systemLogMediator, moduleNormalizer);
+      const manager = new MockModuleRegistry(systemLogMediator, moduleNormalizer);
 
       manager.scanRootModule(AppModule);
 

@@ -7,7 +7,7 @@ import { featureModule } from '#decorators/feature-module.js';
 import { rootModule } from '#decorators/root-module.js';
 import { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { AppInitializer } from '#init/app-initializer.js';
-import { ModuleManager } from '#init/module-manager.js';
+import { ModuleRegistry } from '#init/module-registry.js';
 import { Provider } from '#di/top/types-and-models.js';
 import { Extension, ExtensionCounters } from '#extension/extension-types.js';
 import { ProviderBuilder } from '#utils/providers.js';
@@ -21,10 +21,10 @@ describe('AppInitializer', () => {
 
     constructor(
       public override baseAppOptions: BaseAppOptions,
-      public override moduleManager: ModuleManager,
+      public override moduleRegistry: ModuleRegistry,
       public override log: SystemLogMediator,
     ) {
-      super(baseAppOptions, moduleManager, log);
+      super(baseAppOptions, moduleRegistry, log);
     }
 
     async init() {
@@ -36,8 +36,8 @@ describe('AppInitializer', () => {
       return super.prepareProvidersPerApp();
     }
 
-    override collectProvidersShallow(moduleManager: ModuleManager) {
-      return super.collectProvidersShallow(moduleManager);
+    override collectProvidersShallow(moduleRegistry: ModuleRegistry) {
+      return super.collectProvidersShallow(moduleRegistry);
     }
 
     override getResolvedCollisionsPerApp() {
@@ -50,14 +50,14 @@ describe('AppInitializer', () => {
   }
 
   let mock: AppInitializerMock;
-  let moduleManager: ModuleManager;
+  let moduleRegistry: ModuleRegistry;
 
   describe('decreaseExtensionsCounters()', () => {
     beforeEach(() => {
       const systemLogMediator = new SystemLogMediator({ moduleName: 'fakeName' });
-      moduleManager = new ModuleManager(systemLogMediator);
+      moduleRegistry = new ModuleRegistry(systemLogMediator);
       const baseAppOptions = new BaseAppOptions();
-      mock = new AppInitializerMock(baseAppOptions, moduleManager, systemLogMediator);
+      mock = new AppInitializerMock(baseAppOptions, moduleRegistry, systemLogMediator);
     });
 
     class Extension1 {}
@@ -93,9 +93,9 @@ describe('AppInitializer', () => {
 
     beforeEach(() => {
       const systemLogMediator = new SystemLogMediator({ moduleName: 'fakeName' });
-      moduleManager = new ModuleManager(systemLogMediator);
+      moduleRegistry = new ModuleRegistry(systemLogMediator);
       const baseAppOptions = new BaseAppOptions();
-      mock = new AppInitializerMock(baseAppOptions, moduleManager, systemLogMediator);
+      mock = new AppInitializerMock(baseAppOptions, moduleRegistry, systemLogMediator);
     });
 
     it('should throw an error about collision', () => {
@@ -112,7 +112,7 @@ describe('AppInitializer', () => {
       })
       class AppModule {}
 
-      mock.normalizedModuleMeta = moduleManager.scanRootModule(AppModule);
+      mock.normalizedModuleMeta = moduleRegistry.scanRootModule(AppModule);
       const err = new ProvidersCollision('AppModule', [Provider1], ['Module1', 'Module2'], 'App');
       expect(() => mock.prepareProvidersPerApp()).toThrow(err);
     });
@@ -133,7 +133,7 @@ describe('AppInitializer', () => {
       })
       class AppModule {}
 
-      mock.normalizedModuleMeta = moduleManager.scanRootModule(AppModule);
+      mock.normalizedModuleMeta = moduleRegistry.scanRootModule(AppModule);
       expect(() => mock.prepareProvidersPerApp()).not.toThrow();
       expect(mock.getResolvedCollisionsPerApp()).toEqual([{ token: Provider1, useClass: Provider2 }]);
       expect(mock.normalizedModuleMeta.providersPerApp).toEqual([{ token: Provider1, useClass: Provider2 }]);
@@ -158,7 +158,7 @@ describe('AppInitializer', () => {
       })
       class AppModule {}
 
-      mock.normalizedModuleMeta = moduleManager.scanRootModule(AppModule);
+      mock.normalizedModuleMeta = moduleRegistry.scanRootModule(AppModule);
       const err = new ModuleNotImported('AppModule', 'Module0', 'Provider1');
       expect(() => mock.prepareProvidersPerApp()).toThrow(err);
     });
@@ -188,7 +188,7 @@ describe('AppInitializer', () => {
       })
       class AppModule {}
 
-      mock.normalizedModuleMeta = moduleManager.scanRootModule(AppModule);
+      mock.normalizedModuleMeta = moduleRegistry.scanRootModule(AppModule);
       expect(() => mock.prepareProvidersPerApp()).not.toThrow();
       expect(mock.normalizedModuleMeta.providersPerApp).toEqual([
         { token: Provider1, useValue: 'value1 of module1', multi: true },
@@ -222,7 +222,7 @@ describe('AppInitializer', () => {
       })
       class AppModule {}
 
-      mock.normalizedModuleMeta = moduleManager.scanRootModule(AppModule);
+      mock.normalizedModuleMeta = moduleRegistry.scanRootModule(AppModule);
       const err = new AppMultiProviderCollision('AppModule', 'Module1', 'Provider1');
       expect(() => mock.prepareProvidersPerApp()).toThrow(err);
     });
@@ -249,7 +249,7 @@ describe('AppInitializer', () => {
       })
       class AppModule {}
 
-      mock.normalizedModuleMeta = moduleManager.scanRootModule(AppModule);
+      mock.normalizedModuleMeta = moduleRegistry.scanRootModule(AppModule);
       const err = new AppProviderMissingToken('AppModule', 'Module0', 'Provider1');
       expect(() => mock.prepareProvidersPerApp()).toThrow(err);
     });
@@ -268,7 +268,7 @@ describe('AppInitializer', () => {
       })
       class AppModule {}
 
-      mock.normalizedModuleMeta = moduleManager.scanRootModule(AppModule);
+      mock.normalizedModuleMeta = moduleRegistry.scanRootModule(AppModule);
       expect(() => mock.prepareProvidersPerApp()).not.toThrow();
     });
 
@@ -278,7 +278,7 @@ describe('AppInitializer', () => {
       @rootModule({ providersPerApp: [Provider1, Provider1, { token: Provider1, useClass: Provider1 }] })
       class AppModule {}
 
-      mock.normalizedModuleMeta = moduleManager.scanRootModule(AppModule);
+      mock.normalizedModuleMeta = moduleRegistry.scanRootModule(AppModule);
       expect(() => mock.prepareProvidersPerApp()).not.toThrow();
       expect(mock.normalizedModuleMeta.providersPerApp.length).toBe(3);
     });
@@ -286,7 +286,7 @@ describe('AppInitializer', () => {
     it('should works with empty "imports" array in root module', () => {
       @rootModule({ imports: [] })
       class AppModule {}
-      mock.normalizedModuleMeta = moduleManager.scanRootModule(AppModule);
+      mock.normalizedModuleMeta = moduleRegistry.scanRootModule(AppModule);
       expect(() => mock.prepareProvidersPerApp()).not.toThrow();
     });
   });
@@ -305,9 +305,9 @@ describe('AppInitializer', () => {
 
       // Simulation of a call from the RestApplication
       const logMediator = new LogMediatorMock({ moduleName: 'fakeName' });
-      moduleManager = new ModuleManager(logMediator);
+      moduleRegistry = new ModuleRegistry(logMediator);
       const baseAppOptions = new BaseAppOptions();
-      mock = new AppInitializerMock(baseAppOptions, moduleManager, logMediator);
+      mock = new AppInitializerMock(baseAppOptions, moduleRegistry, logMediator);
 
       // Simulation of a call from the AppModule
       @rootModule({
@@ -319,7 +319,7 @@ describe('AppInitializer', () => {
       })
       class AppModule {}
 
-      moduleManager.scanRootModule(AppModule);
+      moduleRegistry.scanRootModule(AppModule);
       mock.bootstrapProvidersPerApp();
       // Here logMediator used from RestApplication
       logMediator.flush();
@@ -355,16 +355,16 @@ describe('AppInitializer', () => {
       LogMediator.bufferLogs = true;
       LogMediator.buffer = [];
       const systemLogMediator = new SystemLogMediator({ moduleName: 'fakeName' });
-      moduleManager = new ModuleManager(systemLogMediator);
+      moduleRegistry = new ModuleRegistry(systemLogMediator);
       const baseAppOptions = new BaseAppOptions();
-      mock = new AppInitializerMock(baseAppOptions, moduleManager, systemLogMediator);
+      mock = new AppInitializerMock(baseAppOptions, moduleRegistry, systemLogMediator);
     });
 
     it('logs should collects between two init()', async () => {
       expect(LogMediator.buffer).toHaveLength(0);
       expect(mock.log).toBeInstanceOf(SystemLogMediator);
       expect(mock.log).not.toBeInstanceOf(LogMediatorMock1);
-      moduleManager.scanRootModule(AppModule);
+      moduleRegistry.scanRootModule(AppModule);
 
       // First init
       await mock.init();
@@ -398,9 +398,9 @@ describe('AppInitializer', () => {
     beforeEach(() => {
       jest.restoreAllMocks();
       const systemLogMediator = new SystemLogMediator({ moduleName: 'fakeName' });
-      moduleManager = new ModuleManager(systemLogMediator);
+      moduleRegistry = new ModuleRegistry(systemLogMediator);
       const baseAppOptions = new BaseAppOptions();
-      mock = new AppInitializerMock(baseAppOptions, moduleManager, systemLogMediator);
+      mock = new AppInitializerMock(baseAppOptions, moduleRegistry, systemLogMediator);
     });
 
     @injectable()
@@ -417,7 +417,7 @@ describe('AppInitializer', () => {
       })
       class AppModule {}
 
-      expect(() => moduleManager.scanRootModule(AppModule)).not.toThrow();
+      expect(() => moduleRegistry.scanRootModule(AppModule)).not.toThrow();
       await expect(mock.init()).rejects.toThrow('some');
       expect(jestFn).toHaveBeenCalledWith('Extension1');
     });

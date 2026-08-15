@@ -1,8 +1,8 @@
 import { jest } from '@jest/globals';
 
 import { SystemLogMediator } from '#logger/system-log-mediator.js';
-import { ModuleManager } from '#init/module-manager.js';
-import { MutableModuleManager } from '#init/mutable-module-manager.js';
+import { ModuleRegistry } from '#init/module-registry.js';
+import { MutableModuleRegistry } from '#init/mutable-module-registry.js';
 import { ModuleNormalizer } from '#init/module-normalizer.js';
 // import { Router } from '#types/router.js';
 import { BaseAppOptions } from '#init/base-app-options.js';
@@ -52,8 +52,8 @@ describe('BaseApplication', () => {
     @rootModule({})
     class AppModule {}
 
-    it('should return instance of ModuleManager', () => {
-      expect(mock.scanRootModule(AppModule)).toBeInstanceOf(ModuleManager);
+    it('should return instance of ModuleRegistry', () => {
+      expect(mock.scanRootModule(AppModule)).toBeInstanceOf(ModuleRegistry);
     });
 
     it('should use a ModuleNormalizer created by moduleNormalizerFactory', () => {
@@ -68,15 +68,15 @@ describe('BaseApplication', () => {
       expect(normalizeSpy).toHaveBeenCalledWith(AppModule, mock.log);
     });
 
-    it('should pass a ModuleNormalizer created by moduleNormalizerFactory to MutableModuleManager', () => {
+    it('should pass a ModuleNormalizer created by moduleNormalizerFactory to MutableModuleRegistry', () => {
       const moduleNormalizer = new ModuleNormalizer();
       const moduleNormalizerFactory = jest.fn(() => moduleNormalizer);
       const normalizeSpy = jest.spyOn(moduleNormalizer, 'normalize');
 
       mock.init({ allowRuntimeReinit: true, moduleNormalizerFactory });
-      const moduleManager = mock.scanRootModule(AppModule);
+      const moduleRegistry = mock.scanRootModule(AppModule);
 
-      expect(moduleManager).toBeInstanceOf(MutableModuleManager);
+      expect(moduleRegistry).toBeInstanceOf(MutableModuleRegistry);
       expect(moduleNormalizerFactory).toHaveBeenCalledTimes(1);
       expect(normalizeSpy).toHaveBeenCalledWith(AppModule, mock.log);
     });
@@ -89,8 +89,8 @@ describe('BaseApplication', () => {
     class AppModule {}
 
     it('should replace systemLogMediator during call bootstrapApplication()', async () => {
-      const moduleManager = mock.scanRootModule(AppModule);
-      const appInitializer = new AppInitializer(new BaseAppOptions(), moduleManager, new SystemLogMediator({ moduleName: '' }));
+      const moduleRegistry = mock.scanRootModule(AppModule);
+      const appInitializer = new AppInitializer(new BaseAppOptions(), moduleRegistry, new SystemLogMediator({ moduleName: '' }));
       const { log: systemLogMediator } = mock;
       await mock.bootstrapApplication(appInitializer);
       expect(mock.log !== systemLogMediator).toBe(true);
@@ -129,8 +129,8 @@ describe('BaseApplication', () => {
       class AppModule {}
 
       const app = mock;
-      const moduleManager = app.scanRootModule(AppModule);
-      const appInitializer = new AppInitializer(new BaseAppOptions(), moduleManager, new SystemLogMediator({ moduleName: '' }));
+      const moduleRegistry = app.scanRootModule(AppModule);
+      const appInitializer = new AppInitializer(new BaseAppOptions(), moduleRegistry, new SystemLogMediator({ moduleName: '' }));
       await app.bootstrapApplication(appInitializer);
 
       // Instantiate them so they exist in registry
@@ -165,8 +165,8 @@ describe('BaseApplication', () => {
       class AppModule {}
 
       const app = mock;
-      const moduleManager = app.scanRootModule(AppModule);
-      const appInitializer = new AppInitializer(new BaseAppOptions(), moduleManager, new SystemLogMediator({ moduleName: '' }));
+      const moduleRegistry = app.scanRootModule(AppModule);
+      const appInitializer = new AppInitializer(new BaseAppOptions(), moduleRegistry, new SystemLogMediator({ moduleName: '' }));
       await app.bootstrapApplication(appInitializer);
 
       await app.close('SIGTERM');
@@ -208,8 +208,8 @@ describe('BaseApplication', () => {
       class AppModule {}
 
       const app = mock;
-      const moduleManager = app.scanRootModule(AppModule);
-      const appInitializer = new AppInitializer(new BaseAppOptions(), moduleManager, new SystemLogMediator({ moduleName: '' }));
+      const moduleRegistry = app.scanRootModule(AppModule);
+      const appInitializer = new AppInitializer(new BaseAppOptions(), moduleRegistry, new SystemLogMediator({ moduleName: '' }));
       await app.bootstrapApplication(appInitializer);
 
       (app as any).injectorPerApp!.get(TestServiceBeforeFail);

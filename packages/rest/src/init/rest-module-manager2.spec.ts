@@ -1,7 +1,7 @@
 import {
   clearDebugClassNames,
   featureModule,
-  ModuleManager,
+  ModuleRegistry,
   DynamicModule,
   NormalizedModuleMeta,
   SystemLogMediator,
@@ -14,9 +14,9 @@ import { RequestContext } from '../services/request-context.js';
 import { RestAppendOptions, type RestDynamicOptions } from './rest-aspect-raw-meta.js';
 import { restAspect, restRootModule } from '#decorators/rest-module-aspects.js';
 
-let mock: MockModuleManager;
+let mock: MockModuleRegistry;
 
-class MockModuleManager extends ModuleManager {
+class MockModuleRegistry extends ModuleRegistry {
   declare normalizedMetaMap: Map<ModRefId, NormalizedModuleMeta>;
   declare moduleIdMap: Map<string, ModRefId>;
 }
@@ -24,7 +24,7 @@ class MockModuleManager extends ModuleManager {
 beforeEach(() => {
   clearDebugClassNames();
   const systemLogMediator = new SystemLogMediator({ moduleName: 'fakeName' });
-  mock = new MockModuleManager(systemLogMediator);
+  mock = new MockModuleRegistry(systemLogMediator);
 });
 
 it('imports and appends with gruards for some modules', () => {

@@ -1,8 +1,8 @@
 import { format } from 'node:util';
 import type { Provider } from '#di/top/types-and-models.js';
 
-import type { ModuleId } from '#init/module-manager.js';
-import { ModuleManager } from '#init/module-manager.js';
+import type { ModuleId } from '#init/module-registry.js';
+import { ModuleRegistry } from '#init/module-registry.js';
 import { ModuleGraphState } from '#init/module-graph-state.js';
 import type { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import type { ModRefId, StaticModule } from '#decorators/module-decorator-options.js';
@@ -13,10 +13,10 @@ import { ImportAdditionFailure, ImportRemovalFailure, ForbiddenRollback, Forbidd
 /**
  * @experimental The mutability of the module graph is an experimental feature.
  *
- * Extends `ModuleManager` to support dynamic addition and removal of module imports
+ * Extends `ModuleRegistry` to support dynamic addition and removal of module imports
  * at runtime. Modifying the module graph is done transactionally.
  */
-export class MutableModuleManager extends ModuleManager {
+export class MutableModuleRegistry extends ModuleRegistry {
   protected state = new ModuleGraphState();
   protected oldState?: ModuleGraphState;
 

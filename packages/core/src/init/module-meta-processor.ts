@@ -25,7 +25,7 @@ import { UndefinedSymbol, InvalidExtension, UnknownExport, ForbiddenNormalizedEx
 
 /**
  * A stateless utility service containing shared metadata-processing methods used by both
- * {@link ModuleNormalizer} (creation of new metadata) and {@link ModuleManager}
+ * {@link ModuleNormalizer} (creation of new metadata) and {@link ModuleRegistry}
  * (mutation of existing metadata during aspect propagation).
  */
 export class ModuleMetaProcessor {

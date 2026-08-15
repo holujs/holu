@@ -24,8 +24,8 @@ export class TrpcApplication extends BaseApplication {
     const app = new this();
     try {
       app.init(trpcAppOptions);
-      const moduleManager = app.scanRootModule(appModule);
-      const appInitializer = new TrpcAppInitializer(app.appOptions, moduleManager, app.log);
+      const moduleRegistry = app.scanRootModule(appModule);
+      const appInitializer = new TrpcAppInitializer(app.appOptions, moduleRegistry, app.log);
       await app.bootstrapApplication(appInitializer);
       await app.createServerAndBindToListening(appInitializer);
       await appInitializer.resetRequestListener();

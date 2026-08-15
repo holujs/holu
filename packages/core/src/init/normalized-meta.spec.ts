@@ -8,7 +8,7 @@ import { rootModule } from '#decorators/root-module.js';
 import { Reflector } from '#di/reflector.js';
 import { DynamicModuleOptions, DynamicModule } from '#decorators/module-decorator-options.js';
 import { isDynamicModule } from '#decorators/type-guards.js';
-import { ModuleManager } from '#init/module-manager.js';
+import { ModuleRegistry } from '#init/module-registry.js';
 import { SystemLogMediator } from '#logger/system-log-mediator.js';
 
 describe('NormalizedModuleMeta', () => {
@@ -91,12 +91,12 @@ describe('NormalizedModuleMeta', () => {
     expect(copiedAspect.normalizedCount).toBe(1);
   });
   describe('clone() on NormalizedModuleMeta', () => {
-    class MockModuleManager extends ModuleManager {
+    class MockModuleRegistry extends ModuleRegistry {
       declare systemLogMediator: SystemLogMediator;
     }
 
     it('should copy NormalizedModuleMeta correctly, preserving prototype and recreating aspectMeta proxies wrapping the copy', () => {
-      const mock = new MockModuleManager(new SystemLogMediator({ moduleName: 'fakeName' }));
+      const mock = new MockModuleRegistry(new SystemLogMediator({ moduleName: 'fakeName' }));
       interface MyDynamicOptions extends DynamicModuleOptions {
         path?: string;
       }

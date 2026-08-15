@@ -25,8 +25,8 @@ export class RestApplication extends BaseApplication {
     const app = new this();
     try {
       app.init(restOptions);
-      const moduleManager = app.scanRootModule(appModule);
-      const appInitializer = new RestAppInitializer(app.appOptions, moduleManager, app.log);
+      const moduleRegistry = app.scanRootModule(appModule);
+      const appInitializer = new RestAppInitializer(app.appOptions, moduleRegistry, app.log);
       await app.bootstrapApplication(appInitializer);
       await app.createServerAndBindToListening(appInitializer);
       return app;

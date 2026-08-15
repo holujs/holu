@@ -1,6 +1,6 @@
 import { injectable } from '#di/decorators.js';
 import { BaseAppInitializer } from './base-app-initializer.js';
-import { MutableModuleManager } from './mutable-module-manager.js';
+import { MutableModuleRegistry } from './mutable-module-registry.js';
 import { SystemLogMediator } from '#logger/system-log-mediator.js';
 import { LogMediator } from '#logger/log-mediator.js';
 import type { PublicLogMediator } from '#logger/system-log-mediator.js';
@@ -19,7 +19,7 @@ import type { PublicLogMediator } from '#logger/system-log-mediator.js';
 export class AppReinitializer {
   constructor(
     protected appInitializer: BaseAppInitializer,
-    protected moduleManager: MutableModuleManager,
+    protected moduleRegistry: MutableModuleRegistry,
     protected log: SystemLogMediator,
   ) {}
 
@@ -30,8 +30,8 @@ export class AppReinitializer {
     this.log.startReinitApp(this);
     // Before init new logger, works previous logger.
     try {
-      this.moduleManager.startTransaction();
-      this.moduleManager.reset();
+      this.moduleRegistry.startTransaction();
+      this.moduleRegistry.reset();
       this.appInitializer.bootstrapProvidersPerApp();
       (this.log as PublicLogMediator).updateOutputLogLevel();
     } catch (err) {
@@ -46,7 +46,7 @@ export class AppReinitializer {
       await this.appInitializer.bootstrapModulesAndExtensions();
       (this.log as PublicLogMediator).updateOutputLogLevel();
       if (autocommit) {
-        this.moduleManager.commit();
+        this.moduleRegistry.commit();
       } else {
         this.log.skippingAutocommitModulesConfig(this);
       }
@@ -62,7 +62,7 @@ export class AppReinitializer {
   protected async handleReinitError(err: unknown) {
     this.log.printReinitError(this, err);
     this.log.startRollbackModuleConfigChanges(this);
-    this.moduleManager.rollback();
+    this.moduleRegistry.rollback();
     this.appInitializer.bootstrapProvidersPerApp();
     await this.appInitializer.bootstrapModulesAndExtensions();
     (this.log as PublicLogMediator).updateOutputLogLevel();

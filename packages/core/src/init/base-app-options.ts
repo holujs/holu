@@ -44,8 +44,8 @@ export class BaseAppOptions {
   /**
    * @experimental
    *
-   * Enables runtime modifications of the module graph via `ModuleManager.addImport()`, `ModuleManager.removeImport()`,
-   * and `AppReinitializer.reinit()`. If enabled, the application will use `MutableModuleManager` under the hood,
+   * Enables runtime modifications of the module graph via `ModuleRegistry.addImport()`, `ModuleRegistry.removeImport()`,
+   * and `AppReinitializer.reinit()`. If enabled, the application will use `MutableModuleRegistry` under the hood,
    * which clones module metadata during initialization.
    *
    * Default - `false` (for faster cold starts).
@@ -55,7 +55,7 @@ export class BaseAppOptions {
    * @experimental
    *
    * Creates a custom {@link ModuleNormalizer} instance for the early module scanning phase.
-   * The application DI container is not available yet when `ModuleManager` is created, so this
+   * The application DI container is not available yet when `ModuleRegistry` is created, so this
    * factory is the low-level extension point for replacing the default normalizer.
    */
   moduleNormalizerFactory?: () => ModuleNormalizer;

@@ -5,11 +5,11 @@ import { RestApplication } from '@holu/rest';
 
 import type { ExtensionMetaOverrider } from './types.js';
 import { TestAppInitializer } from './test-app-initializer.js';
-import { TestModuleManager } from './test-module-manager.js';
+import { TestModuleRegistry } from './test-module-registry.js';
 
 export class TestRestApplication extends RestApplication {
   protected testAppInitializer: TestAppInitializer;
-  protected testModuleManager: TestModuleManager;
+  protected testModuleRegistry: TestModuleRegistry;
   protected appModule: StaticModule;
 
   /**
@@ -22,8 +22,8 @@ export class TestRestApplication extends RestApplication {
       app.init(appOptions);
       app.appModule = appModule;
       app.appOptions.logLevel ??= 'off';
-      app.testModuleManager = new TestModuleManager(app.log);
-      app.testAppInitializer = new TestAppInitializer(app.appOptions, app.testModuleManager, app.log);
+      app.testModuleRegistry = new TestModuleRegistry(app.log);
+      app.testAppInitializer = new TestAppInitializer(app.appOptions, app.testModuleRegistry, app.log);
       return app;
     } catch (err: any) {
       app.handleError(err);
@@ -49,7 +49,7 @@ export class TestRestApplication extends RestApplication {
    * it is this object that must be passed to this method.
    */
   markModuleAsExternal(...modRefId: ModRefId[]) {
-    this.testModuleManager.markModuleAsExternal(...modRefId);
+    this.testModuleRegistry.markModuleAsExternal(...modRefId);
     return this;
   }
 
@@ -74,7 +74,7 @@ export class TestRestApplication extends RestApplication {
 
   async getServer() {
     try {
-      this.testModuleManager.scanRootModule(this.appModule);
+      this.testModuleRegistry.scanRootModule(this.appModule);
       await this.bootstrapApplication(this.testAppInitializer);
       await this.createServerAndBindToListening(this.testAppInitializer);
       return this.server;

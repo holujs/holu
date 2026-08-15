@@ -1,4 +1,4 @@
-import type { ModRefId, ModuleManager, NormalizedModuleMeta, AppProviders } from '@holu/core';
+import type { ModRefId, ModuleRegistry, NormalizedModuleMeta, AppProviders } from '@holu/core';
 import { isDynamicModule, createAspectMetaProxy } from '@holu/core';
 
 import type {
@@ -33,18 +33,18 @@ export class TrpcShallowModulesImporter {
   protected shallowModuleImportsMap = new Map<ModRefId, TrpcShallowModuleImports>();
   protected scanningModules = new Set<ModRefId>();
   protected unfinishedExportModules = new Set<ModRefId>();
-  protected moduleManager: ModuleManager;
+  protected moduleRegistry: ModuleRegistry;
 
   exportAppProviders({
-    moduleManager,
+    moduleRegistry,
     appProviders,
     normalizedModuleMeta,
   }: {
-    moduleManager: ModuleManager;
+    moduleRegistry: ModuleRegistry;
     appProviders: AppProviders;
     normalizedModuleMeta: NormalizedModuleMeta;
   }): TrpcAppProviders {
-    this.moduleManager = moduleManager;
+    this.moduleRegistry = moduleRegistry;
     this.glProviders = appProviders;
     this.moduleName = normalizedModuleMeta.name;
     this.normalizedModuleMeta = normalizedModuleMeta;
@@ -59,14 +59,14 @@ export class TrpcShallowModulesImporter {
    * @param modRefId Module that will bootstrapped.
    */
   importModulesShallow({
-    moduleManager,
+    moduleRegistry,
     appProviders,
     modRefId,
     scanningModules,
     guardsPerMod,
   }: ImportModulesShallowConfig): Map<ModRefId, TrpcShallowModuleImports> {
-    this.moduleManager = moduleManager;
-    const normalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta(modRefId, true);
+    this.moduleRegistry = moduleRegistry;
+    const normalizedModuleMeta = this.moduleRegistry.getNormalizedModuleMeta(modRefId, true);
     this.normalizedModuleMeta = normalizedModuleMeta;
     this.meta = this.getAspectMeta(normalizedModuleMeta);
     this.glProviders = appProviders;
@@ -97,7 +97,7 @@ export class TrpcShallowModulesImporter {
 
   protected importModules(modRefIdss: TrpcModRefId[], isImport?: boolean) {
     for (const modRefId of modRefIdss) {
-      const normalizedModuleMeta = this.moduleManager.getNormalizedModuleMeta(modRefId, true);
+      const normalizedModuleMeta = this.moduleRegistry.getNormalizedModuleMeta(modRefId, true);
       if (this.scanningModules.has(modRefId)) {
         continue;
       }
@@ -106,7 +106,7 @@ export class TrpcShallowModulesImporter {
       const shallowModulesImporter = new TrpcShallowModulesImporter();
       this.scanningModules.add(modRefId);
       const shallowModuleImportsBase = shallowModulesImporter.importModulesShallow({
-        moduleManager: this.moduleManager,
+        moduleRegistry: this.moduleRegistry,
         appProviders: this.glProviders,
         modRefId,
         scanningModules: this.scanningModules,

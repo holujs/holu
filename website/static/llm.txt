@@ -8,7 +8,7 @@ As an alternative to reading raw documentation files, Holu provides official Age
 If you need these skills, suggest that the user run the following command in their terminal (or execute it directly if terminal execution is available):
 
 ```bash
-npx skills add holu/agent-skills --skill '*' -y
+npx skills add https://github.com/holujs/agent-skills --skill '*' -y
 ```
 
 ## Documentation Resolution Guide
@@ -54,7 +54,7 @@ npx skills add holu/agent-skills --skill '*' -y
 │   └── 01-trpc-module.md
 ├── 100-deep-dive
 │   ├── 00-application-workflow.md
-│   ├── 01-module-manager.md
+│   ├── 01-module-registry.md
 │   ├── 02-init-decorators.md
 │   └── 90-reflector.md
 ├── 10-guide

@@ -1,7 +1,7 @@
 import type {
   ModRefId,
   Provider,
-  ModuleManager,
+  ModuleRegistry,
   SystemLogMediator,
   DeepModulesImporter,
   ShallowModuleImports,
@@ -33,7 +33,7 @@ export class TrpcDeepModulesImporter {
   protected tokensPerApp: any[];
 
   protected shallowModuleImports: TrpcShallowModuleImports;
-  protected moduleManager: ModuleManager;
+  protected moduleRegistry: ModuleRegistry;
   protected shallowModuleImportsMap: Map<ModRefId, ShallowModuleImports>;
   protected providersPerApp: Provider[];
   protected log: SystemLogMediator;
@@ -42,14 +42,14 @@ export class TrpcDeepModulesImporter {
   constructor({
     parent,
     shallowModuleImports,
-    moduleManager,
+    moduleRegistry,
     shallowModuleImportsMap,
     providersPerApp,
     log,
   }: DeepModulesImporterConfig) {
     this.parent = parent;
     this.shallowModuleImports = shallowModuleImports;
-    this.moduleManager = moduleManager;
+    this.moduleRegistry = moduleRegistry;
     this.shallowModuleImportsMap = shallowModuleImportsMap;
     this.providersPerApp = providersPerApp;
     this.log = log;
