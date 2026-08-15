@@ -37,7 +37,7 @@ export class ModuleNormalizer {
    * Returns normalized module metadata.
    *
    * Only processes the module's own decorators. Cross-module aspect propagation
-   * (for dynamic modules with `aspectOptions` or static modules without own decorators)
+   * (for dynamic modules with `dynamicAspectOptionsMap` or static modules without own decorators)
    * is handled separately by {@link ModuleAspectPropagator} after the scan phase completes.
    */
   normalize(modRefId: ModRefId, systemLogMediator: SystemLogMediator) {

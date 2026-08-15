@@ -109,14 +109,14 @@ export interface DynamicModule<M extends AnyObj = AnyObj> extends BaseDynamicMod
   /**
    * If the current module has this property populated, this means it was used in the context of aspect decorators.
    */
-  aspectOptions?: DynamicAspectOptionsMap;
+  dynamicAspectOptionsMap?: DynamicAspectOptionsMap;
 }
 /**
- * This interface differs from {@link DynamicModule} only in that it requires the presence of the `aspectOptions` property.
+ * This interface differs from {@link DynamicModule} only in that it requires the presence of the `dynamicAspectOptionsMap` property.
  * It is convenient to use in static module methods that return a dynamic module configured with aspect options.
  */
 export interface DynamicModuleWithAspectOptions<M extends AnyObj = AnyObj> extends DynamicModule<M> {
-  aspectOptions: DynamicAspectOptionsMap;
+  dynamicAspectOptionsMap: DynamicAspectOptionsMap;
 }
 
 /**

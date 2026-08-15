@@ -49,7 +49,7 @@ export interface BaseRestAppendOptions<T extends AnyObj = AnyObj> {
   id?: string;
   module: StaticModule<T> | ForwardRefFn<StaticModule<T>>;
   guards?: GuardItem[];
-  aspectOptions?: Map<AnyFn, any>;
+  dynamicAspectOptionsMap?: Map<AnyFn, any>;
 }
 
 export interface RestAppendPathOptions<T extends AnyObj = AnyObj> extends BaseRestAppendOptions<T> {

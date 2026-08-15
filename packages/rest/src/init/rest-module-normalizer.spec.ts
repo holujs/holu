@@ -35,7 +35,7 @@ describe('rest ModuleNormalizer', () => {
       static withOpts(): DynamicModuleWithAspectOptions<Module1> {
         return {
           module: this,
-          aspectOptions: new Map(),
+          dynamicAspectOptionsMap: new Map(),
         };
       }
     }
@@ -44,7 +44,7 @@ describe('rest ModuleNormalizer', () => {
     class Module2 {}
 
     const dynamicModule = Module1.withOpts();
-    dynamicModule.aspectOptions.set(restAspect, { path: 'test1' });
+    dynamicModule.dynamicAspectOptionsMap.set(restAspect, { path: 'test1' });
     const appendWithOpts: RestAppendOptions = { module: Module2, path: 'test2' };
 
     // Although in `AppModule` `appendWithOpts` and `dynamicModule` are used in the context of the `restAspect` decorator, `Module1` and `Module2`
@@ -58,7 +58,7 @@ describe('rest ModuleNormalizer', () => {
     class AppModule {}
 
     const meta1 = moduleRegistry.scanRootModule(AppModule).normalizedAspectMetaMap.get(restAspect)!;
-    expect(dynamicModule.aspectOptions?.get(restAspect)).toEqual({ path: 'test1' });
+    expect(dynamicModule.dynamicAspectOptionsMap?.get(restAspect)).toEqual({ path: 'test1' });
     expect(meta1.appendsWithOpts).toEqual([appendWithOpts]);
 
     const meta2 = moduleRegistry.getNormalizedModuleMeta(dynamicModule, true).normalizedAspectMetaMap.get(restAspect)!;
@@ -84,7 +84,7 @@ describe('rest ModuleNormalizer', () => {
         return {
           id,
           module: this,
-          aspectOptions: new Map(),
+          dynamicAspectOptionsMap: new Map(),
         };
       }
     }
@@ -103,7 +103,7 @@ describe('rest ModuleNormalizer', () => {
 
     const module2WithOpts = forwardRef(() => {
       const module2WithOpts = Module2.withOpts('test-id');
-      module2WithOpts.aspectOptions.set(restAspect, { path: 'test1' });
+      module2WithOpts.dynamicAspectOptionsMap.set(restAspect, { path: 'test1' });
       return module2WithOpts;
     });
     const module4WithOpts: DynamicModule = { module: forwardRef(() => Module4) };
@@ -148,7 +148,7 @@ describe('rest ModuleNormalizer', () => {
     expect(meta3.params.path).toEqual('test2');
 
     expect(normalizedModuleMeta.importedStaticModules).toEqual([Module1, RestModule]);
-    expect(normalizedModuleMeta.importedDynamicModules).toEqual([{ id: 'test-id', module: Module2, aspectOptions: expect.any(Map) }]);
+    expect(normalizedModuleMeta.importedDynamicModules).toEqual([{ id: 'test-id', module: Module2, dynamicAspectOptionsMap: expect.any(Map) }]);
   });
 
   it('merge static metadata with append params', () => {
@@ -235,13 +235,13 @@ describe('rest ModuleNormalizer', () => {
       static withOpts(): DynamicModuleWithAspectOptions<Module1> {
         return {
           module: this,
-          aspectOptions: new Map(),
+          dynamicAspectOptionsMap: new Map(),
         };
       }
     }
 
     const dynamicModule = Module1.withOpts();
-    dynamicModule.aspectOptions.set(restAspect, {
+    dynamicModule.dynamicAspectOptionsMap.set(restAspect, {
       path: 'one',
       guards: [Guard1, [Guard2, { property1: 'some-value' }]],
       providersPerApp: [Service8],

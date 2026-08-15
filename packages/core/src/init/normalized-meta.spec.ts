@@ -110,7 +110,7 @@ describe('NormalizedModuleMeta', () => {
         override normalize(normalizedModuleMeta: NormalizedModuleMeta): AspectMeta {
           const meta = createAspectMetaProxy(normalizedModuleMeta, AspectMeta);
           if (isDynamicModule(normalizedModuleMeta.modRefId)) {
-            const params = normalizedModuleMeta.modRefId.aspectOptions?.get(someAspect);
+            const params = normalizedModuleMeta.modRefId.dynamicAspectOptionsMap?.get(someAspect);
             meta.path = params?.path;
           }
           return meta;

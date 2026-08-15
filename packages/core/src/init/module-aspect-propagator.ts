@@ -95,7 +95,7 @@ export class ModuleAspectPropagator {
    * from parent modules to their children.
    *
    * During propagation:
-   * - Aspects are applied to dynamic modules that specify the `aspectOptions` property on their `DynamicModule` object.
+   * - Aspects are applied to dynamic modules that specify the `dynamicAspectOptionsMap` property on their `DynamicModule` object.
    * - Static modules inherit parent aspects, provided they don't define their own decorators
    *   and `inheritsAspects` is not set to `false`.
    *
@@ -120,7 +120,7 @@ export class ModuleAspectPropagator {
       activeAspects.set(decoratorId, moduleAspect);
     });
 
-    // Apply aspects for dynamic modules imported with aspectOptions.
+    // Apply aspects for dynamic modules imported with dynamicAspectOptionsMap.
     this.applyAspectsForDynamicModule(meta, activeAspects);
 
     // Inherit parent aspects for static modules without own decorators.
@@ -192,7 +192,7 @@ export class ModuleAspectPropagator {
   }
 
   protected applyAspectsForDynamicModule(meta: NormalizedModuleMeta, parentAspects: AllModuleAspectsMap) {
-    (meta.modRefId as DynamicModule).aspectOptions?.forEach((params, decoratorId) => {
+    (meta.modRefId as DynamicModule).dynamicAspectOptionsMap?.forEach((params, decoratorId) => {
       if (!meta.moduleAspectMap.has(decoratorId)) {
         const parentAspect = parentAspects.get(decoratorId);
         if (parentAspect) {

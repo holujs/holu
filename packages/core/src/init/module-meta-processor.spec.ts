@@ -307,7 +307,7 @@ describe('ModuleMetaProcessor', () => {
 
     class SomeAspectMeta extends BaseNormalizedModuleMeta {
       normalizedModuleMeta?: NormalizedModuleMeta;
-      aspectOptions?: SomeAspectOptions;
+      dynamicAspectOptionsMap?: SomeAspectOptions;
       flag?: boolean;
       path?: string;
       targetModRefId?: ModRefId;
@@ -317,10 +317,10 @@ describe('ModuleMetaProcessor', () => {
       override normalize(normalizedModuleMeta: NormalizedModuleMeta) {
         const meta = createAspectMetaProxy(normalizedModuleMeta, SomeAspectMeta);
         meta.normalizedModuleMeta = normalizedModuleMeta;
-        meta.aspectOptions = this.staticAspectOptions;
+        meta.dynamicAspectOptionsMap = this.staticAspectOptions;
 
         if (isDynamicModule(normalizedModuleMeta.modRefId)) {
-          const params = normalizedModuleMeta.modRefId.aspectOptions?.get(someAspect);
+          const params = normalizedModuleMeta.modRefId.dynamicAspectOptionsMap?.get(someAspect);
           meta.path = params?.path;
           meta.targetModRefId = normalizedModuleMeta.modRefId;
         } else {
@@ -348,7 +348,7 @@ describe('ModuleMetaProcessor', () => {
 
       const aspectMeta = normalizer.normalize(Module1).normalizedAspectMetaMap.get(someAspect);
       expect(aspectMeta?.normalizedModuleMeta?.modRefId).toBe(Module1);
-      expect(aspectMeta?.aspectOptions).toEqual(staticAspectOptions);
+      expect(aspectMeta?.dynamicAspectOptionsMap).toEqual(staticAspectOptions);
       expect(aspectMeta?.targetModRefId).toBe(Module1);
       expect(aspectMeta?.flag).toBe(true);
     });
@@ -378,7 +378,7 @@ describe('ModuleMetaProcessor', () => {
       expect(normalizedModuleMeta.extensionsMeta).toEqual({ one: 1 });
     });
 
-    it('merges wrapper init params, dynamic module params, and existing aspectOptions when importing modules with params', () => {
+    it('merges wrapper init params, dynamic module params, and existing dynamicAspectOptionsMap when importing modules with params', () => {
       class Service1 {}
       class Service2 {}
       class Service3 {}
@@ -395,18 +395,18 @@ describe('ModuleMetaProcessor', () => {
         providersPerApp: [Service3],
         extensionsMeta: { one: 1 },
         num: 4,
-        aspectOptions: new Map(),
+        dynamicAspectOptionsMap: new Map(),
       };
-      dynamicModule1.aspectOptions.set(someAspect, { path: 'path-1' });
+      dynamicModule1.dynamicAspectOptionsMap.set(someAspect, { path: 'path-1' });
 
       const dynamicModule2: DynamicModuleWithAspectOptions & SomeAspectDynamicOptions = {
         module: Module2,
         providersPerApp: [Service2],
         num: 12,
         extensionsMeta: { four: 4 },
-        aspectOptions: new Map(),
+        dynamicAspectOptionsMap: new Map(),
       };
-      dynamicModule2.aspectOptions.set(someAspect, {
+      dynamicModule2.dynamicAspectOptionsMap.set(someAspect, {
         path: 'path-2',
         providersPerApp: [Service1],
         num: 11,
@@ -420,14 +420,14 @@ describe('ModuleMetaProcessor', () => {
       class AppModule {}
 
       normalizer.normalize(AppModule);
-      expect(dynamicModule1.aspectOptions.get(someAspect)).toEqual<SomeAspectDynamicOptions>({
+      expect(dynamicModule1.dynamicAspectOptionsMap.get(someAspect)).toEqual<SomeAspectDynamicOptions>({
         path: 'path-1',
         providersPerMod: [Service1, Service2],
         extensionsMeta: { one: 1, two: 2 },
         num: 5,
         providersPerApp: [Service3],
       });
-      expect(dynamicModule2.aspectOptions.get(someAspect)).toEqual<SomeAspectDynamicOptions>({
+      expect(dynamicModule2.dynamicAspectOptionsMap.get(someAspect)).toEqual<SomeAspectDynamicOptions>({
         providersPerApp: [Service1, Service2],
         num: 12,
         extensionsMeta: { three: 3, four: 4 },
@@ -464,7 +464,7 @@ describe('ModuleMetaProcessor', () => {
       expect(normalizedModuleMeta.exportedStaticModules).toEqual([Module1]);
       expect(normalizedModuleMeta.importedDynamicModules).toEqual<DynamicModule[]>([
         dynamicModule2,
-        { module: Module3, aspectOptions: expect.any(Map) },
+        { module: Module3, dynamicAspectOptionsMap: expect.any(Map) },
         dynamicModule4,
       ]);
       expect(normalizedModuleMeta.exportedDynamicModules).toEqual([dynamicModule2, dynamicModule4]);
@@ -498,7 +498,7 @@ describe('ModuleMetaProcessor', () => {
       expect(normalizedModuleMeta.importedStaticModules).toEqual([Module1]);
       expect(normalizedModuleMeta.importedDynamicModules).toEqual<DynamicModule[]>([
         dynamicModule2,
-        { module: Module3, aspectOptions: expect.any(Map) },
+        { module: Module3, dynamicAspectOptionsMap: expect.any(Map) },
         dynamicModule4,
       ]);
       expect(normalizedModuleMeta.exportedStaticModules).toEqual([Module1]);

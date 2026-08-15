@@ -268,13 +268,13 @@ export class ModuleMetaProcessor {
 
   mergeAspectOptionsIntoDynamicModule(decoratorId: AnyFn, params: AnyObj, dynamicModule: DynamicModule, meta: NormalizedModuleMeta) {
     delete params.module;
-    delete params.aspectOptions;
-    dynamicModule.aspectOptions ??= new Map();
-    if (dynamicModule.aspectOptions.has(decoratorId)) {
-      const existingParams = dynamicModule.aspectOptions.get(decoratorId)!;
-      dynamicModule.aspectOptions.set(decoratorId, this.mergeAspectOptionObjects(params, existingParams));
+    delete params.dynamicAspectOptionsMap;
+    dynamicModule.dynamicAspectOptionsMap ??= new Map();
+    if (dynamicModule.dynamicAspectOptionsMap.has(decoratorId)) {
+      const existingParams = dynamicModule.dynamicAspectOptionsMap.get(decoratorId)!;
+      dynamicModule.dynamicAspectOptionsMap.set(decoratorId, this.mergeAspectOptionObjects(params, existingParams));
     } else {
-      dynamicModule.aspectOptions.set(decoratorId, params);
+      dynamicModule.dynamicAspectOptionsMap.set(decoratorId, params);
     }
     if (!meta.importedDynamicModules.includes(dynamicModule)) {
       meta.importedDynamicModules.push(dynamicModule);
@@ -283,7 +283,7 @@ export class ModuleMetaProcessor {
 
   mergeAspectOptionObjects(dstn: AnyObj, src: AnyObj) {
     objectKeys(src).forEach((prop) => {
-      if (prop == 'aspectOptions' || prop == 'module') {
+      if (prop == 'dynamicAspectOptionsMap' || prop == 'module') {
         // ignore
       } else if (Array.isArray(src[prop])) {
         if (src[prop].length) {

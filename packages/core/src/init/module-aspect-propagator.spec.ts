@@ -141,7 +141,7 @@ describe('ModuleAspectPropagator', () => {
       class AspectHandler1 extends ModuleAspectHandler<RootModuleOptions> {
         override normalize({ modRefId }: NormalizedModuleMeta): AspectMeta {
           if (isDynamicModule(modRefId)) {
-            const params = modRefId.aspectOptions?.get(someAspect);
+            const params = modRefId.dynamicAspectOptionsMap?.get(someAspect);
             return { path: params?.path } as AspectMeta;
           }
           return {} as AspectMeta;
@@ -246,7 +246,7 @@ describe('ModuleAspectPropagator', () => {
       expect(mod1.importedStaticModules.includes(HostModule1)).toBe(false);
     });
 
-    it('should retrieve aspectOptions for three different modules with params', () => {
+    it('should retrieve dynamicAspectOptionsMap for three different modules with params', () => {
       interface MyDynamicOptions1 extends DynamicModuleOptions {
         one?: string;
       }
@@ -306,7 +306,7 @@ describe('ModuleAspectPropagator', () => {
       mock.scanRootModule(AppModule);
 
       function getParams(dynamicModule: DynamicModule) {
-        return [...(dynamicModule.aspectOptions?.values() || [])];
+        return [...(dynamicModule.dynamicAspectOptionsMap?.values() || [])];
       }
       expect(getParams(dynamicModule1)).toEqual([{ one: 'someAspect1-1' }]);
       expect(getParams(dynamicModule2)).toEqual([{ three: 'someAspect2-2' }]);

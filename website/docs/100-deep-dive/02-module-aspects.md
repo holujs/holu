@@ -176,7 +176,7 @@ export class MyFeatureModule {}
 
 1. Кастомні параметри (такі як `path` або `guards`) автоматично додаються в Map, використовуючи у якості ключа декоратор-aspect:
     ```ts
-    dynamicModule.aspectOptions.set(aspectDecorator, { path: 'some-path' });
+    dynamicModule.dynamicAspectOptionsMap.set(aspectDecorator, { path: 'some-path' });
     ```
 2. Якщо імпортований модуль має лише `@featureModule` (без aspect-декораторів), фреймворк отримує дефолтний клас aspect для цього декоратора з контексту застосунку, клонує його, реєструє у `moduleAspectMap` модуля та викликає метод `normalize()`.
 3. Це забезпечує коректну обробку кастомних опцій (таких як REST префікси маршрутів та гарди), навіть при імпорті стандартних модулів фіч, які не мають кастомних анотацій aspect-декораторів.

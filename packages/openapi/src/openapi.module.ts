@@ -38,15 +38,15 @@ export class OpenapiModule {
       swaggerOAuthOptions,
     };
 
-    const aspectOptions: DynamicAspectOptionsMap = new Map();
+    const dynamicAspectOptionsMap: DynamicAspectOptionsMap = new Map();
     if (absolutePath !== undefined) {
-      aspectOptions.set(restAspect, { absolutePath });
+      dynamicAspectOptionsMap.set(restAspect, { absolutePath });
     }
 
     return {
       module: this,
       providersPerApp: new ProviderBuilder().useValue<OasExtensionConfig>(OasExtensionConfig, oasExtensionConfig),
-      aspectOptions,
+      dynamicAspectOptionsMap,
     };
   }
 }

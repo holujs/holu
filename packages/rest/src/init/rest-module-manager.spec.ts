@@ -447,7 +447,7 @@ describe('ModuleRegistry', () => {
       static withOpts(): DynamicModuleWithAspectOptions<Module1> {
         return {
           module: this,
-          aspectOptions: new Map(),
+          dynamicAspectOptionsMap: new Map(),
         };
       }
     }
@@ -457,7 +457,7 @@ describe('ModuleRegistry', () => {
     class Module2 {}
 
     const dynamicModule = Module1.withOpts();
-    dynamicModule.aspectOptions.set(restAspect, { path: 'module1', guards: [Guard1] });
+    dynamicModule.dynamicAspectOptionsMap.set(restAspect, { path: 'module1', guards: [Guard1] });
     const appendsWithOpts: RestAppendOptions = { path: 'module2', module: Module2, guards: [Guard2] };
 
     @restAspect({ appends: [appendsWithOpts] })

@@ -53,7 +53,7 @@ export class RestModuleNormalizer {
     } else if (!isDynamicModule(modRefId)) {
       return;
     }
-    const params = modRefId.aspectOptions?.get(restAspect);
+    const params = modRefId.dynamicAspectOptionsMap?.get(restAspect);
 
     if (params) {
       if (params.absolutePath !== undefined) {
@@ -75,10 +75,10 @@ export class RestModuleNormalizer {
       if (isAppendsWithOptions(ap)) {
         const params = { ...ap } as Partial<RestAppendOptions>;
         delete params.module;
-        if (ap.aspectOptions) {
-          ap.aspectOptions.set(restAspect, params);
+        if (ap.dynamicAspectOptionsMap) {
+          ap.dynamicAspectOptionsMap.set(restAspect, params);
         } else {
-          ap.aspectOptions = new Map([[restAspect, params]]);
+          ap.dynamicAspectOptionsMap = new Map([[restAspect, params]]);
         }
         this.meta.appendsWithOpts.push(ap);
       } else {

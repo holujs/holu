@@ -11,12 +11,12 @@ import { FirstController } from './first.controller.js';
 })
 export class FirstModule {
   static withPath(path?: string): DynamicModuleWithAspectOptions<FirstModule> {
-    const aspectOptions: DynamicAspectOptionsMap = new Map();
-    aspectOptions.set(restAspect, { path });
+    const dynamicAspectOptionsMap: DynamicAspectOptionsMap = new Map();
+    dynamicAspectOptionsMap.set(restAspect, { path });
 
     return {
       module: this,
-      aspectOptions,
+      dynamicAspectOptionsMap,
     };
   }
 }

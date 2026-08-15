@@ -87,8 +87,8 @@ describe('RestAppInitializer', () => {
     class Module5 {}
 
     const module2WithOpts: DynamicModule = Module2.withOpts();
-    const module3WithOpts: DynamicModuleWithAspectOptions = { module: Module3, aspectOptions: new Map() };
-    module3WithOpts.aspectOptions.set(restAspect, { path: 'one' });
+    const module3WithOpts: DynamicModuleWithAspectOptions = { module: Module3, dynamicAspectOptionsMap: new Map() };
+    module3WithOpts.dynamicAspectOptionsMap.set(restAspect, { path: 'one' });
     const module4WithOpts: DynamicModule = { module: Module4 };
     @rootModule({
       imports: [Module0, Module1, module2WithOpts, Module5, module3WithOpts, module4WithOpts],
