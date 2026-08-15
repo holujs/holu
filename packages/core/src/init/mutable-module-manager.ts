@@ -91,7 +91,7 @@ export class MutableModuleManager extends ModuleManager {
       children.add(inputModule);
 
       this.scanModule(inputModule);
-      this.finalizeRootScan(inputModule);
+      this.propagateAspectsAndValidate(inputModule);
       this.systemLogMediator.successfulAddedModuleToImport(this, inputModule, targetNormalizedModuleMeta.name);
       return true;
     } catch (err) {

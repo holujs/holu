@@ -93,7 +93,7 @@ export class ModuleManager {
     this.childrenMap.clear();
     const normalizedModuleMeta = this.scanModule(appModule);
     this.moduleIdMap.set('root', appModule);
-    this.finalizeRootScan(appModule);
+    this.propagateAspectsAndValidate(appModule);
     this.injectorPerModMap.clear();
     this.scanningModules.clear();
     this.scannedModules.clear();
@@ -109,7 +109,7 @@ export class ModuleManager {
    * and stores normalized metadata.
    *
    * Only processes each module's own decorators. Cross-module aspect propagation is handled
-   * separately by {@link ModuleAspectPropagator} (invoked in {@link finalizeRootScan}) after the entire module tree has been scanned.
+   * separately by {@link ModuleAspectPropagator} (invoked in {@link propagateAspectsAndValidate}) after the entire module tree has been scanned.
    */
   protected scanModule(modRefId: ModRefId | ForwardRefFn<ModRefId>) {
     modRefId = resolveForwardRef(modRefId);
@@ -173,7 +173,7 @@ export class ModuleManager {
     return this.normalizedMetaMap;
   }
 
-  protected finalizeRootScan(modRefId: ModRefId) {
+  protected propagateAspectsAndValidate(modRefId: ModRefId) {
     const propagator = new ModuleAspectPropagator(
       this.aspectApplier,
       this.activeMetaMap,

@@ -43,7 +43,7 @@ describe('ModuleManager', () => {
 
     override scanModule(modRefId: ModRefId | ForwardRefFn<ModRefId>) {
       const meta = super.scanModule(modRefId);
-      this.finalizeRootScan(meta.modRefId);
+      this.propagateAspectsAndValidate(meta.modRefId);
       return meta;
     }
   }
