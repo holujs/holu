@@ -50,7 +50,7 @@ export class RestAspectHandler extends ModuleAspectHandler<RestStaticOptions> {
   override hostModule = RestModule;
 
   override normalize(normalizedModuleMeta: NormalizedModuleMeta): RestAspectMeta {
-    return new RestModuleNormalizer().normalize(normalizedModuleMeta, this.moduleOptions);
+    return new RestModuleNormalizer().normalize(normalizedModuleMeta, this.staticAspectOptions);
   }
 
   override getModulesToScan(meta?: RestAspectMeta): RestModRefId[] {

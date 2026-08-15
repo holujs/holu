@@ -30,7 +30,7 @@ import { UndefinedSymbol, InvalidExtension, UnknownExport, ForbiddenNormalizedEx
  */
 export class ModuleMetaProcessor {
   applyHostAspectOptions(hostMeta: NormalizedModuleMeta, decoratorId: AnyFn, aspectHandler: ModuleAspectHandler) {
-    this.applyAspectModuleOptions(decoratorId, aspectHandler.moduleOptions, hostMeta);
+    this.applyAspectModuleOptions(decoratorId, aspectHandler.staticAspectOptions, hostMeta);
     this.normalizeAspectMeta(decoratorId, aspectHandler, hostMeta);
   }
 

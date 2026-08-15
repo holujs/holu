@@ -260,7 +260,7 @@ export class NormalizedModuleMeta<
     copy.normalizedAspectMetaMap = new Map();
     copy.moduleAspectMap = new Map();
     this.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
-      const clonedAspect = moduleAspect.clone(moduleAspect.moduleOptions);
+      const clonedAspect = moduleAspect.clone(moduleAspect.staticAspectOptions);
       copy.moduleAspectMap.set(decoratorId, clonedAspect);
       const meta = clonedAspect.normalize(copy);
       if (meta) {

@@ -345,7 +345,7 @@ describe('ModuleAspectPropagator', () => {
       const hostMeta = mock.getNormalizedModuleMeta(HostModule);
       expect(hostMeta?.moduleAspectMap.has(someAspect)).toBe(true);
       const moduleAspectHandler = hostMeta?.moduleAspectMap.get(someAspect);
-      expect(moduleAspectHandler?.moduleOptions).toEqual({ customProp: 'works' });
+      expect(moduleAspectHandler?.staticAspectOptions).toEqual({ customProp: 'works' });
     });
 
     it('should scan modules returned by getModulesToScan() of a host aspect', () => {

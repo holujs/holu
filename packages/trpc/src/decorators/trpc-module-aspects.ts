@@ -82,7 +82,7 @@ export class TrpcModuleAspectHandler extends ModuleAspectHandler<TrpcStaticOptio
   override hostModule = TrpcModule;
 
   override normalize(normalizedModuleMeta: NormalizedModuleMeta): TrpcAspectMeta {
-    return new TrpcModuleNormalizer().normalize(normalizedModuleMeta, this.moduleOptions);
+    return new TrpcModuleNormalizer().normalize(normalizedModuleMeta, this.staticAspectOptions);
   }
 
   override getModulesToScan(meta?: TrpcAspectMeta): TrpcModRefId[] {

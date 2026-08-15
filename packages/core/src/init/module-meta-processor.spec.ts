@@ -317,14 +317,14 @@ describe('ModuleMetaProcessor', () => {
       override normalize(normalizedModuleMeta: NormalizedModuleMeta) {
         const meta = createAspectMetaProxy(normalizedModuleMeta, SomeAspectMeta);
         meta.normalizedModuleMeta = normalizedModuleMeta;
-        meta.aspectOptions = this.moduleOptions;
+        meta.aspectOptions = this.staticAspectOptions;
 
         if (isDynamicModule(normalizedModuleMeta.modRefId)) {
           const params = normalizedModuleMeta.modRefId.aspectOptions?.get(someAspect);
           meta.path = params?.path;
           meta.targetModRefId = normalizedModuleMeta.modRefId;
         } else {
-          meta.flag = this.moduleOptions.flag;
+          meta.flag = this.staticAspectOptions.flag;
           meta.targetModRefId = normalizedModuleMeta.modRefId;
         }
 
@@ -340,15 +340,15 @@ describe('ModuleMetaProcessor', () => {
       Reflector.makeClassDecorator(getModuleAspect, 'someAspect');
 
     it('stores metadata returned by ModuleAspectHandler.normalize() in normalizedModuleMeta.normalizedAspectMetaMap', () => {
-      const moduleOptions: SomeAspectOptions = { one: 1, two: 2, flag: true };
+      const staticAspectOptions: SomeAspectOptions = { one: 1, two: 2, flag: true };
 
-      @someAspect(moduleOptions)
+      @someAspect(staticAspectOptions)
       @featureModule()
       class Module1 {}
 
       const aspectMeta = normalizer.normalize(Module1).normalizedAspectMetaMap.get(someAspect);
       expect(aspectMeta?.normalizedModuleMeta?.modRefId).toBe(Module1);
-      expect(aspectMeta?.aspectOptions).toEqual(moduleOptions);
+      expect(aspectMeta?.aspectOptions).toEqual(staticAspectOptions);
       expect(aspectMeta?.targetModRefId).toBe(Module1);
       expect(aspectMeta?.flag).toBe(true);
     });
@@ -539,7 +539,7 @@ describe('ModuleMetaProcessor', () => {
 
         override normalize(normalizedModuleMeta: NormalizedModuleMeta): SomeAspectMeta {
           return {
-            flag: this.moduleOptions.flag,
+            flag: this.staticAspectOptions.flag,
             targetModRefId: normalizedModuleMeta.modRefId,
           } as SomeAspectMeta;
         }

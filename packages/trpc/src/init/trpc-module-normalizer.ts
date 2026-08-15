@@ -15,12 +15,12 @@ export class TrpcModuleNormalizer {
   protected normalizedModuleMeta: NormalizedModuleMeta;
   protected meta: TrpcAspectMeta;
 
-  normalize(normalizedModuleMeta: NormalizedModuleMeta, moduleOptions: TrpcStaticOptions) {
+  normalize(normalizedModuleMeta: NormalizedModuleMeta, trpcStaticOptions: TrpcStaticOptions) {
     this.normalizedModuleMeta = normalizedModuleMeta;
     const meta = createAspectMetaProxy(normalizedModuleMeta, TrpcAspectMeta);
     this.meta = meta;
-    if (moduleOptions.controllers) {
-      this.meta.controllers.push(...moduleOptions.controllers);
+    if (trpcStaticOptions.controllers) {
+      this.meta.controllers.push(...trpcStaticOptions.controllers);
     }
     this.checkMetadata();
     return meta;

@@ -193,7 +193,7 @@ export class ModuleNormalizer {
     meta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
       meta.allModuleAspectsMap.set(decoratorId, moduleAspect);
       this.metaProcessor.ensureHostModuleImported(moduleAspect, meta);
-      this.metaProcessor.applyAspectModuleOptions(decoratorId, moduleAspect.moduleOptions, meta);
+      this.metaProcessor.applyAspectModuleOptions(decoratorId, moduleAspect.staticAspectOptions, meta);
       this.metaProcessor.normalizeAspectMeta(decoratorId, moduleAspect, meta);
     });
   }

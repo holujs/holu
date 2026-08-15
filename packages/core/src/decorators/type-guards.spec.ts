@@ -80,7 +80,7 @@ describe('type guards', () => {
       expect(isFeatureModule(normalizedModuleMeta)).toBe(true);
     });
 
-    it('returns false for NormalizedModuleMeta with empty moduleOptions', () => {
+    it('returns false for NormalizedModuleMeta with empty staticAspectOptions', () => {
       const normalizedModuleMeta = new NormalizedModuleMeta();
       normalizedModuleMeta.staticModuleOptions = {};
       expect(isFeatureModule(normalizedModuleMeta)).toBe(false);
@@ -168,7 +168,7 @@ describe('type guards', () => {
       expect(isRootModule(normalizedModuleMeta)).toBe(true);
     });
 
-    it('returns false for NormalizedModuleMeta with empty moduleOptions', () => {
+    it('returns false for NormalizedModuleMeta with empty staticAspectOptions', () => {
       const normalizedModuleMeta = new NormalizedModuleMeta();
       normalizedModuleMeta.staticModuleOptions = {};
       expect(isRootModule(normalizedModuleMeta)).toBe(false);

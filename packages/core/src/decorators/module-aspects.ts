@@ -12,7 +12,7 @@ import type { rootModule } from '#decorators/root-module.js';
 import type { featureModule } from '#decorators/feature-module.js';
 import type { ShallowModulesImporter } from '#init/shallow-modules-importer.js';
 
-export type AllModuleAspectsMap = Map<ModuleAspectDecorator<any, any, any>, Omit<ModuleAspectHandler, 'moduleOptions'>>;
+export type AllModuleAspectsMap = Map<ModuleAspectDecorator<any, any, any>, Omit<ModuleAspectHandler, 'staticAspectOptions'>>;
 
 /**
  * A base class for creating module aspects. They carry metadata attached by corresponding decorators
@@ -42,15 +42,15 @@ export class ModuleAspectHandler<T1 extends StaticAspectOptions = StaticAspectOp
    */
   declare hostAspectOptions?: T1;
 
-  constructor(public moduleOptions: T1) {
-    this.moduleOptions ??= {} as T1;
+  constructor(public staticAspectOptions: T1) {
+    this.staticAspectOptions ??= {} as T1;
   }
 
   /**
    * Returns a new instance of the current class. Most likely, you don't need to override this method.
    */
-  clone<R extends this>(moduleOptions?: T1) {
-    return new (this.constructor as { new (arg: object): R })(moduleOptions || {});
+  clone<R extends this>(staticAspectOptions?: T1) {
+    return new (this.constructor as { new (arg: object): R })(staticAspectOptions || {});
   }
 
   /**

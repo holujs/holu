@@ -27,15 +27,15 @@ export class RestModuleNormalizer {
   protected normalizedModuleMeta: NormalizedModuleMeta;
   protected meta: RestAspectMeta;
 
-  normalize(normalizedModuleMeta: NormalizedModuleMeta, moduleOptions: RestStaticOptions) {
+  normalize(normalizedModuleMeta: NormalizedModuleMeta, restStaticOptions: RestStaticOptions) {
     this.normalizedModuleMeta = normalizedModuleMeta;
     const meta = createAspectMetaProxy(normalizedModuleMeta, RestAspectMeta);
     this.meta = meta;
-    if (moduleOptions.controllers) {
-      this.meta.controllers.push(...moduleOptions.controllers);
+    if (restStaticOptions.controllers) {
+      this.meta.controllers.push(...restStaticOptions.controllers);
     }
     this.mergeDynamicModule(normalizedModuleMeta.modRefId);
-    this.appendModules(moduleOptions);
+    this.appendModules(restStaticOptions);
     this.checkMetadata();
     return meta;
   }
@@ -66,8 +66,8 @@ export class RestModuleNormalizer {
     }
   }
 
-  protected appendModules(moduleOptions: RestStaticOptions) {
-    moduleOptions.appends?.forEach((ap, i) => {
+  protected appendModules(restStaticOptions: RestStaticOptions) {
+    restStaticOptions.appends?.forEach((ap, i) => {
       ap = this.resolveForwardRef([ap])[0];
       if (isNormalizedProvider(ap)) {
         throw new ForbiddenNormalizedExport(this.normalizedModuleMeta.name, ap.token.name || ap.token);
