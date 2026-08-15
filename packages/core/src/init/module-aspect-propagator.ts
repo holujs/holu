@@ -21,6 +21,15 @@ export class ModuleAspectPropagator {
     protected propsWithModules: (keyof BaseNormalizedModuleMeta)[],
   ) {}
 
+  /**
+   * Operates when both a host module and host options are present within the same aspect decorator.
+   * This decorator is always applied to a different module class than the host itself.
+   *
+   * The primary task of this method is to find these specific aspect decorators,
+   * and to apply their options to the corresponding host module.
+   *
+   * @param scanNewlyAddedModules - Callback invoked with any newly discovered modules that need scanning.
+   */
   applyHostAspectOptions(scanNewlyAddedModules: (modulesToScan: Set<ModRefId>) => void) {
     let hasNewModules = true;
     while (hasNewModules) {
@@ -81,6 +90,19 @@ export class ModuleAspectPropagator {
     return hasNewSubChildren;
   }
 
+  /**
+   * Performs a top-down traversal of the module dependency graph to propagate active module aspects
+   * from parent modules to their children.
+   *
+   * During propagation:
+   * - Aspects are applied to dynamic modules that specify the `aspectOptions` property on their `DynamicModule` object.
+   * - Static modules inherit parent aspects, provided they don't define their own decorators
+   *   and `inheritsAspects` is not set to `false`.
+   *
+   * @param startModule - The module to begin propagation from (typically the root module).
+   * @param parentAspects - A map of aspects inherited from the parent module context.
+   * @param visited - A set of already visited modules to prevent infinite loops in cyclic dependencies.
+   */
   propagateAspectsTopDown(startModule: ModRefId, parentAspects: AllModuleAspectsMap = new Map(), visited = new Set<ModRefId>()) {
     if (visited.has(startModule)) {
       return;
@@ -118,6 +140,17 @@ export class ModuleAspectPropagator {
     }
   }
 
+  /**
+   * Performs a bottom-up (post-order) traversal of the module dependency graph to accumulate
+   * aspects from child modules into their respective parent modules.
+   *
+   * This process ensures that a parent module's `allModuleAspectsMap` contains all aspects
+   * that are present anywhere within its sub-tree. Additionally, it creates read-only, normalized
+   * entries in the parent's `normalizedAspectMetaMap` for these accumulated (non-own) aspects.
+   *
+   * @param startModule - The module to begin accumulation from (typically the root module).
+   * @param visited - A set of already visited modules to prevent infinite loops in cyclic dependencies.
+   */
   accumulateAspectsBottomUp(startModule: ModRefId, visited = new Set<ModRefId>()) {
     if (visited.has(startModule)) {
       return;

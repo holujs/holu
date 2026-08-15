@@ -18,7 +18,7 @@ Or globally:
 npm i -g @holu/cli
 ```
 
-_Note:_ Binary aliases `holu` and `dm` are available when installed.
+_Note:_ The binary alias `holu` is available when installed.
 
 ---
 
