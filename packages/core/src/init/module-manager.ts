@@ -79,7 +79,6 @@ export class ModuleManager {
   constructor(
     protected systemLogMediator: SystemLogMediator,
     protected moduleNormalizer: ModuleNormalizer = new ModuleNormalizer(),
-    protected metaProcessor: ModuleMetaProcessor = new ModuleMetaProcessor(),
   ) {}
 
   /**
@@ -175,7 +174,7 @@ export class ModuleManager {
 
   protected propagateAspectsAndValidate(modRefId: ModRefId) {
     const propagator = new ModuleAspectPropagator(
-      this.metaProcessor,
+      new ModuleMetaProcessor(),
       this.activeMetaMap,
       this.childrenMap,
       this.scannedModules,
