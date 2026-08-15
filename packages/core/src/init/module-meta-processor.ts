@@ -29,113 +29,56 @@ import { UndefinedSymbol, InvalidExtension, UnknownExport, ForbiddenNormalizedEx
  * (mutation of existing metadata during aspect propagation).
  */
 export class ModuleMetaProcessor {
-  applyHostAspectOptions(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleAspect: ModuleAspectHandler) {
-    this.applyAspectModuleOptions(decoratorId, moduleAspect.moduleOptions, normalizedModuleMeta);
-    this.normalizeAspectMeta(decoratorId, moduleAspect, normalizedModuleMeta);
+  applyHostAspectOptions(hostMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleAspect: ModuleAspectHandler) {
+    this.applyAspectModuleOptions(decoratorId, moduleAspect.moduleOptions, hostMeta);
+    this.normalizeAspectMeta(decoratorId, moduleAspect, hostMeta);
   }
 
-  /**
-   * Registers a cloned module aspect on the given module: adds it to `allModuleAspectsMap`
-   * and `moduleAspectMap`, ensures the host module is imported, normalizes the aspect
-   * metadata, and applies it to the module's `normalizedAspectMetaMap`.
-   *
-   * This is the single entry point used by {@link ModuleAspectPropagator} to register an aspect
-   * on a module during the post-scan propagation phase.
-   */
-  registerAspectOnModule(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleAspect: ModuleAspectHandler): void {
-    normalizedModuleMeta.allModuleAspectsMap.set(decoratorId, moduleAspect);
-    this.ensureHostModuleImported(moduleAspect, normalizedModuleMeta);
-    this.normalizeAspectMeta(decoratorId, moduleAspect, normalizedModuleMeta);
-    normalizedModuleMeta.moduleAspectMap.set(decoratorId, moduleAspect);
+  applyAspectModuleOptions(decoratorId: AnyFn, aspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
+    this.applyAspectImports(decoratorId, aspectOptions, meta);
+    this.applyAspectExports(aspectOptions, meta);
+    this.normalizeExtensions(aspectOptions, meta);
+    this.normalizeProvidersAndResolvedCollisions(aspectOptions, meta);
+    this.normalizeExports(aspectOptions, 'Static exports', meta);
   }
 
-  normalizeProvidersAndResolvedCollisions(
-    staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
-    meta: NormalizedModuleMeta,
-  ) {
-    this.normalizeProviders(staticModuleOptions, meta);
-    this.normalizeResolvedCollisions(staticModuleOptions, meta);
-  }
-
-  normalizeProviders(moduleOptions: Partial<ProvidersByLevel>, meta: NormalizedModuleMeta) {
-    (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
-      const providersKey = `providersPer${level}` as const;
-      if (moduleOptions[providersKey]) {
-        const providersPerLevel = this.resolveAllForwardRefs(moduleOptions[providersKey]);
-        meta[providersKey].push(...providersPerLevel);
-      }
-    });
-  }
-
-  normalizeResolvedCollisions(
-    staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
-    meta: NormalizedModuleMeta,
-  ) {
-    (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
-      const resolvedCollisionKey = `resolvedCollisionsPer${level}` as const;
-      if (staticModuleOptions[resolvedCollisionKey]) {
-        staticModuleOptions[resolvedCollisionKey].forEach(([token, module]) => {
-          token = resolveForwardRef(token);
-          module = resolveForwardRef(module);
-          if (isDynamicModule(module)) {
-            module.module = resolveForwardRef(module.module);
-          }
-          meta[resolvedCollisionKey].push([token, module]);
-        });
-      }
-    });
-  }
-
-  normalizeExports(moduleOptions: { exports?: any[] }, action: 'Static exports' | 'Dynamic exports', meta: NormalizedModuleMeta) {
-    if (!moduleOptions.exports) {
-      return;
-    }
-    const tokensAtAllLevels = getTokens(meta.providersPerApp.concat(meta.providersPerMod, meta.providersPerRou, meta.providersPerReq));
-
-    this.resolveAllForwardRefs(moduleOptions.exports).forEach((exp, i) => {
-      if (exp === undefined) {
-        throw new UndefinedSymbol(action, meta.name, i);
-      }
-      if (isNormalizedProvider(exp)) {
-        throw new ForbiddenNormalizedExport(meta.name, exp.token.name || exp.token);
-      }
-      if (isDynamicModule(exp)) {
-        if (!meta.exportedDynamicModules.includes(exp)) {
-          meta.exportedDynamicModules.push(exp);
-        }
-      } else if (tokensAtAllLevels.includes(exp)) {
-        this.exportProviders(exp, meta);
-      } else if (Reflector.getClassLevelMeta(exp)?.some(isModuleDecorator)) {
-        if (!meta.exportedStaticModules.includes(exp)) {
-          meta.exportedStaticModules.push(exp);
-        }
-      } else {
-        throw new UnknownExport(meta.name, stringify(exp));
-      }
-    });
-  }
-
-  exportProviders(token: any, meta: NormalizedModuleMeta): void {
-    let found = false;
-    (['Mod', 'Rou', 'Req'] satisfies Level[]).forEach((level) => {
-      const providers = meta[`providersPer${level}`].filter((p) => getToken(p) === token);
-      if (providers.length) {
-        found = true;
-        if (providers.some(isMultiProvider)) {
-          meta[`exportedMultiProvidersPer${level}`].push(...(providers as MultiProvider[]));
+  applyAspectImports(decoratorId: AnyFn, aspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
+    if (aspectOptions.imports) {
+      this.resolveAllForwardRefs(aspectOptions.imports).forEach((imp) => {
+        if (isDynamicModule(imp)) {
+          const params = { ...imp };
+          this.mergeAspectOptionsIntoDynamicModule(decoratorId, params, imp, meta);
+        } else if (isDynamicModuleWrapper(imp)) {
+          const params = { ...imp } as { dynamicModule?: DynamicModule };
+          this.mergeAspectOptionObjects(params, imp.dynamicModule);
+          delete params.dynamicModule;
+          this.mergeAspectOptionsIntoDynamicModule(decoratorId, params, imp.dynamicModule, meta);
         } else {
-          meta[`exportedProvidersPer${level}`].push(...providers);
+          if (!meta.importedStaticModules.includes(imp)) {
+            meta.importedStaticModules.push(imp);
+          }
         }
-      }
-    });
+      });
+    }
+  }
 
-    if (!found) {
-      const providerName = token.name || token;
-      if (meta.providersPerApp.some((p) => getToken(p) === token)) {
-        throw new ForbiddenAppExport(meta.name, providerName);
-      } else {
-        throw new UnknownExport(meta.name, providerName);
-      }
+  applyAspectExports(aspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
+    if (aspectOptions.exports) {
+      this.resolveAllForwardRefs(aspectOptions.exports).forEach((exp) => {
+        if (isDynamicModule(exp)) {
+          if (!meta.exportedDynamicModules.includes(exp)) {
+            meta.exportedDynamicModules.push(exp);
+          }
+        } else if (isDynamicModuleWrapper(exp)) {
+          if (!meta.exportedDynamicModules.includes(exp.dynamicModule)) {
+            meta.exportedDynamicModules.push(exp.dynamicModule);
+          }
+        } else if (Reflector.getClassLevelMeta(exp, isFeatureModule)) {
+          if (!meta.exportedStaticModules.includes(exp)) {
+            meta.exportedStaticModules.push(exp);
+          }
+        }
+      });
     }
   }
 
@@ -178,6 +121,118 @@ export class ModuleMetaProcessor {
     });
   }
 
+  normalizeProvidersAndResolvedCollisions(
+    staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
+    meta: NormalizedModuleMeta,
+  ) {
+    this.normalizeProviders(staticModuleOptions, meta);
+    this.normalizeResolvedCollisions(staticModuleOptions, meta);
+  }
+
+  normalizeExports(moduleOptions: { exports?: any[] }, action: 'Static exports' | 'Dynamic exports', meta: NormalizedModuleMeta) {
+    if (!moduleOptions.exports) {
+      return;
+    }
+    const tokensAtAllLevels = getTokens(meta.providersPerApp.concat(meta.providersPerMod, meta.providersPerRou, meta.providersPerReq));
+
+    this.resolveAllForwardRefs(moduleOptions.exports).forEach((exp, i) => {
+      if (exp === undefined) {
+        throw new UndefinedSymbol(action, meta.name, i);
+      }
+      if (isNormalizedProvider(exp)) {
+        throw new ForbiddenNormalizedExport(meta.name, exp.token.name || exp.token);
+      }
+      if (isDynamicModule(exp)) {
+        if (!meta.exportedDynamicModules.includes(exp)) {
+          meta.exportedDynamicModules.push(exp);
+        }
+      } else if (tokensAtAllLevels.includes(exp)) {
+        this.exportProviders(exp, meta);
+      } else if (Reflector.getClassLevelMeta(exp)?.some(isModuleDecorator)) {
+        if (!meta.exportedStaticModules.includes(exp)) {
+          meta.exportedStaticModules.push(exp);
+        }
+      } else {
+        throw new UnknownExport(meta.name, stringify(exp));
+      }
+    });
+  }
+
+  normalizeAspectMeta(decoratorId: AnyFn, moduleAspect: ModuleAspectHandler, meta: NormalizedModuleMeta) {
+    const aspectMeta = moduleAspect.normalize(meta);
+    if (aspectMeta) {
+      meta.normalizedAspectMetaMap.set(decoratorId, aspectMeta);
+    }
+  }
+
+  /**
+   * Registers a cloned module aspect on the given module: adds it to `allModuleAspectsMap`
+   * and `moduleAspectMap`, ensures the host module is imported, normalizes the aspect
+   * metadata, and applies it to the module's `normalizedAspectMetaMap`.
+   *
+   * This is the single entry point used by {@link ModuleAspectPropagator} to register an aspect
+   * on a module during the post-scan propagation phase.
+   */
+  registerAspectOnModule(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, moduleAspect: ModuleAspectHandler): void {
+    normalizedModuleMeta.allModuleAspectsMap.set(decoratorId, moduleAspect);
+    this.ensureHostModuleImported(moduleAspect, normalizedModuleMeta);
+    this.normalizeAspectMeta(decoratorId, moduleAspect, normalizedModuleMeta);
+    normalizedModuleMeta.moduleAspectMap.set(decoratorId, moduleAspect);
+  }
+
+  normalizeProviders(moduleOptions: Partial<ProvidersByLevel>, meta: NormalizedModuleMeta) {
+    (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
+      const providersKey = `providersPer${level}` as const;
+      if (moduleOptions[providersKey]) {
+        const providersPerLevel = this.resolveAllForwardRefs(moduleOptions[providersKey]);
+        meta[providersKey].push(...providersPerLevel);
+      }
+    });
+  }
+
+  normalizeResolvedCollisions(
+    staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
+    meta: NormalizedModuleMeta,
+  ) {
+    (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
+      const resolvedCollisionKey = `resolvedCollisionsPer${level}` as const;
+      if (staticModuleOptions[resolvedCollisionKey]) {
+        staticModuleOptions[resolvedCollisionKey].forEach(([token, module]) => {
+          token = resolveForwardRef(token);
+          module = resolveForwardRef(module);
+          if (isDynamicModule(module)) {
+            module.module = resolveForwardRef(module.module);
+          }
+          meta[resolvedCollisionKey].push([token, module]);
+        });
+      }
+    });
+  }
+
+  exportProviders(token: any, meta: NormalizedModuleMeta): void {
+    let found = false;
+    (['Mod', 'Rou', 'Req'] satisfies Level[]).forEach((level) => {
+      const providers = meta[`providersPer${level}`].filter((p) => getToken(p) === token);
+      if (providers.length) {
+        found = true;
+        if (providers.some(isMultiProvider)) {
+          meta[`exportedMultiProvidersPer${level}`].push(...(providers as MultiProvider[]));
+        } else {
+          meta[`exportedProvidersPer${level}`].push(...providers);
+        }
+      }
+    });
+
+    if (!found) {
+      const providerName = token.name || token;
+      if (meta.providersPerApp.some((p) => getToken(p) === token)) {
+        throw new ForbiddenAppExport(meta.name, providerName);
+      } else {
+        throw new UnknownExport(meta.name, providerName);
+      }
+    }
+  }
+
   assertValidExtensionProvider(extensionsProvider: Provider, meta: NormalizedModuleMeta) {
     const np = normalizeProviders([extensionsProvider])[0];
     let ExtensionCls: ExtensionClass | undefined;
@@ -200,13 +255,6 @@ export class ModuleMetaProcessor {
     }
   }
 
-  normalizeAspectMeta(decoratorId: AnyFn, moduleAspect: ModuleAspectHandler, meta: NormalizedModuleMeta) {
-    const aspectMeta = moduleAspect.normalize(meta);
-    if (aspectMeta) {
-      meta.normalizedAspectMetaMap.set(decoratorId, aspectMeta);
-    }
-  }
-
   /**
    * Ensures the host module (if any) is added to `importedStaticModules` for the current module,
    * unless the current module itself is the host module.
@@ -215,34 +263,6 @@ export class ModuleMetaProcessor {
     const { hostModule } = moduleAspect;
     if (hostModule && hostModule !== meta.modRefId && !meta.importedStaticModules.includes(hostModule)) {
       meta.importedStaticModules.push(hostModule);
-    }
-  }
-
-  applyAspectModuleOptions(decoratorId: AnyFn, aspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
-    this.applyAspectImports(decoratorId, aspectOptions, meta);
-    this.applyAspectExports(aspectOptions, meta);
-    this.normalizeExtensions(aspectOptions, meta);
-    this.normalizeProvidersAndResolvedCollisions(aspectOptions, meta);
-    this.normalizeExports(aspectOptions, 'Static exports', meta);
-  }
-
-  applyAspectImports(decoratorId: AnyFn, aspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
-    if (aspectOptions.imports) {
-      this.resolveAllForwardRefs(aspectOptions.imports).forEach((imp) => {
-        if (isDynamicModule(imp)) {
-          const params = { ...imp };
-          this.mergeAspectOptionsIntoDynamicModule(decoratorId, params, imp, meta);
-        } else if (isDynamicModuleWrapper(imp)) {
-          const params = { ...imp } as { dynamicModule?: DynamicModule };
-          this.mergeAspectOptionObjects(params, imp.dynamicModule);
-          delete params.dynamicModule;
-          this.mergeAspectOptionsIntoDynamicModule(decoratorId, params, imp.dynamicModule, meta);
-        } else {
-          if (!meta.importedStaticModules.includes(imp)) {
-            meta.importedStaticModules.push(imp);
-          }
-        }
-      });
     }
   }
 
@@ -278,26 +298,6 @@ export class ModuleMetaProcessor {
     });
 
     return dstn;
-  }
-
-  applyAspectExports(aspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
-    if (aspectOptions.exports) {
-      this.resolveAllForwardRefs(aspectOptions.exports).forEach((exp) => {
-        if (isDynamicModule(exp)) {
-          if (!meta.exportedDynamicModules.includes(exp)) {
-            meta.exportedDynamicModules.push(exp);
-          }
-        } else if (isDynamicModuleWrapper(exp)) {
-          if (!meta.exportedDynamicModules.includes(exp.dynamicModule)) {
-            meta.exportedDynamicModules.push(exp.dynamicModule);
-          }
-        } else if (Reflector.getClassLevelMeta(exp, isFeatureModule)) {
-          if (!meta.exportedStaticModules.includes(exp)) {
-            meta.exportedStaticModules.push(exp);
-          }
-        }
-      });
-    }
   }
 
   resolveAllForwardRefs<T extends ModRefId | Provider | ForwardRefFn | { dynamicModule: DynamicModule }>(
