@@ -46,12 +46,12 @@ export class ModuleMetaProcessor {
     if (staticAspectOptions.imports) {
       this.resolveAllForwardRefs(staticAspectOptions.imports).forEach((imp) => {
         if (isDynamicModule(imp)) {
-          const { module, dynamicAspectOptionsMap, ...params } = imp;
-          this.mergeAspectOptionsIntoDynamicModule(decoratorId, params, imp, meta);
+          const { module, dynamicAspectOptionsMap, ...dynamicOptions } = imp;
+          this.mergeAspectOptionsIntoDynamicModule(decoratorId, dynamicOptions, imp, meta);
         } else if (isDynamicModuleWrapper(imp)) {
-          const { dynamicModule, ...params } = imp;
-          this.mergeAspectOptionObjects(params, imp.dynamicModule);
-          this.mergeAspectOptionsIntoDynamicModule(decoratorId, params, imp.dynamicModule, meta);
+          const { module, dynamicModule, ...dynamicOptions } = imp;
+          this.applyBaseOptions(dynamicOptions, imp.dynamicModule);
+          this.mergeAspectOptionsIntoDynamicModule(decoratorId, dynamicOptions, imp.dynamicModule, meta);
         } else {
           if (!meta.importedStaticModules.includes(imp)) {
             meta.importedStaticModules.push(imp);
@@ -267,40 +267,39 @@ export class ModuleMetaProcessor {
 
   protected mergeAspectOptionsIntoDynamicModule<T extends DynamicModuleOptions>(
     decoratorId: ModuleAspectDecorator<any, T, any>,
-    params: T,
+    dynamicOptions: T,
     dynamicModule: DynamicModule,
     meta: NormalizedModuleMeta,
   ) {
     dynamicModule.dynamicAspectOptionsMap ??= new Map();
     if (dynamicModule.dynamicAspectOptionsMap.has(decoratorId)) {
-      const existingParams = dynamicModule.dynamicAspectOptionsMap.get(decoratorId)!;
-      dynamicModule.dynamicAspectOptionsMap.set(decoratorId, this.mergeAspectOptionObjects(params, existingParams));
+      const existingDynamicOptions = dynamicModule.dynamicAspectOptionsMap.get(decoratorId)!;
+      dynamicModule.dynamicAspectOptionsMap.set(decoratorId, this.applyBaseOptions(dynamicOptions, existingDynamicOptions));
     } else {
-      dynamicModule.dynamicAspectOptionsMap.set(decoratorId, params);
+      dynamicModule.dynamicAspectOptionsMap.set(decoratorId, dynamicOptions);
     }
     if (!meta.importedDynamicModules.includes(dynamicModule)) {
       meta.importedDynamicModules.push(dynamicModule);
     }
   }
 
-  protected mergeAspectOptionObjects<T1 extends DynamicModuleOptions, T2 extends DynamicModuleOptions>(dstn: T1, src: T2): T1;
-  protected mergeAspectOptionObjects(dstn: AnyObj, src: AnyObj) {
-    objectKeys(src).forEach((prop) => {
+  protected applyBaseOptions<T1 extends DynamicModuleOptions, T2 extends DynamicModuleOptions>(overrides: T2, base: T1): T1;
+  protected applyBaseOptions<T1 extends DynamicModuleOptions>(overrides: AnyObj, base: T1) {
+    objectKeys(base).forEach((prop) => {
       if (prop == 'dynamicAspectOptionsMap' || prop == 'module') {
         // ignore
-      } else if (Array.isArray(src[prop])) {
-        if (src[prop].length) {
-          dstn[prop] = [...src[prop], ...(dstn[prop] || [])];
+      } else if (Array.isArray(base[prop])) {
+        if (base[prop].length) {
+          overrides[prop] = base[prop].concat(overrides[prop] || []);
         }
-      } else if (src[prop] !== null && typeof src[prop] == 'object') {
-        dstn[prop] ??= {};
-        dstn[prop] = Object.assign(src[prop], dstn[prop]);
+      } else if (base[prop] !== null && typeof base[prop] == 'object') {
+        overrides[prop] = Object.assign({}, base[prop], overrides[prop]);
       } else {
-        dstn[prop] ??= src[prop];
+        overrides[prop] ??= base[prop];
       }
     });
 
-    return dstn;
+    return overrides;
   }
 
   resolveAllForwardRefs<T extends ModRefId | Provider | ForwardRefFn | { dynamicModule: DynamicModule }>(

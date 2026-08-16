@@ -28,10 +28,6 @@ function checkModuleRole(arg: any, expectedRole: 'root' | 'feature', ExpectedCla
   return arg instanceof ExpectedClass;
 }
 
-export function isDynamicModuleWrapper(arg?: any): arg is { dynamicModule: DynamicModule } {
-  return isDynamicModule(arg?.dynamicModule);
-}
-
 export function isRootModule(decorMeta?: DecoratorMeta): decorMeta is DecoratorMeta<RootModuleOptions>;
 export function isRootModule(
   normalizedModuleMeta?: NormalizedModuleMeta,
@@ -76,4 +72,8 @@ export function hasDeclaredInDir(decoratorMeta?: DecoratorMeta): decoratorMeta i
 
 export function isDynamicModule(modRefId?: any): modRefId is DynamicModule {
   return modRefId?.module !== undefined;
+}
+
+export function isDynamicModuleWrapper(arg?: any): arg is { dynamicModule: DynamicModule } {
+  return isDynamicModule(arg?.dynamicModule);
 }
