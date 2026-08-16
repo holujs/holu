@@ -82,7 +82,7 @@ npx skills add https://github.com/holujs/agent-skills --skill '*' -y
 npm run start:dev
 ```
 
-Або безпосередньо через Holu CLI:
+Або безпосередньо через Holu CLI (якщо `@holu/cli` ви встановили глобально):
 
 ```bash
 holu start

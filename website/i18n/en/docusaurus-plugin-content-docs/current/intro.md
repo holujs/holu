@@ -82,7 +82,7 @@ You can start the application in development mode with the following command:
 npm run start:dev
 ```
 
-Or directly using Holu CLI:
+Or directly via Holu CLI (if you have installed `@holu/cli` globally):
 
 ```bash
 holu start
