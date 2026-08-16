@@ -42,7 +42,7 @@ export class ModuleMetaProcessor {
     this.normalizeExports(staticAspectOptions, 'Static exports', meta);
   }
 
-  applyAspectImports(decoratorId: AnyFn, staticAspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
+  protected applyAspectImports(decoratorId: AnyFn, staticAspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
     if (staticAspectOptions.imports) {
       this.resolveAllForwardRefs(staticAspectOptions.imports).forEach((imp) => {
         if (isDynamicModule(imp)) {
@@ -61,7 +61,7 @@ export class ModuleMetaProcessor {
     }
   }
 
-  applyAspectExports(staticAspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
+  protected applyAspectExports(staticAspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
     if (staticAspectOptions.exports) {
       this.resolveAllForwardRefs(staticAspectOptions.exports).forEach((exp) => {
         if (isDynamicModule(exp)) {
@@ -189,7 +189,7 @@ export class ModuleMetaProcessor {
     });
   }
 
-  normalizeResolvedCollisions(
+  protected normalizeResolvedCollisions(
     staticAspectOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
     meta: NormalizedModuleMeta,
   ) {
@@ -208,7 +208,7 @@ export class ModuleMetaProcessor {
     });
   }
 
-  exportProviders(token: any, meta: NormalizedModuleMeta): void {
+  protected exportProviders(token: any, meta: NormalizedModuleMeta): void {
     let found = false;
     (['Mod', 'Rou', 'Req'] satisfies Level[]).forEach((level) => {
       const providers = meta[`providersPer${level}`].filter((p) => getToken(p) === token);
@@ -232,7 +232,7 @@ export class ModuleMetaProcessor {
     }
   }
 
-  assertValidExtensionProvider(extensionsProvider: Provider, meta: NormalizedModuleMeta) {
+  protected assertValidExtensionProvider(extensionsProvider: Provider, meta: NormalizedModuleMeta) {
     const np = normalizeProviders([extensionsProvider])[0];
     let ExtensionCls: ExtensionClass | undefined;
     if (isClassProvider(np)) {
@@ -265,7 +265,7 @@ export class ModuleMetaProcessor {
     }
   }
 
-  mergeAspectOptionsIntoDynamicModule<T extends DynamicModuleOptions>(
+  protected mergeAspectOptionsIntoDynamicModule<T extends DynamicModuleOptions>(
     decoratorId: ModuleAspectDecorator<any, T, any>,
     params: T,
     dynamicModule: DynamicModule,
@@ -283,8 +283,8 @@ export class ModuleMetaProcessor {
     }
   }
 
-  mergeAspectOptionObjects<T1 extends DynamicModuleOptions, T2 extends DynamicModuleOptions>(dstn: T1, src: T2): T1;
-  mergeAspectOptionObjects(dstn: AnyObj, src: AnyObj) {
+  protected mergeAspectOptionObjects<T1 extends DynamicModuleOptions, T2 extends DynamicModuleOptions>(dstn: T1, src: T2): T1;
+  protected mergeAspectOptionObjects(dstn: AnyObj, src: AnyObj) {
     objectKeys(src).forEach((prop) => {
       if (prop == 'dynamicAspectOptionsMap' || prop == 'module') {
         // ignore
