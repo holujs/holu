@@ -13,7 +13,7 @@
     "build": "tsc -b tsconfig.build.json",
     "test": "yarn build-test && yarn esm-jest",
     "build-test": "tsc -b tsconfig.unit.json",
-    "clean": "rm -rf dist*",
+    "clean": "rm -rf dist* coverage coverage",
     "esm-jest": "yarn node --experimental-vm-modules --no-warnings=ExperimentalWarning --enable-source-maps ../../scripts/run-jest.mjs"
   },
   "imports": {

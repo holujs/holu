@@ -33,7 +33,7 @@
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
     "build-ui": "yarn build && node dist/swagger-ui/compile.js",
-    "clean": "rm -rf dist*",
+    "clean": "rm -rf dist* coverage",
     "build-test": "tsc -b tsconfig.unit.json",
     "test": "yarn build-test && yarn esm-jest",
     "esm-jest": "yarn node --experimental-vm-modules --no-warnings=ExperimentalWarning --enable-source-maps ../../scripts/run-jest.mjs"

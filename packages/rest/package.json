@@ -41,7 +41,7 @@
   },
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
-    "clean": "rm -rf dist*",
+    "clean": "rm -rf dist* coverage",
     "test": "yarn build-test && yarn esm-jest",
     "build-unit": "tsc -b tsconfig.unit.json",
     "test-unit": "tsc -b tsconfig.unit.json && yarn esm-jest",

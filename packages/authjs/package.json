@@ -11,7 +11,7 @@
   "module": "dist/index.js",
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
-    "clean": "rm -rf dist*",
+    "clean": "rm -rf dist* coverage",
     "test": "yarn build-test && yarn esm-jest",
     "esm-jest": "yarn node --experimental-vm-modules --no-warnings=ExperimentalWarning --enable-source-maps ../../scripts/run-jest.mjs",
     "build-test": "tsc -b tsconfig.e2e.json"

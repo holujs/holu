@@ -18,7 +18,7 @@
   },
   "scripts": {
     "build": "tsc -b tsconfig.build.json",
-    "clean": "rm -rf dist*",
+    "clean": "rm -rf dist* coverage",
     "test": "tsc -b tsconfig.unit.json && yarn esm-jest",
     "esm-jest": "yarn node --experimental-vm-modules --no-warnings=ExperimentalWarning --enable-source-maps ../../scripts/run-jest.mjs"
   },

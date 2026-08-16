@@ -17,3 +17,4 @@ packages/openapi/ui
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+coverage/
