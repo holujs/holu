@@ -16,6 +16,7 @@ import {
   ForbiddenAppExport,
   InvalidExtension,
   ReexportFailure,
+  UndefinedSymbol,
 } from '#error/core-errors.js';
 import { injectable } from '#di/decorators.js';
 import type { MultiProvider } from '#di/utils.js';
@@ -190,7 +191,7 @@ describe('ModuleMetaProcessor', () => {
       expect(() => normalizer.normalize(Module1)).toThrow(new ReexportFailure('Module1', 'ImportedModule'));
     });
 
-    it('re-exports the same DynamicModule object that was imported through module params', () => {
+    it('re-exports the same DynamicModule object that was imported as a dynamic module', () => {
       class Service1 {}
       class Service2 {}
 
@@ -307,7 +308,7 @@ describe('ModuleMetaProcessor', () => {
 
     class SomeAspectMeta extends BaseNormalizedModuleMeta {
       normalizedModuleMeta?: NormalizedModuleMeta;
-      dynamicAspectOptionsMap?: SomeAspectOptions;
+      staticAspectOptions?: SomeAspectOptions;
       flag?: boolean;
       path?: string;
       targetModRefId?: ModRefId;
@@ -317,11 +318,11 @@ describe('ModuleMetaProcessor', () => {
       override normalize(normalizedModuleMeta: NormalizedModuleMeta) {
         const meta = createAspectMetaProxy(normalizedModuleMeta, SomeAspectMeta);
         meta.normalizedModuleMeta = normalizedModuleMeta;
-        meta.dynamicAspectOptionsMap = this.staticAspectOptions;
+        meta.staticAspectOptions = this.staticAspectOptions;
 
         if (isDynamicModule(normalizedModuleMeta.modRefId)) {
-          const params = normalizedModuleMeta.modRefId.dynamicAspectOptionsMap?.get(someAspect);
-          meta.path = params?.path;
+          const dynamicOptions = normalizedModuleMeta.modRefId.dynamicAspectOptionsMap?.get(someAspect);
+          meta.path = dynamicOptions?.path;
           meta.targetModRefId = normalizedModuleMeta.modRefId;
         } else {
           meta.flag = this.staticAspectOptions.flag;
@@ -348,7 +349,7 @@ describe('ModuleMetaProcessor', () => {
 
       const aspectMeta = normalizer.normalize(Module1).normalizedAspectMetaMap.get(someAspect);
       expect(aspectMeta?.normalizedModuleMeta?.modRefId).toBe(Module1);
-      expect(aspectMeta?.dynamicAspectOptionsMap).toEqual(staticAspectOptions);
+      expect(aspectMeta?.staticAspectOptions).toEqual(staticAspectOptions);
       expect(aspectMeta?.targetModRefId).toBe(Module1);
       expect(aspectMeta?.flag).toBe(true);
     });
@@ -378,7 +379,7 @@ describe('ModuleMetaProcessor', () => {
       expect(normalizedModuleMeta.extensionsMeta).toEqual({ one: 1 });
     });
 
-    it('merges wrapper init params, dynamic module params, and existing dynamicAspectOptionsMap when importing modules with params', () => {
+    it('merges wrapper aspect options, dynamic module options, and existing dynamicAspectOptionsMap when importing modules with dynamic options', () => {
       class Service1 {}
       class Service2 {}
       class Service3 {}
@@ -515,13 +516,13 @@ describe('ModuleMetaProcessor', () => {
         override hostModule = HostModule;
       }
 
-      const hostInitSome: ModuleAspectDecorator<SomeAspectOptions, {}, {}> = Reflector.makeClassDecorator(
+      const hostSomeAspect: ModuleAspectDecorator<SomeAspectOptions, {}, {}> = Reflector.makeClassDecorator(
         (data) => new HostModuleAspect(data),
       );
 
       class Service1 {}
 
-      @hostInitSome({})
+      @hostSomeAspect({})
       @featureModule({ providersPerMod: [Service1], exports: [Service1] })
       class Module1 {}
 
@@ -545,16 +546,163 @@ describe('ModuleMetaProcessor', () => {
         }
       }
 
-      const hostInitSome: ModuleAspectDecorator<SomeAspectOptions, {}, {}> = Reflector.makeClassDecorator(
+      const hostSomeAspect: ModuleAspectDecorator<SomeAspectOptions, {}, {}> = Reflector.makeClassDecorator(
         (data) => new HostModuleAspect(data),
       );
       const moduleAspect = new HostModuleAspect({}).clone({ flag: true });
 
       const normalizedModuleMeta = normalizer.normalize(HostModule);
       const metaProcessor = new ModuleMetaProcessor();
-      metaProcessor.applyHostStaticAspectOptions(normalizedModuleMeta, hostInitSome, moduleAspect as any);
+      metaProcessor.applyHostStaticAspectOptions(normalizedModuleMeta, hostSomeAspect, moduleAspect as any);
 
-      expect(normalizedModuleMeta.normalizedAspectMetaMap.get(hostInitSome)).toEqual({ flag: true, targetModRefId: HostModule });
+      expect(normalizedModuleMeta.normalizedAspectMetaMap.get(hostSomeAspect)).toEqual({ flag: true, targetModRefId: HostModule });
+    });
+
+    it('registerAspectOnModule registers aspect and ensures host module is imported', () => {
+      @featureModule()
+      class HostModule {}
+      class HostModuleAspect extends ModuleAspectHandler<SomeAspectOptions> {
+        override hostModule = HostModule;
+        override normalize(normalizedModuleMeta: NormalizedModuleMeta): SomeAspectMeta {
+          return {
+            targetModRefId: normalizedModuleMeta.modRefId,
+          } as SomeAspectMeta;
+        }
+      }
+      const hostSomeAspect = Reflector.makeClassDecorator((data) => new HostModuleAspect(data));
+      const moduleAspect = new HostModuleAspect({});
+
+      @featureModule()
+      class Module1 {}
+      const normalizedModuleMeta = normalizer.normalize(Module1);
+      const metaProcessor = new ModuleMetaProcessor();
+
+      metaProcessor.registerAspectOnModule(normalizedModuleMeta, hostSomeAspect, moduleAspect);
+
+      expect(normalizedModuleMeta.allModuleAspectsMap.get(hostSomeAspect)).toBe(moduleAspect);
+      expect(normalizedModuleMeta.moduleAspectMap.get(hostSomeAspect)).toBe(moduleAspect);
+      expect(normalizedModuleMeta.importedStaticModules).toContain(HostModule);
+      expect(normalizedModuleMeta.normalizedAspectMetaMap.get(hostSomeAspect)).toEqual({ targetModRefId: Module1 });
+    });
+
+    it('throws errors for invalid exports in aspect decorators', () => {
+      class UnknownService {}
+      class AppService {}
+
+      @someAspect({ exports: [undefined as any] })
+      @featureModule()
+      class ModuleWithUndefinedExport {}
+      expect(() => normalizer.normalize(ModuleWithUndefinedExport)).toThrow(
+        new UndefinedSymbol('Static exports', 'ModuleWithUndefinedExport', 0),
+      );
+
+      @someAspect({ exports: [{ token: 't', useValue: 'v' } as any] })
+      @featureModule()
+      class ModuleWithNormalizedExport {}
+      expect(() => normalizer.normalize(ModuleWithNormalizedExport)).toThrow(
+        new ForbiddenNormalizedExport('ModuleWithNormalizedExport', 't'),
+      );
+
+      @someAspect({ providersPerApp: [AppService], exports: [AppService] })
+      @featureModule()
+      class ModuleWithAppExport {}
+      expect(() => normalizer.normalize(ModuleWithAppExport)).toThrow(new ForbiddenAppExport('ModuleWithAppExport', 'AppService'));
+
+      @someAspect({ exports: [UnknownService] })
+      @featureModule()
+      class ModuleWithUnknownExport {}
+      expect(() => normalizer.normalize(ModuleWithUnknownExport)).toThrow(
+        new UnknownExport('ModuleWithUnknownExport', 'UnknownService'),
+      );
+    });
+
+    it('resolves forwardRef for resolvedCollisions in aspect decorators', () => {
+      class Token1 {}
+      class Token2 {}
+      class Module1 {}
+      class Module2 {}
+
+      @someAspect({
+        resolvedCollisionsPerApp: [[forwardRef(() => Token1), { module: forwardRef(() => Module1) }]],
+        resolvedCollisionsPerMod: [[forwardRef(() => Token2), forwardRef(() => Module2)]],
+      } as any)
+      @featureModule()
+      class ModuleWithCollisions {}
+
+      const normalizedModuleMeta = normalizer.normalize(ModuleWithCollisions);
+      expect(normalizedModuleMeta.resolvedCollisionsPerApp).toEqual([[Token1, { module: Module1 }]]);
+      expect(normalizedModuleMeta.resolvedCollisionsPerMod).toEqual([[Token2, Module2]]);
+    });
+
+    it('assertValidExtensionProvider handles useToken and useValue properly in extensions declared by an aspect decorator', () => {
+      @injectable()
+      class Extension1 implements Extension {
+        async stage1() {}
+      }
+
+      @someAspect({
+        extensions: [
+          { extension: { token: 'ext1', useToken: forwardRef(() => Extension1) } as any },
+          { extension: { token: 'ext2', useValue: new Extension1() } as any },
+        ],
+      })
+      @featureModule()
+      class ModuleWithExtensions {}
+
+      const normalizedModuleMeta = normalizer.normalize(ModuleWithExtensions);
+      expect(normalizedModuleMeta.extensionProviders).toEqual([
+        { token: 'ext1', useToken: Extension1 },
+        { token: 'ext2', useValue: expect.any(Extension1) },
+      ]);
+    });
+
+    it('resolves forwardRef for useToken in providers', () => {
+      class Service1 {}
+
+      @someAspect({
+        providersPerMod: [{ token: 't1', useToken: forwardRef(() => Service1) }],
+      })
+      @featureModule()
+      class ModuleWithUseToken {}
+
+      const normalizedModuleMeta = normalizer.normalize(ModuleWithUseToken);
+      expect(normalizedModuleMeta.providersPerMod).toEqual([{ token: 't1', useToken: Service1 }]);
+    });
+
+    it('normalizes aspect decorator dynamic wrapper exports via applyAspectExports', () => {
+      @featureModule()
+      class Module2 {}
+      const dynamicModule2: DynamicModule = { module: Module2 };
+
+      @featureModule()
+      class ModuleWithDynamicWrapperExport {}
+
+      const normalizedModuleMeta = normalizer.normalize(ModuleWithDynamicWrapperExport);
+      const metaProcessor = new ModuleMetaProcessor();
+      (metaProcessor as any).applyAspectExports({ exports: [{ dynamicModule: dynamicModule2 }] }, normalizedModuleMeta);
+
+      expect(normalizedModuleMeta.exportedDynamicModules).toEqual([dynamicModule2]);
+    });
+
+    it('normalizes exportedGroupTokensMap in extensions declared by an aspect decorator', () => {
+      @injectable()
+      class Extension1 implements Extension {
+        async stage1() {}
+      }
+      @injectable()
+      class Extension2 implements Extension {
+        async stage1() {}
+      }
+
+      @someAspect({
+        extensions: [{ extension: Extension1, groups: [Extension2], export: true }],
+      })
+      @featureModule()
+      class ModuleWithExtensions {}
+
+      const normalizedModuleMeta = normalizer.normalize(ModuleWithExtensions);
+      const groupToken = KeyRegistry.getExtensionGroupToken(Extension2);
+      expect(normalizedModuleMeta.exportedExtensionGroupTokensMap.get(Extension2)).toBe(groupToken);
     });
   });
 });
