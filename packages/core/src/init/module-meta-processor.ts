@@ -3,10 +3,10 @@ import type { AnyObj, Level, PickProps } from '#types/mix.js';
 import type { ProvidersByLevel } from '#types/providers-metadata.js';
 import type { ModRefId } from '#decorators/module-decorator-options.js';
 import type { AnyFn, Provider } from '#di/top/types-and-models.js';
-import type { DynamicModule, FeatureModuleOptions } from '#decorators/module-decorator-options.js';
+import type { DynamicModule, FeatureModuleOptions, DynamicModuleOptions } from '#decorators/module-decorator-options.js';
 import type { ForwardRefFn } from '#di/forward-ref.js';
 import type { ExtensionClass } from '#extension/extension-types.js';
-import type { StaticAspectOptions, ModuleAspectHandler } from '#decorators/module-aspects.js';
+import type { StaticAspectOptions, ModuleAspectHandler, ModuleAspectDecorator } from '#decorators/module-aspects.js';
 import type { ProviderBuilder } from '#utils/providers.js';
 import type { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import type { MultiProvider } from '#di/utils.js';
@@ -46,12 +46,11 @@ export class ModuleMetaProcessor {
     if (staticAspectOptions.imports) {
       this.resolveAllForwardRefs(staticAspectOptions.imports).forEach((imp) => {
         if (isDynamicModule(imp)) {
-          const params = { ...imp };
+          const { module, dynamicAspectOptionsMap, ...params } = imp;
           this.mergeAspectOptionsIntoDynamicModule(decoratorId, params, imp, meta);
         } else if (isDynamicModuleWrapper(imp)) {
-          const params = { ...imp } as { dynamicModule?: DynamicModule };
+          const { dynamicModule, ...params } = imp;
           this.mergeAspectOptionObjects(params, imp.dynamicModule);
-          delete params.dynamicModule;
           this.mergeAspectOptionsIntoDynamicModule(decoratorId, params, imp.dynamicModule, meta);
         } else {
           if (!meta.importedStaticModules.includes(imp)) {
@@ -266,9 +265,12 @@ export class ModuleMetaProcessor {
     }
   }
 
-  mergeAspectOptionsIntoDynamicModule(decoratorId: AnyFn, params: AnyObj, dynamicModule: DynamicModule, meta: NormalizedModuleMeta) {
-    delete params.module;
-    delete params.dynamicAspectOptionsMap;
+  mergeAspectOptionsIntoDynamicModule<T extends DynamicModuleOptions>(
+    decoratorId: ModuleAspectDecorator<any, T, any>,
+    params: T,
+    dynamicModule: DynamicModule,
+    meta: NormalizedModuleMeta,
+  ) {
     dynamicModule.dynamicAspectOptionsMap ??= new Map();
     if (dynamicModule.dynamicAspectOptionsMap.has(decoratorId)) {
       const existingParams = dynamicModule.dynamicAspectOptionsMap.get(decoratorId)!;
@@ -281,6 +283,7 @@ export class ModuleMetaProcessor {
     }
   }
 
+  mergeAspectOptionObjects<T1 extends DynamicModuleOptions, T2 extends DynamicModuleOptions>(dstn: T1, src: T2): T1;
   mergeAspectOptionObjects(dstn: AnyObj, src: AnyObj) {
     objectKeys(src).forEach((prop) => {
       if (prop == 'dynamicAspectOptionsMap' || prop == 'module') {

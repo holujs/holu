@@ -140,14 +140,14 @@ export interface NormalizedAspectMetaMap {
 }
 
 export interface DynamicAspectOptionsMap {
-  set<T extends AnyObj>(decorator: ModuleAspectDecorator<any, T, any>, params: T): this;
-  get<T extends AnyObj>(decorator: ModuleAspectDecorator<any, T, any>): T | undefined;
-  forEach<T extends AnyObj>(callbackfn: (params: T, decorator: AnyFn, map: Map<AnyFn, T>) => void, thisArg?: any): void;
+  set<T extends DynamicModuleOptions>(decorator: ModuleAspectDecorator<any, T, any>, params: T): this;
+  get<T extends DynamicModuleOptions>(decorator: ModuleAspectDecorator<any, T, any>): T | undefined;
+  forEach<T extends DynamicModuleOptions>(callbackfn: (params: T, decorator: AnyFn, map: Map<AnyFn, T>) => void, thisArg?: any): void;
   /**
    * Returns an iterable of keys in the map
    */
   keys(): MapIterator<AnyFn>;
-  values<T extends AnyObj>(): MapIterator<T>;
+  values<T extends DynamicModuleOptions>(): MapIterator<T>;
   readonly size: number;
   /**
    * @returns boolean indicating whether an element with the specified key exists or not.

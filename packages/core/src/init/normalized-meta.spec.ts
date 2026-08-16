@@ -116,7 +116,7 @@ describe('NormalizedModuleMeta', () => {
           return meta;
         }
       }
-      const someAspect: ModuleAspectDecorator<RootAspectOptions, { path?: string }, AspectMeta> = Reflector.makeClassDecorator(
+      const someAspect: ModuleAspectDecorator<RootAspectOptions, MyDynamicOptions, AspectMeta> = Reflector.makeClassDecorator(
         (d) => new ModuleAspect1(d),
       );
 
