@@ -48,6 +48,11 @@ export class ModuleAspectHandler<T1 extends StaticAspectOptions = StaticAspectOp
 
   /**
    * Returns a new instance of the current class. Most likely, you don't need to override this method.
+   *
+   * It is used to propagate aspects to modules that do not have their own explicitly
+   * defined aspects of this type. By cloning the handler, the framework ensures that aspect handlers are
+   * passed down the module tree, but their internal state is isolated and not shared between different modules.
+   * Each module receives a fresh instance of the aspect handler.
    */
   clone<R extends this>(staticAspectOptions?: T1) {
     return new (this.constructor as { new (arg: object): R })(staticAspectOptions || {});

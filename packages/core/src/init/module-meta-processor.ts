@@ -29,11 +29,28 @@ import { UndefinedSymbol, InvalidExtension, UnknownExport, ForbiddenNormalizedEx
  * (mutation of existing metadata during aspect propagation).
  */
 export class ModuleMetaProcessor {
+  /**
+   * Applies the aspect's static options to the host module and normalizes its metadata.
+   *
+   * This method performs two distinct operations:
+   * 1. Merges the aspect's static options (such as providers, imports, extensions, etc.) directly into the
+   *    host module's metadata (`hostMeta`), effectively injecting the aspect's dependencies into the module.
+   * 2. Calls the aspect handler's `normalize()` method to generate and save the aspect's specific
+   *    normalized metadata state into `hostMeta.normalizedAspectMetaMap`.
+   */
   applyHostStaticAspectOptions(hostMeta: NormalizedModuleMeta, decoratorId: AnyFn, aspectHandler: ModuleAspectHandler) {
     this.applyAspectModuleOptions(decoratorId, aspectHandler.staticAspectOptions, hostMeta);
     this.normalizeAspectMeta(decoratorId, aspectHandler, hostMeta);
   }
 
+  /**
+   * Merges all configuration options provided by a static aspect into the target module's metadata.
+   *
+   * It sequentially processes imports, exports, extensions, providers, and resolved collisions
+   * defined in the aspect's `staticAspectOptions`, incorporating them directly into the
+   * corresponding structures of the target `NormalizedModuleMeta`. This ensures that the module
+   * inherits all dependencies and configurations required by the aspect.
+   */
   applyAspectModuleOptions(decoratorId: AnyFn, staticAspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
     this.applyAspectImports(decoratorId, staticAspectOptions, meta);
     this.applyAspectExports(staticAspectOptions, meta);

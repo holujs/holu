@@ -54,6 +54,17 @@ export class ModuleAspectPropagator {
     }
   }
 
+  /**
+   * Applies the host aspect options to the corresponding host module and identifies any newly
+   * introduced module dependencies.
+   *
+   * After integrating the aspect's configuration into the host module, this method determines
+   * what additional modules need to be scanned. It does this by invoking the aspect handler's
+   * `getModulesToScan()` method and inspecting the host module for any newly added imports or exports.
+   *
+   * @returns `true` if new, previously unscanned module dependencies were found, indicating that
+   * the module registry requires an additional scanning iteration.
+   */
   protected applyHostAspectAndGatherDependencies(
     hostMeta: NormalizedModuleMeta,
     decoratorId: AnyFn,
