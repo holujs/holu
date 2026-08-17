@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'packages/website/**'
+      - 'website/**'
       - '.github/workflows/deploy-docusaurus.yml'
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
           corepack enable
           corepack install
       - name: Install and build
-        working-directory: packages/website
+        working-directory: website
         run: |
           yarn install --immutable
           yarn build
@@ -33,5 +33,5 @@ jobs:
           personal_token: ${{ secrets.DEPLOY_TOKEN }}
           external_repository: holujs/holujs.github.io
           publish_branch: main
-          publish_dir: packages/website/build
+          publish_dir: website/build
           force_orphan: true
