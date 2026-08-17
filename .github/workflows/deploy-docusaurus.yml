@@ -1,0 +1,37 @@
+name: Deploy Docusaurus
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/website/**'
+      - '.github/workflows/deploy-docusaurus.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          corepack install
+      - name: Install and build
+        working-directory: packages/website
+        run: |
+          yarn install --immutable
+          yarn build
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          personal_token: ${{ secrets.DEPLOY_TOKEN }}
+          external_repository: holujs/holujs.github.io
+          publish_branch: main
+          publish_dir: packages/website/build
+          force_orphan: true
