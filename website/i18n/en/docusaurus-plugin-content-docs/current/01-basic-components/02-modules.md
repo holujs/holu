@@ -218,6 +218,50 @@ interface DynamicModule {
 }
 ```
 
+#### DynamicModuleWrapper {#DynamicModuleWrapper}
+
+In addition to `DynamicModule`, Holu provides a wrapper interface called `DynamicModuleWrapper`. It is used exclusively within aspect decorators (like `@restModule`, `@trpcModule`, etc.) to attach aspect-specific options to a dynamic module without breaking its object reference identity.
+
+```ts
+interface DynamicModuleWrapper {
+  dynamicModule: DynamicModule;
+  module?: never;
+}
+```
+
+This wrapper is crucial when you import the **same** dynamic module across multiple aspects and need to configure it differently for each. If you were to spread the object (`{ ...SomeModule.forRoot() }`), the framework would treat it as a distinct dynamic module instance.
+
+Example of declarative usage:
+
+```ts
+const dynamicModule = SomeModule.forRoot();
+
+@aspect1({
+  imports: [
+    { dynamicModule, option1: 'one' }
+  ]
+})
+@aspect2({
+  imports: [
+    { dynamicModule, option2: 'two' }
+  ]
+})
+class SomeModule {}
+```
+
+Programmatic alternative:
+
+```ts
+const dynamicModule = SomeModule.forRoot();
+dynamicModule.dynamicAspectOptionsMap ??= new Map();
+dynamicModule.dynamicAspectOptionsMap.set(aspect1, { option1: 'one' });
+dynamicModule.dynamicAspectOptionsMap.set(aspect2, { option2: 'two' });
+
+@aspect1({ imports: [dynamicModule] })
+@aspect2({ imports: [dynamicModule] })
+class SomeModule {}
+```
+
 To reduce the length of the code when importing an object of this type, it is sometimes advisable to write a static method in the importing module. To see this clearly, let's take the previous example again:
 
 ```ts {6}

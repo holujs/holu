@@ -181,12 +181,54 @@ export interface ModuleAspectDecorator<T extends StaticAspectOptions, DynamicAsp
 }
 
 /**
- * Dynamic module wrapper with additional custom options.
+ * A wrapper for a {@link DynamicModule} used exclusively within aspect decorators.
+ *
+ * It allows you to attach aspect-specific options to a dynamic module directly in the `imports` array,
+ * while preserving the object reference identity of the underlying `DynamicModule`.
+ *
+ * If you were to spread the dynamic module (`{ ...SomeModule.forRoot(), myAspectOption: 123 }`),
+ * it would create a new object, causing the framework to treat it as a distinct module instance
+ * and potentially leading to duplicated providers or extensions. Using this wrapper
+ * avoids this issue by keeping the original dynamic module reference intact.
+ *
+ * This is particularly crucial when you need to import the **same** dynamic module across multiple aspects
+ * and configure it differently for each. Spreading would create duplicate module instances, whereas
+ * this wrapper safely attaches multiple aspect configurations to the single module instance.
+ *
+ * ### Declarative Usage (Wrapper)
+ *
+ * ```ts
+ * const dynamicModule = SomeModule.forRoot();
+ *
+ * @aspect1({
+ *   imports: [
+ *     { dynamicModule, option1: 'one' }
+ *   ]
+ * })
+ * @aspect2({
+ *   imports: [
+ *     { dynamicModule, option2: 'two' }
+ *   ]
+ * })
+ * class SomeModule {}
+ * ```
+ *
+ * ### Programmatic Alternative
+ *
+ * The wrapper above is simply a declarative alternative to programmatically setting options via `dynamicAspectOptionsMap`:
+ *
+ * ```ts
+ * const dynamicModule = SomeModule.forRoot();
+ * dynamicModule.dynamicAspectOptionsMap ??= new Map();
+ * dynamicModule.dynamicAspectOptionsMap.set(aspect1, { option1: 'one' });
+ * dynamicModule.dynamicAspectOptionsMap.set(aspect2, { option2: 'two' });
+ *
+ * @aspect1({ imports: [dynamicModule] })
+ * @aspect2({ imports: [dynamicModule] })
+ * class SomeModule {}
+ * ```
  */
 export interface DynamicModuleWrapper {
-  /**
-   * Dynamic module.
-   */
   dynamicModule: DynamicModule;
   module?: never;
 }

@@ -218,6 +218,50 @@ interface DynamicModule {
 }
 ```
 
+#### DynamicModuleWrapper {#DynamicModuleWrapper}
+
+Окрім `DynamicModule`, Holu надає інтерфейс-обгортку `DynamicModuleWrapper`. Він використовується виключно в аспектних декораторах (таких як `@restModule`, `@trpcModule` і т.д.), щоб додавати до динамічного модуля опції, специфічні для аспекту, не порушуючи при цьому ідентичність його об'єкта.
+
+```ts
+interface DynamicModuleWrapper {
+  dynamicModule: DynamicModule;
+  module?: never;
+}
+```
+
+Ця обгортка є критично важливою, коли ви імпортуєте **один і той самий** динамічний модуль у кількох аспектах і потребуєте різних налаштувань для кожного. Якби ви використали деструктуризацію об'єкта (`{ ...SomeModule.forRoot() }`), фреймворк сприйняв би його як окремий екземпляр динамічного модуля.
+
+Приклад декларативного використання:
+
+```ts
+const dynamicModule = SomeModule.forRoot();
+
+@aspect1({
+  imports: [
+    { dynamicModule, option1: 'one' }
+  ]
+})
+@aspect2({
+  imports: [
+    { dynamicModule, option2: 'two' }
+  ]
+})
+class SomeModule {}
+```
+
+Програмна альтернатива:
+
+```ts
+const dynamicModule = SomeModule.forRoot();
+dynamicModule.dynamicAspectOptionsMap ??= new Map();
+dynamicModule.dynamicAspectOptionsMap.set(aspect1, { option1: 'one' });
+dynamicModule.dynamicAspectOptionsMap.set(aspect2, { option2: 'two' });
+
+@aspect1({ imports: [dynamicModule] })
+@aspect2({ imports: [dynamicModule] })
+class SomeModule {}
+```
+
 Щоб скоротити довжину запису при імпорті об'єкту з цим типом, інколи доцільно написати статичний метод у модулі, який імпортується. Щоб наочно побачити це, давайте візьмемо знову попередній приклад:
 
 ```ts {6}
