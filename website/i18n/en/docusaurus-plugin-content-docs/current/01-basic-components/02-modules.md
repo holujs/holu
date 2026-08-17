@@ -220,7 +220,7 @@ interface DynamicModule {
 
 #### DynamicModuleWrapper {#DynamicModuleWrapper}
 
-In addition to `DynamicModule`, Holu provides a wrapper interface called `DynamicModuleWrapper`. It is used exclusively within aspect decorators (like `@restModule`, `@trpcModule`, etc.) to attach aspect-specific options to a dynamic module without breaking its object reference identity.
+In addition to `DynamicModule`, you can also pass an object of type `DynamicModuleWrapper` to the module metadata:
 
 ```ts
 interface DynamicModuleWrapper {
@@ -229,9 +229,7 @@ interface DynamicModuleWrapper {
 }
 ```
 
-This wrapper is crucial when you import the **same** dynamic module across multiple aspects and need to configure it differently for each. If you were to spread the object (`{ ...SomeModule.forRoot() }`), the framework would treat it as a distinct dynamic module instance.
-
-Example of declarative usage:
+This wrapper is crucial when you import the **same** dynamic module across multiple aspects and need different configurations for each. Declarative usage example:
 
 ```ts
 const dynamicModule = SomeModule.forRoot();
