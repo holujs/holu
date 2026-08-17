@@ -1,4 +1,4 @@
-name: Deploy Docusaurus
+name: Deploy Website
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'website/**'
-      - '.github/workflows/deploy-docusaurus.yml'
+      - '.github/workflows/deploy-website.yml'
 
 jobs:
   deploy:
