@@ -79,24 +79,23 @@ export class ModuleAspectPropagator {
       throw new NormalizationFailure(hostMeta.name, err);
     }
 
-    const inputs: ModRefId[] = [];
-    const aspectMeta = hostMeta.normalizedAspectMetaMap.get(decoratorId);
-    if (aspectMeta) {
-      inputs.push(...newModuleAspect.getModulesToScan(aspectMeta));
-    }
-
     let hasNewSubChildren = false;
-    this.propsWithModules.forEach((p) => inputs.push(...(hostMeta[p] as ModRefId[])));
-    const children = this.childrenMap.get(hostMeta.modRefId);
-    if (children) {
-      inputs.forEach((input) => {
+    const children = this.childrenMap.get(hostMeta.modRefId)!;
+    const processInput = (input: ModRefId) => {
+      if (!children.has(input)) {
         children.add(input);
         if (!this.scannedModules.has(input)) {
           modulesToScan.add(input);
           hasNewSubChildren = true;
         }
-      });
+      }
+    };
+
+    const aspectMeta = hostMeta.normalizedAspectMetaMap.get(decoratorId);
+    if (aspectMeta) {
+      newModuleAspect.getModulesToScan(aspectMeta).forEach(processInput);
     }
+    this.propsWithModules.forEach((p) => (hostMeta[p] as ModRefId[]).forEach(processInput));
 
     return hasNewSubChildren;
   }
