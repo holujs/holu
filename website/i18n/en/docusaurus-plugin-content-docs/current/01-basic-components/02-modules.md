@@ -260,6 +260,12 @@ dynamicModule.dynamicAspectOptionsMap.set(aspect2, { option2: 'two' });
 class SomeModule {}
 ```
 
+:::warning
+Note: when using `DynamicModuleWrapper`, dynamic options are merged directly into the base `DynamicModule` object. 
+Therefore, you **can** reuse the exact same `DynamicModule` object reference across multiple wrappers **only when imported into a single consumer module** (e.g., configuring the module differently for various aspects applied to this same module). 
+However, you **must not** reuse the same `DynamicModule` object reference for imports into **different consumer modules**. In such cases, the options from one module's wrappers will leak into and merge with the other module's imports globally. To import it into a different consumer module, you must create a **new** `DynamicModule` instance (this is usually done by calling a static factory method, e.g., `SomeModule.forRoot()`).
+:::
+
 To reduce the length of the code when importing an object of this type, it is sometimes advisable to write a static method in the importing module. To see this clearly, let's take the previous example again:
 
 ```ts {6}
