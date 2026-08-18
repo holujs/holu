@@ -124,9 +124,9 @@ export function normalizeExtensionConfig(extensionConfig: ExtensionConfig): Norm
   const providers: Provider[] = [extensionConfig.extension];
 
   // Creating a group of extensions using multi-providers
-  extensionConfig.groups?.forEach((ExtensionCls) => {
-    const groupToken = KeyRegistry.getExtensionGroupToken(ExtensionCls);
-    groupTokensMap.set(ExtensionCls, groupToken);
+  extensionConfig.groups?.forEach((LeadExtensionCls) => {
+    const groupToken = KeyRegistry.getExtensionGroupToken(LeadExtensionCls);
+    groupTokensMap.set(LeadExtensionCls, groupToken);
     providers.push({ token: groupToken, useToken: extensionConfig.extension, multi: true });
   });
 

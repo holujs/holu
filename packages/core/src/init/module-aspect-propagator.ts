@@ -68,13 +68,13 @@ export class ModuleAspectPropagator {
   protected applyHostAspectAndGatherDependencies(
     hostMeta: NormalizedModuleMeta,
     decoratorId: AnyFn,
-    moduleAspect: ModuleAspectHandler,
+    aspectHandler: ModuleAspectHandler,
     modulesToScan: Set<ModRefId>,
   ): boolean {
-    const newModuleAspect = moduleAspect.clone(moduleAspect.hostStaticAspectOptions);
-    hostMeta.moduleAspectMap.set(decoratorId, newModuleAspect);
+    const newAspectHandler = aspectHandler.clone(aspectHandler.hostStaticAspectOptions);
+    hostMeta.moduleAspectMap.set(decoratorId, newAspectHandler);
     try {
-      this.metaProcessor.applyHostStaticAspectOptions(hostMeta, decoratorId, newModuleAspect);
+      this.metaProcessor.applyHostStaticAspectOptions(hostMeta, decoratorId, newAspectHandler);
     } catch (err: any) {
       throw new NormalizationFailure(hostMeta.name, err);
     }
@@ -93,7 +93,7 @@ export class ModuleAspectPropagator {
 
     const aspectMeta = hostMeta.normalizedAspectMetaMap.get(decoratorId);
     if (aspectMeta) {
-      newModuleAspect.getModulesToScan(aspectMeta).forEach(processInput);
+      newAspectHandler.getModulesToScan(aspectMeta).forEach(processInput);
     }
     this.propsWithModules.forEach((p) => (hostMeta[p] as ModRefId[]).forEach(processInput));
 

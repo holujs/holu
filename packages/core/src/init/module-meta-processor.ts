@@ -67,8 +67,8 @@ export class ModuleMetaProcessor {
           this.mergeAspectOptionsIntoDynamicModule(decoratorId, dynamicOptions, imp, meta);
         } else if (isDynamicModuleWrapper(imp)) {
           const { dynamicModule, ...dynamicOptions } = imp;
-          this.applyBaseOptions(dynamicOptions, imp.dynamicModule);
-          this.mergeAspectOptionsIntoDynamicModule(decoratorId, dynamicOptions, imp.dynamicModule, meta);
+          this.applyBaseOptions(dynamicOptions, dynamicModule);
+          this.mergeAspectOptionsIntoDynamicModule(decoratorId, dynamicOptions, dynamicModule, meta);
         } else {
           if (!meta.importedStaticModules.includes(imp)) {
             meta.importedStaticModules.push(imp);
