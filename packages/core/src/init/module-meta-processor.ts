@@ -226,28 +226,6 @@ export class ModuleMetaProcessor {
     });
   }
 
-  normalizeAspectMeta(decoratorId: AnyFn, aspectHandler: ModuleAspectHandler, meta: NormalizedModuleMeta) {
-    const aspectMeta = aspectHandler.normalize(meta);
-    if (aspectMeta) {
-      meta.normalizedAspectMetaMap.set(decoratorId, aspectMeta);
-    }
-  }
-
-  /**
-   * Registers a cloned module aspect on the given module: adds it to `allModuleAspectsMap`
-   * and `moduleAspectMap`, ensures the host module is imported, normalizes the aspect
-   * metadata, and applies it to the module's `normalizedAspectMetaMap`.
-   *
-   * This is the single entry point used by {@link ModuleAspectPropagator} to register an aspect
-   * on a module during the post-scan propagation phase.
-   */
-  registerAspectOnModule(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, aspectHandler: ModuleAspectHandler): void {
-    normalizedModuleMeta.allModuleAspectsMap.set(decoratorId, aspectHandler);
-    this.ensureHostModuleImported(aspectHandler, normalizedModuleMeta);
-    this.normalizeAspectMeta(decoratorId, aspectHandler, normalizedModuleMeta);
-    normalizedModuleMeta.moduleAspectMap.set(decoratorId, aspectHandler);
-  }
-
   protected exportProviders(token: any, meta: NormalizedModuleMeta): void {
     let found = false;
     (['Mod', 'Rou', 'Req'] satisfies Level[]).forEach((level) => {
@@ -270,6 +248,28 @@ export class ModuleMetaProcessor {
         throw new UnknownExport(meta.name, providerName);
       }
     }
+  }
+
+  normalizeAspectMeta(decoratorId: AnyFn, aspectHandler: ModuleAspectHandler, meta: NormalizedModuleMeta) {
+    const aspectMeta = aspectHandler.normalize(meta);
+    if (aspectMeta) {
+      meta.normalizedAspectMetaMap.set(decoratorId, aspectMeta);
+    }
+  }
+
+  /**
+   * Registers a cloned module aspect on the given module: adds it to `allModuleAspectsMap`
+   * and `moduleAspectMap`, ensures the host module is imported, normalizes the aspect
+   * metadata, and applies it to the module's `normalizedAspectMetaMap`.
+   *
+   * This is the single entry point used by {@link ModuleAspectPropagator} to register an aspect
+   * on a module during the post-scan propagation phase.
+   */
+  registerAspectOnModule(normalizedModuleMeta: NormalizedModuleMeta, decoratorId: AnyFn, aspectHandler: ModuleAspectHandler): void {
+    normalizedModuleMeta.allModuleAspectsMap.set(decoratorId, aspectHandler);
+    this.ensureHostModuleImported(aspectHandler, normalizedModuleMeta);
+    this.normalizeAspectMeta(decoratorId, aspectHandler, normalizedModuleMeta);
+    normalizedModuleMeta.moduleAspectMap.set(decoratorId, aspectHandler);
   }
 
   protected assertValidExtensionProvider(extensionsProvider: Provider, meta: NormalizedModuleMeta) {
