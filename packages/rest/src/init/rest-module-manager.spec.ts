@@ -62,7 +62,7 @@ describe('ModuleRegistry', () => {
     mock = new MockModuleRegistry(systemLogMediator);
   });
 
-  describe('quickCheckMeta()', () => {
+  describe('checkMetadata()', () => {
     it('should throw an error, when no export, no extensions and no controllers', () => {
       class Provider1 {}
 

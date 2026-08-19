@@ -65,7 +65,7 @@ export class ModuleNormalizer {
     // Phase 2: Process aspect decorators applied directly to the current module.
     this.processOwnModuleAspects(meta);
 
-    this.quickCheckMeta(staticModuleOptions, meta);
+    this.assertResolvedCollisionTokensOnly(staticModuleOptions, meta);
     return meta;
   }
 
@@ -196,9 +196,5 @@ export class ModuleNormalizer {
       this.metaProcessor.applyAspectModuleOptions(decoratorId, moduleAspect.staticAspectOptions, meta);
       this.metaProcessor.normalizeAspectMeta(decoratorId, moduleAspect, meta);
     });
-  }
-
-  protected quickCheckMeta(staticModuleOptions: RootModuleOptions, meta: NormalizedModuleMeta) {
-    this.assertResolvedCollisionTokensOnly(staticModuleOptions, meta);
   }
 }
