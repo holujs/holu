@@ -12,6 +12,7 @@ import type { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import type { MultiProvider } from '#di/utils.js';
 import type { RootModuleOptions } from '#decorators/root-module.js';
 import type { ModuleNormalizer } from '#init/module-normalizer.js';
+import { getDebugClassName } from '#utils/get-debug-class-name.js';
 import { normalizeExtensionConfig } from '#extension/extension-providers-and-configs.js';
 import { resolveForwardRef } from '#di/forward-ref.js';
 import { getToken, getTokens } from '#utils/get-tokens.js';
@@ -20,8 +21,16 @@ import { isExtensionConfig } from '#extension/type-guards.js';
 import { objectKeys } from '#utils/object-keys.js';
 import { Reflector } from '#di/reflector.js';
 import { isClassProvider, isMultiProvider, isNormalizedProvider, isTokenProvider, isValueProvider } from '#di/utils.js';
-import { isDynamicModule, isModuleDecorator, isFeatureModule, isDynamicModuleWrapper } from '#decorators/type-guards.js';
-import { UndefinedSymbol, InvalidExtension, UnknownExport, ForbiddenNormalizedExport, ForbiddenAppExport } from '#errors';
+import { isDynamicModule, isRootModule, isModuleDecorator, isFeatureModule, isDynamicModuleWrapper } from '#decorators/type-guards.js';
+import {
+  UndefinedSymbol,
+  InvalidExtension,
+  UnknownExport,
+  ForbiddenNormalizedExport,
+  ForbiddenAppExport,
+  ResolvedCollisionTokensOnly,
+  ReexportFailure,
+} from '#errors';
 
 /**
  * A stateless utility service containing shared metadata-processing methods used by both
@@ -57,6 +66,19 @@ export class ModuleMetaProcessor {
     this.normalizeExtensions(staticAspectOptions, meta);
     this.normalizeProvidersAndResolvedCollisions(staticAspectOptions, meta);
     this.normalizeExports(staticAspectOptions, 'Static exports', meta);
+  }
+
+  normalizeImports(staticModuleOptions: RootModuleOptions, meta: NormalizedModuleMeta) {
+    this.resolveAllForwardRefs(staticModuleOptions.imports).forEach((imp, i) => {
+      if (imp === undefined) {
+        throw new UndefinedSymbol('Imports', meta.name, i);
+      }
+      if (isDynamicModule(imp)) {
+        meta.importedDynamicModules.push(imp);
+      } else {
+        meta.importedStaticModules.push(imp);
+      }
+    });
   }
 
   protected applyAspectImports(decoratorId: AnyFn, staticAspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
@@ -338,5 +360,40 @@ export class ModuleMetaProcessor {
       }
       return resolved;
     }) as Exclude<T, ForwardRefFn>[];
+  }
+
+  assertResolvedCollisionTokensOnly(
+    staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
+    meta: NormalizedModuleMeta,
+  ) {
+    const resolvedCollisionsPerLevel: [any, ModRefId | ForwardRefFn][] = [];
+    (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
+      if (Array.isArray(staticModuleOptions[`resolvedCollisionsPer${level}`])) {
+        resolvedCollisionsPerLevel.push(...staticModuleOptions[`resolvedCollisionsPer${level}`]!);
+      }
+    });
+
+    resolvedCollisionsPerLevel.forEach(([provider]) => {
+      provider = resolveForwardRef(provider);
+      if (isNormalizedProvider(provider)) {
+        const providerName = provider.token.name || provider.token;
+        throw new ResolvedCollisionTokensOnly(meta.name, providerName);
+      }
+    });
+  }
+
+  assertReexportedModulesAreImported(meta: NormalizedModuleMeta) {
+    if (isRootModule(meta)) {
+      // Allow exporting from the root module without importing.
+      return;
+    }
+    const imports = [...meta.importedStaticModules, ...meta.importedDynamicModules];
+    const exports = [...meta.exportedStaticModules, ...meta.exportedDynamicModules];
+
+    exports.forEach((modRefId) => {
+      if (!imports.includes(modRefId)) {
+        throw new ReexportFailure(meta.name, getDebugClassName(modRefId) || '""');
+      }
+    });
   }
 }

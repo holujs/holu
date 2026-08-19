@@ -1,28 +1,26 @@
-import type { PickProps } from '#types/mix.js';
-import type { ModRefId } from '#decorators/module-decorator-options.js';
-import type { DynamicModule } from '#decorators/module-decorator-options.js';
-import type { ForwardRefFn } from '#di/forward-ref.js';
-import type { StaticAspectOptions } from '#decorators/module-aspects.js';
+import type { ModRefId, DynamicModule } from '#decorators/module-decorator-options.js';
 import type { RootModuleOptions } from '#decorators/root-module.js';
 import type { DecoratorMeta } from '#di/top/decorator-and-value.js';
 import type { SystemLogMediator } from '#logger/system-log-mediator.js';
 import { getDebugClassName } from '#utils/get-debug-class-name.js';
 import { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { resolveForwardRef } from '#di/forward-ref.js';
-import { isNormalizedProvider } from '#di/utils.js';
 import { Reflector } from '#di/reflector.js';
 import { isDynamicModule, isRootModule, isModuleDecorator, isModuleWithModuleAspect } from '#decorators/type-guards.js';
-import { UndefinedSymbol, ResolvedCollisionTokensOnly, MissingModuleDecorator, InvalidModRefId, ReexportFailure } from '#errors';
+import { MissingModuleDecorator, InvalidModRefId } from '#errors';
 import { ModuleMetaProcessor } from '#init/module-meta-processor.js';
 import type { ModuleRegistry } from '#init/module-registry.js';
 import type { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
 
 /**
- * Normalizes and validates module metadata.
+ * Orchestrates the creation of normalized module metadata.
  *
  * Responsible for **creating** new {@link NormalizedModuleMeta} instances from
- * module decorator options. Mutation of existing metadata (aspect registration,
- * host-aspect application) is handled by {@link ModuleRegistry} during aspect propagation.
+ * module decorator options, determining module externality, and coordinating
+ * the normalization phases. Stateless metadata processing and validation
+ * is delegated to {@link ModuleMetaProcessor}. Mutation of existing metadata
+ * (aspect registration, host-aspect application) is handled by
+ * {@link ModuleRegistry} during aspect propagation.
  */
 export class ModuleNormalizer {
   /**
@@ -47,8 +45,8 @@ export class ModuleNormalizer {
     this.checkAndMarkExternalModule(staticModuleOptions, meta);
 
     // Phase 1: Normalize base decorator metadata.
+    this.metaProcessor.normalizeImports(staticModuleOptions, meta);
     this.metaProcessor.normalizeProvidersAndResolvedCollisions(staticModuleOptions, meta);
-    this.normalizeImports(staticModuleOptions, meta);
     this.metaProcessor.normalizeExtensions(staticModuleOptions, meta);
 
     if (isDynamicModule(modRefId)) {
@@ -60,12 +58,12 @@ export class ModuleNormalizer {
       this.metaProcessor.normalizeExports(modRefId, 'Dynamic exports', meta);
     }
 
-    this.assertReexportedModulesAreImported(meta);
+    this.metaProcessor.assertReexportedModulesAreImported(meta);
 
     // Phase 2: Process aspect decorators applied directly to the current module.
     this.processOwnModuleAspects(meta);
 
-    this.assertResolvedCollisionTokensOnly(staticModuleOptions, meta);
+    this.metaProcessor.assertResolvedCollisionTokensOnly(staticModuleOptions, meta);
     return meta;
   }
 
@@ -139,54 +137,6 @@ export class ModuleNormalizer {
         ...dynamicModule.extensionsMeta,
       };
     }
-  }
-
-  protected normalizeImports(staticModuleOptions: RootModuleOptions, meta: NormalizedModuleMeta) {
-    this.metaProcessor.resolveAllForwardRefs(staticModuleOptions.imports).forEach((imp, i) => {
-      if (imp === undefined) {
-        throw new UndefinedSymbol('Imports', meta.name, i);
-      }
-      if (isDynamicModule(imp)) {
-        meta.importedDynamicModules.push(imp);
-      } else {
-        meta.importedStaticModules.push(imp);
-      }
-    });
-  }
-
-  protected assertResolvedCollisionTokensOnly(
-    staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
-    meta: NormalizedModuleMeta,
-  ) {
-    const resolvedCollisionsPerLevel: [any, ModRefId | ForwardRefFn][] = [];
-    (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
-      if (Array.isArray(staticModuleOptions[`resolvedCollisionsPer${level}`])) {
-        resolvedCollisionsPerLevel.push(...staticModuleOptions[`resolvedCollisionsPer${level}`]!);
-      }
-    });
-
-    resolvedCollisionsPerLevel.forEach(([provider]) => {
-      provider = resolveForwardRef(provider);
-      if (isNormalizedProvider(provider)) {
-        const providerName = provider.token.name || provider.token;
-        throw new ResolvedCollisionTokensOnly(meta.name, providerName);
-      }
-    });
-  }
-
-  protected assertReexportedModulesAreImported(meta: NormalizedModuleMeta) {
-    if (isRootModule(meta)) {
-      // Allow exporting from the root module without importing.
-      return;
-    }
-    const imports = [...meta.importedStaticModules, ...meta.importedDynamicModules];
-    const exports = [...meta.exportedStaticModules, ...meta.exportedDynamicModules];
-
-    exports.forEach((modRefId) => {
-      if (!imports.includes(modRefId)) {
-        throw new ReexportFailure(meta.name, getDebugClassName(modRefId) || '""');
-      }
-    });
   }
 
   protected processOwnModuleAspects(meta: NormalizedModuleMeta) {
