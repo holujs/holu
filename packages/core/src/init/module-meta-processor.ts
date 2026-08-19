@@ -38,6 +38,19 @@ import {
  * (mutation of existing metadata during aspect propagation).
  */
 export class ModuleMetaProcessor {
+  normalizeImports(staticModuleOptions: RootModuleOptions, meta: NormalizedModuleMeta) {
+    this.resolveAllForwardRefs(staticModuleOptions.imports).forEach((imp, i) => {
+      if (imp === undefined) {
+        throw new UndefinedSymbol('Imports', meta.name, i);
+      }
+      if (isDynamicModule(imp)) {
+        meta.importedDynamicModules.push(imp);
+      } else {
+        meta.importedStaticModules.push(imp);
+      }
+    });
+  }
+
   /**
    * Applies the aspect's static options to the host module and normalizes its metadata.
    *
@@ -67,19 +80,6 @@ export class ModuleMetaProcessor {
     this.normalizeProvidersAndResolvedCollisions(staticAspectOptions, meta);
     this.normalizeExports(staticAspectOptions, 'Static exports', meta);
     this.assertReexportedModulesAreImported(meta);
-  }
-
-  normalizeImports(staticModuleOptions: RootModuleOptions, meta: NormalizedModuleMeta) {
-    this.resolveAllForwardRefs(staticModuleOptions.imports).forEach((imp, i) => {
-      if (imp === undefined) {
-        throw new UndefinedSymbol('Imports', meta.name, i);
-      }
-      if (isDynamicModule(imp)) {
-        meta.importedDynamicModules.push(imp);
-      } else {
-        meta.importedStaticModules.push(imp);
-      }
-    });
   }
 
   protected applyAspectImports(decoratorId: AnyFn, staticAspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
