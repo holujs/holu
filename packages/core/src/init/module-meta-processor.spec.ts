@@ -616,6 +616,31 @@ describe('ModuleMetaProcessor', () => {
       );
     });
 
+    it('throws ReexportFailure when an aspect decorator exports a module without importing it', () => {
+      @featureModule()
+      class ExportedModule {}
+
+      @someAspect({ exports: [ExportedModule] })
+      @featureModule()
+      class ModuleWithUnimportedExport {}
+
+      expect(() => normalizer.normalize(ModuleWithUnimportedExport)).toThrow(
+        new ReexportFailure('ModuleWithUnimportedExport', 'ExportedModule'),
+      );
+    });
+
+    it('does not throw ReexportFailure when an aspect on a root module exports without importing', () => {
+      @featureModule()
+      class ExportedModule {}
+
+      @someAspect({ exports: [ExportedModule] })
+      @rootModule()
+      class AppModuleWithAspect {}
+
+      const normalizedModuleMeta = normalizer.normalize(AppModuleWithAspect);
+      expect(normalizedModuleMeta.exportedStaticModules).toEqual([ExportedModule]);
+    });
+
     it('resolves forwardRef for resolvedCollisions in aspect decorators', () => {
       class Token1 {}
       class Token2 {}

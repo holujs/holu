@@ -66,6 +66,7 @@ export class ModuleMetaProcessor {
     this.normalizeExtensions(staticAspectOptions, meta);
     this.normalizeProvidersAndResolvedCollisions(staticAspectOptions, meta);
     this.normalizeExports(staticAspectOptions, 'Static exports', meta);
+    this.assertReexportedModulesAreImported(meta);
   }
 
   normalizeImports(staticModuleOptions: RootModuleOptions, meta: NormalizedModuleMeta) {
