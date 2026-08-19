@@ -27,9 +27,9 @@ export class NormalizedExtensionConfig {
    */
   config?: ExtensionConfig;
   /**
-   * A map associating each extension specified in the {@link BaseExtensionConfig.groups | groups}
-   * array with its corresponding {@link ExtensionGroupToken}. The {@link ModuleNormalizer} uses this to register
-   * the current extension within those groups in the local module scope.
+   * A map associating each lead extension (the one acting as a group identifier) specified in the
+   * {@link BaseExtensionConfig.groups | groups} array with its corresponding {@link ExtensionGroupToken}.
+   * The {@link ModuleNormalizer} uses this to register the current extension within those groups in the local module scope.
    */
   groupTokensMap?: Map<ExtensionClass, ExtensionGroupToken>;
   /**

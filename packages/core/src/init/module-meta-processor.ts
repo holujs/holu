@@ -123,10 +123,10 @@ export class ModuleMetaProcessor {
       }
       meta.extensionProviders.push(...normalizedExtensionConfig.providers);
       meta.exportedExtensionProviders.push(...normalizedExtensionConfig.exportedProviders);
-      normalizedExtensionConfig.groupTokensMap?.forEach((groupToken, ExtensionCls) => {
-        if (!meta.extensionGroupTokensMap.has(ExtensionCls)) {
-          meta.extensionGroupTokensMap.set(ExtensionCls, groupToken);
-          meta.extensionProviders.unshift({ token: groupToken, useToken: ExtensionCls, multi: true });
+      normalizedExtensionConfig.groupTokensMap?.forEach((groupToken, LeadExtensionCls) => {
+        if (!meta.extensionGroupTokensMap.has(LeadExtensionCls)) {
+          meta.extensionGroupTokensMap.set(LeadExtensionCls, groupToken);
+          meta.extensionProviders.unshift({ token: groupToken, useToken: LeadExtensionCls, multi: true });
         }
       });
       normalizedExtensionConfig.exportedGroupTokensMap?.forEach((groupToken, ExtensionCls) => {
