@@ -107,10 +107,10 @@ export class RestShallowModulesImporter {
   }
 
   protected getAspectMeta(normalizedModuleMeta: NormalizedModuleMeta): RestAspectMeta {
-    let meta = normalizedModuleMeta.normalizedAspectMetaMap.get(restAspect);
+    let meta = normalizedModuleMeta.normalizedAspectsMetaMap.get(restAspect);
     if (!meta) {
       meta = createAspectMetaProxy(normalizedModuleMeta, RestAspectMeta);
-      normalizedModuleMeta.normalizedAspectMetaMap.set(restAspect, meta);
+      normalizedModuleMeta.normalizedAspectsMetaMap.set(restAspect, meta);
     }
     return meta;
   }
@@ -202,7 +202,7 @@ export class RestShallowModulesImporter {
     const moduleName = getDebugClassName(modRefId2) || '""';
     const tokenName = token2.name || token2;
     const normalizedModuleMeta2 = this.moduleRegistry.getNormalizedModuleMeta(modRefId2);
-    const meta2 = normalizedModuleMeta2?.normalizedAspectMetaMap.get(restAspect);
+    const meta2 = normalizedModuleMeta2?.normalizedAspectsMetaMap.get(restAspect);
     if (!normalizedModuleMeta2) {
       throw new AppCollisionNotFound(this.moduleName, moduleName, level, tokenName);
     }

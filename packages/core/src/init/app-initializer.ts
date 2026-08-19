@@ -245,7 +245,7 @@ export class AppInitializer implements BaseAppInitializer {
     for (const [modRefId, { normalizedModuleMeta }] of resolvedModuleMetaMap) {
       try {
         this.overrideMetaAfterStage1(normalizedModuleMeta.modRefId, normalizedModuleMeta);
-        normalizedModuleMeta.normalizedAspectMetaMap.forEach((meta) =>
+        normalizedModuleMeta.normalizedAspectsMetaMap.forEach((meta) =>
           this.overrideMetaAfterStage1(normalizedModuleMeta.modRefId, meta),
         );
       } catch (err: any) {

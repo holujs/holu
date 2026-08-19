@@ -74,8 +74,8 @@ it('imports and appends with gruards for some modules', () => {
   class AppModule {}
 
   mock.scanRootModule(AppModule);
-  const aspectMeta1 = mock.getNormalizedModuleMeta(dynamicModule)?.normalizedAspectMetaMap.get(restAspect)?.params;
-  const aspectMeta2 = mock.getNormalizedModuleMeta(appendsWithOpts)?.normalizedAspectMetaMap.get(restAspect)?.params;
+  const aspectMeta1 = mock.getNormalizedModuleMeta(dynamicModule)?.normalizedAspectsMetaMap.get(restAspect)?.params;
+  const aspectMeta2 = mock.getNormalizedModuleMeta(appendsWithOpts)?.normalizedAspectsMetaMap.get(restAspect)?.params;
   expect(mock.normalizedMetaMap.size).toBe(5);
   expect(aspectMeta1).toMatchObject({ guards: [{ guard: Guard1 }], path: 'module1' });
   expect(aspectMeta2).toMatchObject({ guards: [{ guard: Guard2 }], path: 'module2' });

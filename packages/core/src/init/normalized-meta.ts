@@ -3,7 +3,7 @@ import type { ModRefId, StaticModule } from '#decorators/module-decorator-option
 import type { Class, Provider } from '#di/top/types-and-models.js';
 import type { DynamicModule } from '../decorators/module-decorator-options.js';
 import type { BaseExtensionConfig, ExtensionConfig } from '#extension/extension-providers-and-configs.js';
-import type { NormalizedAspectMetaMap, ModuleAspectHandler, AllModuleAspectsMap, ModuleAspectDecorator } from '#decorators/module-aspects.js';
+import type { NormalizedAspectsMetaMap, ModuleAspectHandler, AllModuleAspectsMap, ModuleAspectDecorator } from '#decorators/module-aspects.js';
 import type { ExtensionClass } from '#extension/extension-types.js';
 import type { ExtensionGroupToken } from '#di/key-registry.js';
 import type { MultiProvider } from '#di/utils.js';
@@ -179,11 +179,11 @@ export class NormalizedModuleMeta<
   /**
    * Contains instances of `ModuleAspectHandler` collected from current module.
    */
-  moduleAspectMap = new Map<ModuleAspectDecorator<any, any, any>, ModuleAspectHandler>();
+  moduleAspectsMap = new Map<ModuleAspectDecorator<any, any, any>, ModuleAspectHandler>();
   /**
    * Contains normalized aspects metadata collected from current module.
    */
-  normalizedAspectMetaMap: NormalizedAspectMetaMap = new Map();
+  normalizedAspectsMetaMap: NormalizedAspectsMetaMap = new Map();
   /**
    * List of unique module aspects found in the current module and all imported modules.
    */
@@ -257,26 +257,26 @@ export class NormalizedModuleMeta<
 
     copy.extensionGroupTokensMap = new Map(copy.extensionGroupTokensMap);
     copy.exportedExtensionGroupTokensMap = new Map(copy.exportedExtensionGroupTokensMap);
-    copy.normalizedAspectMetaMap = new Map();
-    copy.moduleAspectMap = new Map();
-    this.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
+    copy.normalizedAspectsMetaMap = new Map();
+    copy.moduleAspectsMap = new Map();
+    this.moduleAspectsMap.forEach((moduleAspect, decoratorId) => {
       const clonedAspect = moduleAspect.clone(moduleAspect.staticAspectOptions);
-      copy.moduleAspectMap.set(decoratorId, clonedAspect);
+      copy.moduleAspectsMap.set(decoratorId, clonedAspect);
       const meta = clonedAspect.normalize(copy);
       if (meta) {
-        copy.normalizedAspectMetaMap.set(decoratorId, meta);
+        copy.normalizedAspectsMetaMap.set(decoratorId, meta);
       }
     });
     copy.allModuleAspectsMap = new Map();
     this.allModuleAspectsMap.forEach((moduleAspect, decoratorId) => {
       const clonedAspect = (
-        copy.moduleAspectMap.has(decoratorId) ? copy.moduleAspectMap.get(decoratorId) : moduleAspect.clone()
+        copy.moduleAspectsMap.has(decoratorId) ? copy.moduleAspectsMap.get(decoratorId) : moduleAspect.clone()
       ) as ModuleAspectHandler;
       copy.allModuleAspectsMap.set(decoratorId, clonedAspect);
-      if (!copy.moduleAspectMap.has(decoratorId)) {
+      if (!copy.moduleAspectsMap.has(decoratorId)) {
         const meta = clonedAspect.normalize(copy);
         if (meta) {
-          copy.normalizedAspectMetaMap.set(decoratorId, meta);
+          copy.normalizedAspectsMetaMap.set(decoratorId, meta);
         }
       }
     });

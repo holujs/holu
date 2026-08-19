@@ -58,7 +58,7 @@ export class ModuleMetaProcessor {
    * 1. Merges the aspect's static options (such as providers, imports, extensions, etc.) directly into the
    *    host module's metadata (`hostMeta`), effectively injecting the aspect's dependencies into the module.
    * 2. Calls the aspect handler's `normalize()` method to generate and save the aspect's specific
-   *    normalized metadata state into `hostMeta.normalizedAspectMetaMap`.
+   *    normalized metadata state into `hostMeta.normalizedAspectsMetaMap`.
    */
   applyHostStaticAspectOptions(hostMeta: NormalizedModuleMeta, decoratorId: AnyFn, aspectHandler: ModuleAspectHandler) {
     this.applyAspectModuleOptions(decoratorId, aspectHandler.staticAspectOptions, hostMeta);
@@ -253,14 +253,14 @@ export class ModuleMetaProcessor {
   normalizeAspectMeta(decoratorId: AnyFn, aspectHandler: ModuleAspectHandler, meta: NormalizedModuleMeta) {
     const aspectMeta = aspectHandler.normalize(meta);
     if (aspectMeta) {
-      meta.normalizedAspectMetaMap.set(decoratorId, aspectMeta);
+      meta.normalizedAspectsMetaMap.set(decoratorId, aspectMeta);
     }
   }
 
   /**
    * Registers a cloned module aspect on the given module: adds it to `allModuleAspectsMap`
-   * and `moduleAspectMap`, ensures the host module is imported, normalizes the aspect
-   * metadata, and applies it to the module's `normalizedAspectMetaMap`.
+   * and `moduleAspectsMap`, ensures the host module is imported, normalizes the aspect
+   * metadata, and applies it to the module's `normalizedAspectsMetaMap`.
    *
    * This is the single entry point used by {@link ModuleAspectPropagator} to register an aspect
    * on a module during the post-scan propagation phase.
@@ -269,7 +269,7 @@ export class ModuleMetaProcessor {
     normalizedModuleMeta.allModuleAspectsMap.set(decoratorId, aspectHandler);
     this.ensureHostModuleImported(aspectHandler, normalizedModuleMeta);
     this.normalizeAspectMeta(decoratorId, aspectHandler, normalizedModuleMeta);
-    normalizedModuleMeta.moduleAspectMap.set(decoratorId, aspectHandler);
+    normalizedModuleMeta.moduleAspectsMap.set(decoratorId, aspectHandler);
   }
 
   protected assertValidExtensionProvider(extensionsProvider: Provider, meta: NormalizedModuleMeta) {

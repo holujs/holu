@@ -52,7 +52,7 @@ describe('ModuleRegistry', () => {
   function getAspectMeta(moduleId: ModuleId) {
     const normalizedModuleMeta = mock.getNormalizedModuleMeta(moduleId);
     // console.log(normalizedModuleMeta);
-    return normalizedModuleMeta?.normalizedAspectMetaMap.get(restAspect);
+    return normalizedModuleMeta?.normalizedAspectsMetaMap.get(restAspect);
   }
 
   beforeEach(() => {
@@ -160,13 +160,13 @@ describe('ModuleRegistry', () => {
     expect(rootNormalizedModuleMeta?.providersPerApp).toEqual([Service5]);
     expect(rootNormalizedModuleMeta?.providersPerMod.includes(Service6)).toBeTruthy();
 
-    const mod1AspectMeta = normalizedModuleMeta1?.normalizedAspectMetaMap.get(restAspect);
+    const mod1AspectMeta = normalizedModuleMeta1?.normalizedAspectsMetaMap.get(restAspect);
     expect(mod1AspectMeta?.providersPerApp).toEqual(normalizedModuleMeta1?.providersPerApp);
     expect(mod1AspectMeta?.providersPerMod).toEqual(normalizedModuleMeta1?.providersPerMod);
     expect(mod1AspectMeta?.providersPerMod.includes(Service2)).toBeTruthy();
     expect(mod1AspectMeta?.providersPerMod.includes(Service4)).toBeTruthy();
 
-    const rootAspectMeta = rootNormalizedModuleMeta?.normalizedAspectMetaMap.get(restAspect);
+    const rootAspectMeta = rootNormalizedModuleMeta?.normalizedAspectsMetaMap.get(restAspect);
     expect(rootAspectMeta?.providersPerApp).toEqual(rootNormalizedModuleMeta?.providersPerApp);
     expect(rootAspectMeta?.providersPerMod).toEqual(rootNormalizedModuleMeta?.providersPerMod);
     expect(rootAspectMeta?.providersPerMod.includes(Service6)).toBeTruthy();
@@ -411,12 +411,12 @@ describe('ModuleRegistry', () => {
     expect(mock.normalizedMetaMap.size).toBe(6);
     expect(getAspectMeta(Module1)?.controllers).toEqual([Controller1]);
 
-    expect(mock.normalizedMetaMap.get(Module2)?.normalizedAspectMetaMap.get(restAspect)?.providersPerRou).toEqual([Provider1]);
-    expect(mock.normalizedMetaMap.get(Module2)?.normalizedAspectMetaMap.get(restAspect)?.exportedProvidersPerRou).toEqual([Provider1]);
+    expect(mock.normalizedMetaMap.get(Module2)?.normalizedAspectsMetaMap.get(restAspect)?.providersPerRou).toEqual([Provider1]);
+    expect(mock.normalizedMetaMap.get(Module2)?.normalizedAspectsMetaMap.get(restAspect)?.exportedProvidersPerRou).toEqual([Provider1]);
 
     expect(getAspectMeta('root')?.importedStaticModules).toEqual([Module1, Module2, RestModule]);
 
-    const aspectMeta = mock.normalizedMetaMap.get(module4WithOpts)?.normalizedAspectMetaMap.get(restAspect);
+    const aspectMeta = mock.normalizedMetaMap.get(module4WithOpts)?.normalizedAspectsMetaMap.get(restAspect);
     expect(aspectMeta?.importedStaticModules).toEqual([RestModule]);
   });
 

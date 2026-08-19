@@ -59,7 +59,7 @@ export class ModuleAspectHandler<T1 extends StaticAspectOptions = StaticAspectOp
   }
 
   /**
-   * Normalizes the metadata from the current decorator. It is then inserted into {@link NormalizedModuleMeta.normalizedAspectMetaMap | normalizedModuleMeta.normalizedAspectMetaMap}.
+   * Normalizes the metadata from the current decorator. It is then inserted into {@link NormalizedModuleMeta.normalizedAspectsMetaMap | normalizedModuleMeta.normalizedAspectsMetaMap}.
    *
    * @param normalizedModuleMeta Normalized metadata that is passed
    * to the {@link featureModule} or {@link rootModule} decorator.
@@ -124,7 +124,7 @@ export class ModuleAspectHandler<T1 extends StaticAspectOptions = StaticAspectOp
   }
 }
 
-export interface NormalizedAspectMetaMap {
+export interface NormalizedAspectsMetaMap {
   set<T extends BaseNormalizedModuleMeta>(decorator: ModuleAspectDecorator<any, any, T>, meta: T): this;
   get<T extends BaseNormalizedModuleMeta>(decorator: ModuleAspectDecorator<any, any, T>): T | undefined;
   forEach<T extends BaseNormalizedModuleMeta>(

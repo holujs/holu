@@ -175,7 +175,7 @@ export class ShallowModulesImporter {
     this.importModules();
 
     this.normalizedModuleMeta.allModuleAspectsMap.forEach((moduleAspect, decorator) => {
-      const meta = this.normalizedModuleMeta.normalizedAspectMetaMap.get(decorator);
+      const meta = this.normalizedModuleMeta.normalizedAspectsMetaMap.get(decorator);
       for (const modRefId of moduleAspect.getModulesToScan(meta)) {
         if (this.scanningModules.has(modRefId)) {
           continue;

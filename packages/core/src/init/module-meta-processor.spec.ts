@@ -340,14 +340,14 @@ describe('ModuleMetaProcessor', () => {
     const someAspect: ModuleAspectDecorator<SomeAspectOptions, SomeAspectDynamicOptions, SomeAspectMeta> =
       Reflector.makeClassDecorator(getModuleAspect, 'someAspect');
 
-    it('stores metadata returned by ModuleAspectHandler.normalize() in normalizedModuleMeta.normalizedAspectMetaMap', () => {
+    it('stores metadata returned by ModuleAspectHandler.normalize() in normalizedModuleMeta.normalizedAspectsMetaMap', () => {
       const staticAspectOptions: SomeAspectOptions = { one: 1, two: 2, flag: true };
 
       @someAspect(staticAspectOptions)
       @featureModule()
       class Module1 {}
 
-      const aspectMeta = normalizer.normalize(Module1).normalizedAspectMetaMap.get(someAspect);
+      const aspectMeta = normalizer.normalize(Module1).normalizedAspectsMetaMap.get(someAspect);
       expect(aspectMeta?.normalizedModuleMeta?.modRefId).toBe(Module1);
       expect(aspectMeta?.staticAspectOptions).toEqual(staticAspectOptions);
       expect(aspectMeta?.targetModRefId).toBe(Module1);
@@ -555,7 +555,7 @@ describe('ModuleMetaProcessor', () => {
       const metaProcessor = new ModuleMetaProcessor();
       metaProcessor.applyHostStaticAspectOptions(normalizedModuleMeta, hostSomeAspect, moduleAspect as any);
 
-      expect(normalizedModuleMeta.normalizedAspectMetaMap.get(hostSomeAspect)).toEqual({ flag: true, targetModRefId: HostModule });
+      expect(normalizedModuleMeta.normalizedAspectsMetaMap.get(hostSomeAspect)).toEqual({ flag: true, targetModRefId: HostModule });
     });
 
     it('registerAspectOnModule registers aspect and ensures host module is imported', () => {
@@ -580,9 +580,9 @@ describe('ModuleMetaProcessor', () => {
       metaProcessor.registerAspectOnModule(normalizedModuleMeta, hostSomeAspect, moduleAspect);
 
       expect(normalizedModuleMeta.allModuleAspectsMap.get(hostSomeAspect)).toBe(moduleAspect);
-      expect(normalizedModuleMeta.moduleAspectMap.get(hostSomeAspect)).toBe(moduleAspect);
+      expect(normalizedModuleMeta.moduleAspectsMap.get(hostSomeAspect)).toBe(moduleAspect);
       expect(normalizedModuleMeta.importedStaticModules).toContain(HostModule);
-      expect(normalizedModuleMeta.normalizedAspectMetaMap.get(hostSomeAspect)).toEqual({ targetModRefId: Module1 });
+      expect(normalizedModuleMeta.normalizedAspectsMetaMap.get(hostSomeAspect)).toEqual({ targetModRefId: Module1 });
     });
 
     it('throws errors for invalid exports in aspect decorators', () => {

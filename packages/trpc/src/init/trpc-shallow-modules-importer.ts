@@ -87,10 +87,10 @@ export class TrpcShallowModulesImporter {
   }
 
   protected getAspectMeta(normalizedModuleMeta: NormalizedModuleMeta): TrpcAspectMeta {
-    let meta = normalizedModuleMeta.normalizedAspectMetaMap.get(aspectTrpcModule);
+    let meta = normalizedModuleMeta.normalizedAspectsMetaMap.get(aspectTrpcModule);
     if (!meta) {
       meta = createAspectMetaProxy(normalizedModuleMeta, TrpcAspectMeta);
-      normalizedModuleMeta.normalizedAspectMetaMap.set(aspectTrpcModule, meta);
+      normalizedModuleMeta.normalizedAspectsMetaMap.set(aspectTrpcModule, meta);
     }
     return meta;
   }

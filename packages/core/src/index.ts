@@ -19,7 +19,7 @@ export { featureModule } from '#decorators/feature-module.js';
 export {
   ModuleAspectHandler,
   ModuleAspectDecorator,
-  NormalizedAspectMetaMap,
+  NormalizedAspectsMetaMap,
   DynamicAspectOptionsMap,
   AllModuleAspectsMap,
   StaticAspectOptions,

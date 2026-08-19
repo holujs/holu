@@ -178,7 +178,7 @@ When importing a dynamic module in the context of an aspect decorator:
     ```ts
     dynamicModule.aspectsOptions.set(aspectDecorator, { path: 'some-path' });
     ```
-2. If the imported module is a plain `@featureModule` (not decorated with the aspect decorator), the framework retrieves the default aspect for that decorator from the application context, clones it, registers it in the module's `moduleAspectMap` list, and calls `normalize()`.
+2. If the imported module is a plain `@featureModule` (not decorated with the aspect decorator), the framework retrieves the default aspect for that decorator from the application context, clones it, registers it in the module's `moduleAspectsMap` list, and calls `normalize()`.
 3. This ensures that options like route prefixes and guards are correctly processed even when importing standard feature modules that have no custom aspect decorator annotations.
 
 [1]: /basic-components/modules/#DynamicModule

@@ -88,7 +88,7 @@ export class ModuleNormalizer {
     meta.declaredInDir = decoratorMeta?.declaredInDir || '.';
     meta.modRefId = modRefId;
     decoratorsMeta.filter(isModuleWithModuleAspect).forEach(({ decoratorId, value }) => {
-      meta.moduleAspectMap.set(decoratorId, value);
+      meta.moduleAspectsMap.set(decoratorId, value);
     });
     return meta;
   }
@@ -140,7 +140,7 @@ export class ModuleNormalizer {
   }
 
   protected processOwnModuleAspects(meta: NormalizedModuleMeta) {
-    meta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
+    meta.moduleAspectsMap.forEach((moduleAspect, decoratorId) => {
       meta.allModuleAspectsMap.set(decoratorId, moduleAspect);
       this.metaProcessor.ensureHostModuleImported(moduleAspect, meta);
       this.metaProcessor.applyAspectModuleOptions(decoratorId, moduleAspect.staticAspectOptions, meta);

@@ -57,14 +57,14 @@ describe('rest ModuleNormalizer', () => {
     })
     class AppModule {}
 
-    const meta1 = moduleRegistry.scanRootModule(AppModule).normalizedAspectMetaMap.get(restAspect)!;
+    const meta1 = moduleRegistry.scanRootModule(AppModule).normalizedAspectsMetaMap.get(restAspect)!;
     expect(dynamicModule.dynamicAspectOptionsMap?.get(restAspect)).toEqual({ path: 'test1' });
     expect(meta1.appendsWithOpts).toEqual([appendWithOpts]);
 
-    const meta2 = moduleRegistry.getNormalizedModuleMeta(dynamicModule, true).normalizedAspectMetaMap.get(restAspect)!;
+    const meta2 = moduleRegistry.getNormalizedModuleMeta(dynamicModule, true).normalizedAspectsMetaMap.get(restAspect)!;
     expect(meta2.params.path).toEqual('test1');
 
-    const meta3 = moduleRegistry.getNormalizedModuleMeta(appendWithOpts, true).normalizedAspectMetaMap.get(restAspect)!;
+    const meta3 = moduleRegistry.getNormalizedModuleMeta(appendWithOpts, true).normalizedAspectsMetaMap.get(restAspect)!;
     expect(meta3.params.path).toEqual('test2');
   });
 
@@ -129,7 +129,7 @@ describe('rest ModuleNormalizer', () => {
 
     const normalizedModuleMeta = moduleRegistry.scanRootModule(AppModule);
 
-    const meta1 = moduleRegistry.getNormalizedModuleMeta(AppModule, true).normalizedAspectMetaMap.get(restAspect)!;
+    const meta1 = moduleRegistry.getNormalizedModuleMeta(AppModule, true).normalizedAspectsMetaMap.get(restAspect)!;
     expect(meta1.providersPerRou).toEqual([Service1, { token: Service3, useClass: Service3, multi: true }]);
     expect(meta1.providersPerReq).toEqual([Service2, { token: Service4, useToken: Service4, multi: true }]);
     expect(meta1.exportedProvidersPerRou).toEqual([Service1]);
@@ -141,10 +141,10 @@ describe('rest ModuleNormalizer', () => {
     expect(meta1.appendsModules).toEqual([Module5]);
     expect(meta1.appendsWithOpts).toEqual([appendWithOpts]);
 
-    const meta2 = moduleRegistry.getNormalizedModuleMeta('test-id', true).normalizedAspectMetaMap.get(restAspect)!;
+    const meta2 = moduleRegistry.getNormalizedModuleMeta('test-id', true).normalizedAspectsMetaMap.get(restAspect)!;
     expect(meta2.params.path).toEqual('test1');
 
-    const meta3 = moduleRegistry.getNormalizedModuleMeta(appendWithOpts, true).normalizedAspectMetaMap.get(restAspect)!;
+    const meta3 = moduleRegistry.getNormalizedModuleMeta(appendWithOpts, true).normalizedAspectsMetaMap.get(restAspect)!;
     expect(meta3.params.path).toEqual('test2');
 
     expect(normalizedModuleMeta.importedStaticModules).toEqual([Module1, RestModule]);
@@ -186,13 +186,13 @@ describe('rest ModuleNormalizer', () => {
     class AppModule {}
 
     const normalizedModuleMeta = moduleRegistry.scanRootModule(AppModule);
-    const meta1 = moduleRegistry.getNormalizedModuleMeta(AppModule, true).normalizedAspectMetaMap.get(restAspect)!;
+    const meta1 = moduleRegistry.getNormalizedModuleMeta(AppModule, true).normalizedAspectsMetaMap.get(restAspect)!;
     const modRefIds = normalizedModuleMeta.allModuleAspectsMap.get(restAspect)?.getModulesToScan(meta1);
     expect(modRefIds).toEqual([appendsWithOpts]);
     expect(normalizedModuleMeta.importedStaticModules).toEqual([RestModule]);
     expect(normalizedModuleMeta.importedDynamicModules).toEqual([]);
 
-    const meta2 = moduleRegistry.getNormalizedModuleMeta(appendsWithOpts, true).normalizedAspectMetaMap.get(restAspect)!;
+    const meta2 = moduleRegistry.getNormalizedModuleMeta(appendsWithOpts, true).normalizedAspectsMetaMap.get(restAspect)!;
     expect(meta2.params.path).toBe('one');
     expect(meta2.params.guards).toEqual<NormalizedGuard[]>([
       { guard: Guard1 },
@@ -258,13 +258,13 @@ describe('rest ModuleNormalizer', () => {
     class AppModule {}
 
     const normalizedModuleMeta = moduleRegistry.scanRootModule(AppModule);
-    const meta1 = moduleRegistry.getNormalizedModuleMeta(AppModule, true).normalizedAspectMetaMap.get(restAspect)!;
+    const meta1 = moduleRegistry.getNormalizedModuleMeta(AppModule, true).normalizedAspectsMetaMap.get(restAspect)!;
     const modRefIds = normalizedModuleMeta.allModuleAspectsMap.get(restAspect)?.getModulesToScan(meta1);
     expect(modRefIds).toEqual([]);
     expect(normalizedModuleMeta.importedStaticModules).toEqual([RestModule]);
     expect(normalizedModuleMeta.importedDynamicModules).toEqual([dynamicModule]);
 
-    const meta2 = moduleRegistry.getNormalizedModuleMeta(dynamicModule, true).normalizedAspectMetaMap.get(restAspect)!;
+    const meta2 = moduleRegistry.getNormalizedModuleMeta(dynamicModule, true).normalizedAspectsMetaMap.get(restAspect)!;
     expect(meta2.params.path).toBe('one');
     expect(meta2.params.guards).toEqual<NormalizedGuard[]>([
       { guard: Guard1 },
@@ -299,7 +299,7 @@ describe('rest ModuleNormalizer', () => {
     class AppModule {}
 
     const normalizedModuleMeta = moduleRegistry.scanRootModule(AppModule);
-    const meta = normalizedModuleMeta.normalizedAspectMetaMap.get(restAspect)!;
+    const meta = normalizedModuleMeta.normalizedAspectsMetaMap.get(restAspect)!;
     expect(meta.controllers).toEqual([Controller1]);
     expect(meta.providersPerRou).toEqual([Service1, { token: Service2, useClass: Service2, multi: true }]);
     expect(meta.exportedProvidersPerRou).toEqual([Service1]);

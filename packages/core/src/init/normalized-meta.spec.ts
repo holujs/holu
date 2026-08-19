@@ -75,7 +75,7 @@ describe('NormalizedModuleMeta', () => {
 
     const original = new NormalizedModuleMeta();
     const aspect = new MutatingAspect();
-    original.moduleAspectMap.set(MutatingAspect as any, aspect);
+    original.moduleAspectsMap.set(MutatingAspect as any, aspect);
 
     expect(aspect.normalizedCount).toBe(0);
 
@@ -84,8 +84,8 @@ describe('NormalizedModuleMeta', () => {
     // The original aspect should remain untouched
     expect(aspect.normalizedCount).toBe(0);
 
-    // The copied aspect in copy.moduleAspectMap should be a clone and should have been normalized
-    const copiedAspect = copy.moduleAspectMap.get(MutatingAspect as any) as unknown as MutatingAspect;
+    // The copied aspect in copy.moduleAspectsMap should be a clone and should have been normalized
+    const copiedAspect = copy.moduleAspectsMap.get(MutatingAspect as any) as unknown as MutatingAspect;
     expect(copiedAspect).toBeDefined();
     expect(copiedAspect).not.toBe(aspect);
     expect(copiedAspect.normalizedCount).toBe(1);
@@ -139,13 +139,13 @@ describe('NormalizedModuleMeta', () => {
       expect(copiedMod1).not.toBe(originalMod1);
 
       // Maps should be new instances
-      expect(copiedMod1.moduleAspectMap).not.toBe(originalMod1.moduleAspectMap);
+      expect(copiedMod1.moduleAspectsMap).not.toBe(originalMod1.moduleAspectsMap);
       expect(copiedMod1.allModuleAspectsMap).not.toBe(originalMod1.allModuleAspectsMap);
-      expect(copiedMod1.normalizedAspectMetaMap).not.toBe(originalMod1.normalizedAspectMetaMap);
+      expect(copiedMod1.normalizedAspectsMetaMap).not.toBe(originalMod1.normalizedAspectsMetaMap);
 
-      // The proxy inside copiedMod1.normalizedAspectMetaMap should wrap copiedMod1.
-      const originalProxy = originalMod1.normalizedAspectMetaMap.get(someAspect) as AspectMeta;
-      const copiedProxy = copiedMod1.normalizedAspectMetaMap.get(someAspect) as AspectMeta;
+      // The proxy inside copiedMod1.normalizedAspectsMetaMap should wrap copiedMod1.
+      const originalProxy = originalMod1.normalizedAspectsMetaMap.get(someAspect) as AspectMeta;
+      const copiedProxy = copiedMod1.normalizedAspectsMetaMap.get(someAspect) as AspectMeta;
 
       expect(copiedProxy).toBeDefined();
       expect(copiedProxy).not.toBe(originalProxy);

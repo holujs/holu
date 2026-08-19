@@ -37,10 +37,10 @@ export class ModuleAspectPropagator {
       const modulesToScan = new Set<ModRefId>();
 
       this.normalizedMetaMap.forEach((meta) => {
-        meta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
+        meta.moduleAspectsMap.forEach((moduleAspect, decoratorId) => {
           if (moduleAspect.hostModule && moduleAspect.hostStaticAspectOptions) {
             const hostMeta = this.normalizedMetaMap.get(moduleAspect.hostModule);
-            if (hostMeta && !hostMeta.moduleAspectMap.has(decoratorId)) {
+            if (hostMeta && !hostMeta.moduleAspectsMap.has(decoratorId)) {
               const isAdded = this.applyHostAspectAndGatherDependencies(hostMeta, decoratorId, moduleAspect, modulesToScan);
               if (isAdded) {
                 hasNewModules = true;
@@ -72,7 +72,7 @@ export class ModuleAspectPropagator {
     modulesToScan: Set<ModRefId>,
   ): boolean {
     const newAspectHandler = aspectHandler.clone(aspectHandler.hostStaticAspectOptions);
-    hostMeta.moduleAspectMap.set(decoratorId, newAspectHandler);
+    hostMeta.moduleAspectsMap.set(decoratorId, newAspectHandler);
     try {
       this.metaProcessor.applyHostStaticAspectOptions(hostMeta, decoratorId, newAspectHandler);
     } catch (err: any) {
@@ -91,7 +91,7 @@ export class ModuleAspectPropagator {
       }
     };
 
-    const aspectMeta = hostMeta.normalizedAspectMetaMap.get(decoratorId);
+    const aspectMeta = hostMeta.normalizedAspectsMetaMap.get(decoratorId);
     if (aspectMeta) {
       newAspectHandler.getModulesToScan(aspectMeta).forEach(processInput);
     }
@@ -110,42 +110,39 @@ export class ModuleAspectPropagator {
    *   and `inheritsAspects` is not set to `false`.
    *
    * @param startModule - The module to begin propagation from (typically the root module).
-   * @param parentAspects - A map of aspects inherited from the parent module context.
+   * @param parentAspectsMap - A map of aspects inherited from the parent module context.
    * @param visited - A set of already visited modules to prevent infinite loops in cyclic dependencies.
    */
-  propagateAspectsTopDown(startModule: ModRefId, parentAspects: AllModuleAspectsMap = new Map(), visited = new Set<ModRefId>()) {
+  propagateAspectsTopDown(startModule: ModRefId, parentAspectsMap: AllModuleAspectsMap = new Map(), visited = new Set<ModRefId>()) {
     if (visited.has(startModule)) {
       return;
     }
     visited.add(startModule);
 
-    const meta = this.normalizedMetaMap.get(startModule);
-    if (!meta) {
-      return;
-    }
+    const meta = this.normalizedMetaMap.get(startModule)!;
 
     // Build the active aspect context: parent's aspects + current module's own aspects.
-    const activeAspects: AllModuleAspectsMap = new Map(parentAspects);
-    meta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
-      activeAspects.set(decoratorId, moduleAspect);
+    const activeAspectsMap: AllModuleAspectsMap = new Map(parentAspectsMap);
+    meta.moduleAspectsMap.forEach((moduleAspect, decoratorId) => {
+      activeAspectsMap.set(decoratorId, moduleAspect);
     });
 
     // Apply aspects for dynamic modules imported with dynamicAspectOptionsMap.
-    this.applyAspectsForDynamicModule(meta, activeAspects);
+    this.applyAspectsForDynamicModule(meta, activeAspectsMap);
 
     // Inherit parent aspects for static modules without own decorators.
-    this.inheritParentAspects(meta, activeAspects);
+    this.inheritParentAspects(meta, activeAspectsMap);
 
     // After applying/inheriting, rebuild activeAspects to include newly added entries.
-    meta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
-      activeAspects.set(decoratorId, moduleAspect);
+    meta.moduleAspectsMap.forEach((moduleAspect, decoratorId) => {
+      activeAspectsMap.set(decoratorId, moduleAspect);
     });
 
     // Recurse into children.
     const children = this.childrenMap.get(startModule);
     if (children) {
       for (const child of children) {
-        this.propagateAspectsTopDown(child, activeAspects, visited);
+        this.propagateAspectsTopDown(child, activeAspectsMap, visited);
       }
     }
   }
@@ -156,7 +153,7 @@ export class ModuleAspectPropagator {
    *
    * This process ensures that a parent module's `allModuleAspectsMap` contains all aspects
    * that are present anywhere within its sub-tree. Additionally, it creates read-only, normalized
-   * entries in the parent's `normalizedAspectMetaMap` for these accumulated (non-own) aspects.
+   * entries in the parent's `normalizedAspectsMetaMap` for these accumulated (non-own) aspects.
    *
    * @param startModule - The module to begin accumulation from (typically the root module).
    * @param visited - A set of already visited modules to prevent infinite loops in cyclic dependencies.
@@ -167,10 +164,7 @@ export class ModuleAspectPropagator {
     }
     visited.add(startModule);
 
-    const meta = this.normalizedMetaMap.get(startModule);
-    if (!meta) {
-      return;
-    }
+    const meta = this.normalizedMetaMap.get(startModule)!;
 
     // Recurse into children first (post-order).
     const children = this.childrenMap.get(startModule);
@@ -181,8 +175,8 @@ export class ModuleAspectPropagator {
 
       // Now add children's aspects to the current module's allModuleAspectsMap.
       for (const child of children) {
-        const childMeta = this.normalizedMetaMap.get(child);
-        childMeta?.allModuleAspectsMap.forEach((aspect, decoratorId) => {
+        const childMeta = this.normalizedMetaMap.get(child)!;
+        childMeta.allModuleAspectsMap.forEach((aspect, decoratorId) => {
           if (!meta.allModuleAspectsMap.has(decoratorId)) {
             meta.allModuleAspectsMap.set(decoratorId, aspect);
           }
@@ -190,12 +184,12 @@ export class ModuleAspectPropagator {
       }
     }
 
-    // Create read-only normalizedAspectMetaMap entries for accumulated (non-own) aspects.
+    // Create read-only normalizedAspectsMetaMap entries for accumulated (non-own) aspects.
     meta.allModuleAspectsMap.forEach((aspect, decoratorId) => {
-      if (!meta.moduleAspectMap.has(decoratorId) && !meta.normalizedAspectMetaMap.has(decoratorId)) {
+      if (!meta.moduleAspectsMap.has(decoratorId) && !meta.normalizedAspectsMetaMap.has(decoratorId)) {
         const readOnlyMeta = aspect.clone().normalize(meta);
         if (readOnlyMeta) {
-          meta.normalizedAspectMetaMap.set(decoratorId, readOnlyMeta);
+          meta.normalizedAspectsMetaMap.set(decoratorId, readOnlyMeta);
         }
       }
     });
@@ -203,7 +197,7 @@ export class ModuleAspectPropagator {
 
   protected applyAspectsForDynamicModule(meta: NormalizedModuleMeta, parentAspects: AllModuleAspectsMap) {
     (meta.modRefId as DynamicModule).dynamicAspectOptionsMap?.forEach((params, decoratorId) => {
-      if (!meta.moduleAspectMap.has(decoratorId)) {
+      if (!meta.moduleAspectsMap.has(decoratorId)) {
         const parentAspect = parentAspects.get(decoratorId);
         if (parentAspect) {
           try {
@@ -221,7 +215,7 @@ export class ModuleAspectPropagator {
 
   protected inheritParentAspects(meta: NormalizedModuleMeta, parentAspects: AllModuleAspectsMap) {
     const inheritsAspects = meta.inheritsAspects ?? !meta.isExternal;
-    if (!inheritsAspects || meta.moduleAspectMap.size > 0) {
+    if (!inheritsAspects || meta.moduleAspectsMap.size > 0) {
       return;
     }
     parentAspects.forEach((aspect, decoratorId) => {

@@ -44,7 +44,7 @@ describe('TestAppInitializer', () => {
 
       mock.addProvidersToModule(modRefId, [Provider1]);
       const normalizedModuleMeta = new NormalizedModuleMeta();
-      normalizedModuleMeta.normalizedAspectMetaMap.set(restAspect, new RestAspectMeta());
+      normalizedModuleMeta.normalizedAspectsMetaMap.set(restAspect, new RestAspectMeta());
       normalizedModuleMeta.providersPerApp.push(Provider0);
       normalizedModuleMeta.providersPerMod.push(Provider0);
 

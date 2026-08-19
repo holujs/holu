@@ -131,7 +131,7 @@ describe('ModuleRegistry', () => {
       expectedMeta1.providersPerMod = [Service1];
       expectedMeta1.declaredInDir = expect.any(String);
       expectedMeta1.isExternal = false;
-      expectedMeta1.moduleAspectMap = expect.any(Map);
+      expectedMeta1.moduleAspectsMap = expect.any(Map);
       expectedMeta1.staticModuleOptions = expect.any(Object);
       return expectedMeta1;
     };
@@ -204,7 +204,7 @@ describe('ModuleRegistry', () => {
       expectedMeta3.providersPerMod = [Service1];
       expectedMeta3.declaredInDir = expect.any(String);
       expectedMeta3.isExternal = false;
-      expectedMeta3.moduleAspectMap = expect.any(Map);
+      expectedMeta3.moduleAspectsMap = expect.any(Map);
       expectedMeta3.staticModuleOptions = expect.any(Object);
 
       expect(mock.getNormalizedModuleMeta('root')).toEqual(expectedMeta3);
@@ -224,7 +224,7 @@ describe('ModuleRegistry', () => {
       expectedMeta3.providersPerMod = [Service1];
       expectedMeta3.declaredInDir = expect.any(String);
       expectedMeta3.isExternal = false;
-      expectedMeta3.moduleAspectMap = expect.any(Map);
+      expectedMeta3.moduleAspectsMap = expect.any(Map);
       expectedMeta3.staticModuleOptions = expect.any(Object);
 
       mock.addImport(module3WithProviders);
@@ -337,7 +337,7 @@ describe('ModuleRegistry', () => {
       expectedMeta1.providersPerMod = [Service1];
       expectedMeta1.declaredInDir = expect.any(String);
       expectedMeta1.isExternal = false;
-      expectedMeta1.moduleAspectMap = expect.any(Map);
+      expectedMeta1.moduleAspectsMap = expect.any(Map);
       expectedMeta1.staticModuleOptions = expect.any(Object);
       return expectedMeta1;
     };

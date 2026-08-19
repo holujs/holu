@@ -163,7 +163,7 @@ describe('ModuleAspectPropagator', () => {
 
       mock.scanRootModule(AppModule);
       const mod1 = mock.getNormalizedModuleMeta(dynamicModule)!;
-      expect(mod1.normalizedAspectMetaMap.get(someAspect)).toEqual({ path: 'some-prefix' });
+      expect(mod1.normalizedAspectsMetaMap.get(someAspect)).toEqual({ path: 'some-prefix' });
     });
 
     it('should handle static Module1 not having an annotation with someAspect, but imported in AppModule with this decorator', () => {
@@ -201,7 +201,7 @@ describe('ModuleAspectPropagator', () => {
 
       mock.scanRootModule(AppModule);
       const mod1 = mock.getNormalizedModuleMeta(Module1)!;
-      expect(mod1.normalizedAspectMetaMap.get(someAspect)).toEqual({ path: 'static-default' });
+      expect(mod1.normalizedAspectsMetaMap.get(someAspect)).toEqual({ path: 'static-default' });
       expect(mod1.importedStaticModules.includes(HostModule1)).toBe(true);
     });
 
@@ -242,7 +242,7 @@ describe('ModuleAspectPropagator', () => {
 
       mock.scanRootModule(AppModule);
       const mod1 = mock.getNormalizedModuleMeta(Module1)!;
-      expect(mod1.normalizedAspectMetaMap.has(someAspect)).toBe(false);
+      expect(mod1.normalizedAspectsMetaMap.has(someAspect)).toBe(false);
       expect(mod1.importedStaticModules.includes(HostModule1)).toBe(false);
     });
 
@@ -343,8 +343,8 @@ describe('ModuleAspectPropagator', () => {
       mock.scanRootModule(AppModule);
 
       const hostMeta = mock.getNormalizedModuleMeta(HostModule);
-      expect(hostMeta?.moduleAspectMap.has(someAspect)).toBe(true);
-      const moduleAspectHandler = hostMeta?.moduleAspectMap.get(someAspect);
+      expect(hostMeta?.moduleAspectsMap.has(someAspect)).toBe(true);
+      const moduleAspectHandler = hostMeta?.moduleAspectsMap.get(someAspect);
       expect(moduleAspectHandler?.staticAspectOptions).toEqual({ customProp: 'works' });
     });
 

@@ -178,7 +178,7 @@ export class MyFeatureModule {}
     ```ts
     dynamicModule.dynamicAspectOptionsMap.set(aspectDecorator, { path: 'some-path' });
     ```
-2. Якщо імпортований модуль має лише `@featureModule` (без aspect-декораторів), фреймворк отримує дефолтний клас aspect для цього декоратора з контексту застосунку, клонує його, реєструє у `moduleAspectMap` модуля та викликає метод `normalize()`.
+2. Якщо імпортований модуль має лише `@featureModule` (без aspect-декораторів), фреймворк отримує дефолтний клас aspect для цього декоратора з контексту застосунку, клонує його, реєструє у `moduleAspectsMap` модуля та викликає метод `normalize()`.
 3. Це забезпечує коректну обробку кастомних опцій (таких як REST префікси маршрутів та гарди), навіть при імпорті стандартних модулів фіч, які не мають кастомних анотацій aspect-декораторів.
 
 [1]: /basic-components/modules/#DynamicModule

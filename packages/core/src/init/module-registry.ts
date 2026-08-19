@@ -137,8 +137,8 @@ export class ModuleRegistry {
 
   protected getModulesToScan(normalizedModuleMeta: NormalizedModuleMeta): ModRefId[] {
     const importsOrExports: ModRefId[] = [];
-    normalizedModuleMeta.moduleAspectMap.forEach((moduleAspect, decoratorId) => {
-      const meta = normalizedModuleMeta.normalizedAspectMetaMap.get(decoratorId);
+    normalizedModuleMeta.moduleAspectsMap.forEach((moduleAspect, decoratorId) => {
+      const meta = normalizedModuleMeta.normalizedAspectsMetaMap.get(decoratorId);
       if (meta) {
         importsOrExports.push(...moduleAspect.getModulesToScan(meta));
       }
@@ -210,7 +210,7 @@ export class ModuleRegistry {
   protected checkFeatureModuleHasMeaningfulMetadata(normalizedModuleMeta: NormalizedModuleMeta) {
     if (
       !isRootModule(normalizedModuleMeta) &&
-      !normalizedModuleMeta.moduleAspectMap.size &&
+      !normalizedModuleMeta.moduleAspectsMap.size &&
       !normalizedModuleMeta.exportedProvidersPerMod.length &&
       !normalizedModuleMeta.exportedMultiProvidersPerMod.length &&
       !normalizedModuleMeta.exportedStaticModules.length &&
