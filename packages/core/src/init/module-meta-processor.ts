@@ -145,6 +145,35 @@ export class ModuleMetaProcessor {
     this.normalizeResolvedCollisions(staticAspectOptions, meta);
   }
 
+  normalizeProviders(moduleOptions: Partial<ProvidersByLevel>, meta: NormalizedModuleMeta) {
+    (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
+      const providersKey = `providersPer${level}` as const;
+      if (moduleOptions[providersKey]) {
+        const providersPerLevel = this.resolveAllForwardRefs(moduleOptions[providersKey]);
+        meta[providersKey].push(...providersPerLevel);
+      }
+    });
+  }
+
+  protected normalizeResolvedCollisions(
+    staticAspectOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
+    meta: NormalizedModuleMeta,
+  ) {
+    (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
+      const resolvedCollisionKey = `resolvedCollisionsPer${level}` as const;
+      if (staticAspectOptions[resolvedCollisionKey]) {
+        staticAspectOptions[resolvedCollisionKey].forEach(([token, module]) => {
+          token = resolveForwardRef(token);
+          module = resolveForwardRef(module);
+          if (isDynamicModule(module)) {
+            module.module = resolveForwardRef(module.module);
+          }
+          meta[resolvedCollisionKey].push([token, module]);
+        });
+      }
+    });
+  }
+
   normalizeExports(moduleOptions: { exports?: any[] }, action: 'Static exports' | 'Dynamic exports', meta: NormalizedModuleMeta) {
     if (!moduleOptions.exports) {
       return;
@@ -194,35 +223,6 @@ export class ModuleMetaProcessor {
     this.ensureHostModuleImported(aspectHandler, normalizedModuleMeta);
     this.normalizeAspectMeta(decoratorId, aspectHandler, normalizedModuleMeta);
     normalizedModuleMeta.moduleAspectMap.set(decoratorId, aspectHandler);
-  }
-
-  normalizeProviders(moduleOptions: Partial<ProvidersByLevel>, meta: NormalizedModuleMeta) {
-    (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
-      const providersKey = `providersPer${level}` as const;
-      if (moduleOptions[providersKey]) {
-        const providersPerLevel = this.resolveAllForwardRefs(moduleOptions[providersKey]);
-        meta[providersKey].push(...providersPerLevel);
-      }
-    });
-  }
-
-  protected normalizeResolvedCollisions(
-    staticAspectOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
-    meta: NormalizedModuleMeta,
-  ) {
-    (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
-      const resolvedCollisionKey = `resolvedCollisionsPer${level}` as const;
-      if (staticAspectOptions[resolvedCollisionKey]) {
-        staticAspectOptions[resolvedCollisionKey].forEach(([token, module]) => {
-          token = resolveForwardRef(token);
-          module = resolveForwardRef(module);
-          if (isDynamicModule(module)) {
-            module.module = resolveForwardRef(module.module);
-          }
-          meta[resolvedCollisionKey].push([token, module]);
-        });
-      }
-    });
   }
 
   protected exportProviders(token: any, meta: NormalizedModuleMeta): void {
