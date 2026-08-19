@@ -341,7 +341,7 @@ export class ModuleMetaProcessor {
     return overrides;
   }
 
-  resolveAllForwardRefs<T extends ModRefId | Provider | ForwardRefFn | { dynamicModule: DynamicModule }>(
+  protected resolveAllForwardRefs<T extends ModRefId | Provider | ForwardRefFn | { dynamicModule: DynamicModule }>(
     arr: T[] | ProviderBuilder = [],
   ): Exclude<T, ForwardRefFn>[] {
     return [...arr].map((item) => {
