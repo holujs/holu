@@ -4,7 +4,8 @@ import type { ModuleAspectHandler, AllModuleAspectsMap } from '#decorators/modul
 import type { NormalizedModuleMeta, BaseNormalizedModuleMeta } from '#init/normalized-meta.js';
 import type { ModulesMap } from '#init/module-registry.js';
 import type { ModuleMetaProcessor } from '#init/module-meta-processor.js';
-import { NormalizationFailure } from '#errors';
+import { NormalizationFailure, MissingChildrenMap, MissingModuleMetadata } from '#errors';
+import { getDebugClassName } from '#utils/get-debug-class-name.js';
 
 /**
  * Orchestrates the propagation and aggregation of module aspects across the dependency graph.
@@ -80,7 +81,10 @@ export class ModuleAspectPropagator {
     }
 
     let hasNewSubChildren = false;
-    const children = this.childrenMap.get(hostMeta.modRefId)!;
+    const children = this.childrenMap.get(hostMeta.modRefId);
+    if (!children) {
+      throw new MissingChildrenMap(getDebugClassName(hostMeta.modRefId));
+    }
     const processInput = (input: ModRefId) => {
       if (!children.has(input)) {
         children.add(input);
@@ -119,7 +123,10 @@ export class ModuleAspectPropagator {
     }
     visited.add(startModule);
 
-    const meta = this.normalizedMetaMap.get(startModule)!;
+    const meta = this.normalizedMetaMap.get(startModule);
+    if (!meta) {
+      throw new MissingModuleMetadata(getDebugClassName(startModule));
+    }
     const effectiveAspectsMap: AllModuleAspectsMap = new Map([...parentAspectsMap, ...meta.moduleAspectsMap]);
 
     // Apply aspects for dynamic modules imported with dynamicAspectOptionsMap.
@@ -157,7 +164,10 @@ export class ModuleAspectPropagator {
     }
     visited.add(startModule);
 
-    const meta = this.normalizedMetaMap.get(startModule)!;
+    const meta = this.normalizedMetaMap.get(startModule);
+    if (!meta) {
+      throw new MissingModuleMetadata(getDebugClassName(startModule));
+    }
 
     // Recurse into children first (post-order).
     const children = this.childrenMap.get(startModule);
@@ -168,7 +178,10 @@ export class ModuleAspectPropagator {
 
       // Now add children's aspects to the current module's allModuleAspectsMap.
       for (const child of children) {
-        const childMeta = this.normalizedMetaMap.get(child)!;
+        const childMeta = this.normalizedMetaMap.get(child);
+        if (!childMeta) {
+          throw new MissingModuleMetadata(getDebugClassName(child));
+        }
         childMeta.allModuleAspectsMap.forEach((aspect, decoratorId) => {
           if (!meta.allModuleAspectsMap.has(decoratorId)) {
             meta.allModuleAspectsMap.set(decoratorId, aspect);

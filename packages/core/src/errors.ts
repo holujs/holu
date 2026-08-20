@@ -41,6 +41,8 @@ export {
   ForbiddenInjectorReinit,
   ClassWithoutDecorators,
   RuntimeReinitDisabled,
+  MissingChildrenMap,
+  MissingModuleMetadata,
 } from '#error/core-errors.js';
 
 export * from '#di/errors.js';

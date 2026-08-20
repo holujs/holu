@@ -32,6 +32,9 @@ import {
   ReexportFailure,
 } from '#errors';
 
+export const PROVIDER_LEVELS = ['App', 'Mod', 'Rou', 'Req'] as const;
+export type ProviderLevel = (typeof PROVIDER_LEVELS)[number];
+
 /**
  * A stateless utility service containing shared metadata-processing methods used by both
  * {@link ModuleNormalizer} (creation of new metadata) and {@link ModuleRegistry}
@@ -169,7 +172,7 @@ export class ModuleMetaProcessor {
   }
 
   normalizeProviders(moduleOptions: Partial<ProvidersByLevel>, meta: NormalizedModuleMeta) {
-    (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
+    PROVIDER_LEVELS.forEach((level) => {
       const providersKey = `providersPer${level}` as const;
       if (moduleOptions[providersKey]) {
         const providersPerLevel = this.resolveAllForwardRefs(moduleOptions[providersKey]);
@@ -182,7 +185,7 @@ export class ModuleMetaProcessor {
     staticAspectOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
     meta: NormalizedModuleMeta,
   ) {
-    (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
+    PROVIDER_LEVELS.forEach((level) => {
       const resolvedCollisionKey = `resolvedCollisionsPer${level}` as const;
       if (staticAspectOptions[resolvedCollisionKey]) {
         staticAspectOptions[resolvedCollisionKey].forEach(([token, module]) => {
@@ -368,7 +371,7 @@ export class ModuleMetaProcessor {
     meta: NormalizedModuleMeta,
   ) {
     const resolvedCollisionsPerLevel: [any, ModRefId | ForwardRefFn][] = [];
-    (['App', 'Mod', 'Rou', 'Req'] as const).forEach((level) => {
+    PROVIDER_LEVELS.forEach((level) => {
       if (Array.isArray(staticModuleOptions[`resolvedCollisionsPer${level}`])) {
         resolvedCollisionsPerLevel.push(...staticModuleOptions[`resolvedCollisionsPer${level}`]!);
       }

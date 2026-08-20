@@ -2,6 +2,24 @@ import { stringify } from '#di/stringify.js';
 import { CustomError } from './custom-error.js';
 
 /**
+ * `Children map not found for ${moduleName}`
+ */
+export class MissingChildrenMap extends CustomError {
+  constructor(moduleName: string | undefined) {
+    super({ msg1: `Children map not found for ${moduleName}`, level: 'fatal' });
+  }
+}
+
+/**
+ * `Module metadata not found for ${moduleName}`
+ */
+export class MissingModuleMetadata extends CustomError {
+  constructor(moduleName: string | undefined) {
+    super({ msg1: `Module metadata not found for ${moduleName}`, level: 'fatal' });
+  }
+}
+
+/**
  * `You are trying to use the useFactories() method from the "ProviderBuilder" helper,
  * but the [${i}] element has no decorators or is not a class.`
  */
