@@ -8,7 +8,6 @@ import { resolveForwardRef, type ForwardRefFn } from '#di/forward-ref.js';
 import { isRootModule } from '#decorators/type-guards.js';
 import { clearDebugClassNames, getDebugClassName } from '#utils/get-debug-class-name.js';
 import { ModuleNormalizer } from '#init/module-normalizer.js';
-import { ModuleMetaProcessor } from '#init/module-meta-processor.js';
 import { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
 import { ModuleIdNotFound, NormalizationFailure, MissingRootDecorator, MeaninglessModuleMetadata } from '#errors';
 import { getModule } from '#utils/get-module.js';
@@ -78,7 +77,7 @@ export class ModuleRegistry {
 
   constructor(
     protected systemLogMediator: SystemLogMediator,
-    protected moduleNormalizer: ModuleNormalizer = new ModuleNormalizer(),
+    protected moduleNormalizer: ModuleNormalizer = new ModuleNormalizer(systemLogMediator),
   ) {}
 
   /**
@@ -174,7 +173,7 @@ export class ModuleRegistry {
 
   protected propagateAspectsAndValidate(modRefId: ModRefId) {
     const propagator = new ModuleAspectPropagator(
-      new ModuleMetaProcessor(),
+      this.moduleNormalizer.metaProcessor,
       this.activeMetaMap,
       this.childrenMap,
       this.scannedModules,
@@ -318,7 +317,7 @@ export class ModuleRegistry {
    */
   protected normalizeMeta(modRefId: ModRefId): NormalizedModuleMeta {
     try {
-      return this.moduleNormalizer.normalize(modRefId, this.systemLogMediator);
+      return this.moduleNormalizer.normalize(modRefId);
     } catch (err: any) {
       const moduleName = getDebugClassName(modRefId);
       let path = [...this.scanningModules].map((id) => getDebugClassName(id)).join(' -> ');

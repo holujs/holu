@@ -23,7 +23,7 @@ import { DecoratorMeta } from '#di/top/decorator-and-value.js';
 describe('ModuleNormalizer', () => {
   class MockModuleNormalizer extends ModuleNormalizer {
     override normalize(modRefId: ModRefId): NormalizedModuleMeta {
-      return super.normalize(modRefId, { externalModuleDetectionFailed: () => {} } as any);
+      return super.normalize(modRefId);
     }
   }
 
@@ -31,7 +31,8 @@ describe('ModuleNormalizer', () => {
 
   beforeEach(() => {
     clearDebugClassNames();
-    normalizer = new MockModuleNormalizer();
+    const systemLogMediator = { externalModuleDetectionFailed: () => {} } as any;
+    normalizer = new MockModuleNormalizer(systemLogMediator);
   });
 
   describe('base module metadata', () => {
@@ -398,7 +399,7 @@ describe('ModuleNormalizer', () => {
       customMeta = new Map<StaticModule, DecoratorMeta[]>();
 
       override normalize(modRefId: any): NormalizedModuleMeta {
-        return super.normalize(modRefId, { externalModuleDetectionFailed: () => {} } as any);
+        return super.normalize(modRefId);
       }
 
       protected override getDecoratorMeta(modRefId: any) {
@@ -407,7 +408,7 @@ describe('ModuleNormalizer', () => {
     }
 
     it('marks modules outside rootDeclaredInDir as external and modules inside rootDeclaredInDir as internal', () => {
-      const externalModuleNormalizer = new ExternalModuleNormalizer();
+      const externalModuleNormalizer = new ExternalModuleNormalizer({ externalModuleDetectionFailed: () => {} } as any);
       class AppModule {}
       class ExternalModule {}
       class InternalModule {}
@@ -439,7 +440,7 @@ describe('ModuleNormalizer', () => {
     });
 
     it('marks Holu package modules as external when the root module is not declared inside holu/packages', () => {
-      const externalModuleNormalizer = new ExternalModuleNormalizer();
+      const externalModuleNormalizer = new ExternalModuleNormalizer({ externalModuleDetectionFailed: () => {} } as any);
       class AppModule {}
       class HoluModule {}
 

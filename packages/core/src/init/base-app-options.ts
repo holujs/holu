@@ -1,5 +1,6 @@
 import type { OutputLogLevel } from '#logger/logger.js';
 import type { ModuleNormalizer } from '#init/module-normalizer.js';
+import type { SystemLogMediator } from '#logger/system-log-mediator.js';
 
 /**
  * Configs of logger is not added to the providers array as a separate provider but can be directly
@@ -58,5 +59,5 @@ export class BaseAppOptions {
    * The application DI container is not available yet when `ModuleRegistry` is created, so this
    * factory is the low-level extension point for replacing the default normalizer.
    */
-  moduleNormalizerFactory?: () => ModuleNormalizer;
+  moduleNormalizerFactory?: (log: SystemLogMediator) => ModuleNormalizer;
 }

@@ -57,28 +57,38 @@ describe('BaseApplication', () => {
     });
 
     it('should use a ModuleNormalizer created by moduleNormalizerFactory', () => {
-      const moduleNormalizer = new ModuleNormalizer();
-      const moduleNormalizerFactory = jest.fn(() => moduleNormalizer);
-      const normalizeSpy = jest.spyOn(moduleNormalizer, 'normalize');
+      let moduleNormalizer: ModuleNormalizer;
+      let normalizeSpy: any;
+      const moduleNormalizerFactory = jest.fn((log: SystemLogMediator) => {
+        moduleNormalizer = new ModuleNormalizer(log);
+        normalizeSpy = jest.spyOn(moduleNormalizer, 'normalize');
+        return moduleNormalizer;
+      });
 
       mock.init({ moduleNormalizerFactory });
       mock.scanRootModule(AppModule);
 
       expect(moduleNormalizerFactory).toHaveBeenCalledTimes(1);
-      expect(normalizeSpy).toHaveBeenCalledWith(AppModule, mock.log);
+      expect(moduleNormalizerFactory).toHaveBeenCalledWith(mock.log);
+      expect(normalizeSpy).toHaveBeenCalledWith(AppModule);
     });
 
     it('should pass a ModuleNormalizer created by moduleNormalizerFactory to MutableModuleRegistry', () => {
-      const moduleNormalizer = new ModuleNormalizer();
-      const moduleNormalizerFactory = jest.fn(() => moduleNormalizer);
-      const normalizeSpy = jest.spyOn(moduleNormalizer, 'normalize');
+      let moduleNormalizer: ModuleNormalizer;
+      let normalizeSpy: any;
+      const moduleNormalizerFactory = jest.fn((log: SystemLogMediator) => {
+        moduleNormalizer = new ModuleNormalizer(log);
+        normalizeSpy = jest.spyOn(moduleNormalizer, 'normalize');
+        return moduleNormalizer;
+      });
 
       mock.init({ allowRuntimeReinit: true, moduleNormalizerFactory });
       const moduleRegistry = mock.scanRootModule(AppModule);
 
       expect(moduleRegistry).toBeInstanceOf(MutableModuleRegistry);
       expect(moduleNormalizerFactory).toHaveBeenCalledTimes(1);
-      expect(normalizeSpy).toHaveBeenCalledWith(AppModule, mock.log);
+      expect(moduleNormalizerFactory).toHaveBeenCalledWith(mock.log);
+      expect(normalizeSpy).toHaveBeenCalledWith(AppModule);
     });
   });
 

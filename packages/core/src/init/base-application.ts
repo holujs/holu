@@ -104,7 +104,7 @@ export abstract class BaseApplication {
    * for the root module and all its dependencies.
    */
   protected scanRootModule(appModule: StaticModule) {
-    const moduleNormalizer = this.baseAppOptions.moduleNormalizerFactory?.() ?? new ModuleNormalizer();
+    const moduleNormalizer = this.baseAppOptions.moduleNormalizerFactory?.(this.log) ?? new ModuleNormalizer(this.log);
     if (this.baseAppOptions.allowRuntimeReinit) {
       this.moduleRegistry = new MutableModuleRegistry(this.log, moduleNormalizer);
     } else {

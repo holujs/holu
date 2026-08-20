@@ -27,7 +27,7 @@ import { isDynamicModule } from '#decorators/type-guards.js';
 describe('ModuleMetaProcessor', () => {
   class MockModuleNormalizer extends ModuleNormalizer {
     override normalize(modRefId: ModRefId): NormalizedModuleMeta {
-      return super.normalize(modRefId, { externalModuleDetectionFailed: () => {} } as any);
+      return super.normalize(modRefId);
     }
   }
 
@@ -35,7 +35,8 @@ describe('ModuleMetaProcessor', () => {
 
   beforeEach(() => {
     clearDebugClassNames();
-    normalizer = new MockModuleNormalizer();
+    const systemLogMediator = { externalModuleDetectionFailed: () => {} } as any;
+    normalizer = new MockModuleNormalizer(systemLogMediator);
   });
 
   describe('provider exports', () => {

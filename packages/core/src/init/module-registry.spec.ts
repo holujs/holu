@@ -61,13 +61,13 @@ describe('ModuleRegistry', () => {
 
       const systemLogMediator = new SystemLogMediator({ moduleName: 'fakeName' });
       jest.spyOn(systemLogMediator, 'externalModuleDetectionFailed').mockImplementation(() => {});
-      const moduleNormalizer = new ModuleNormalizer();
+      const moduleNormalizer = new ModuleNormalizer(systemLogMediator);
       const normalizeSpy = jest.spyOn(moduleNormalizer, 'normalize');
       const manager = new MockModuleRegistry(systemLogMediator, moduleNormalizer);
 
       manager.scanRootModule(AppModule);
 
-      expect(normalizeSpy).toHaveBeenCalledWith(AppModule, systemLogMediator);
+      expect(normalizeSpy).toHaveBeenCalledWith(AppModule);
     });
   });
 

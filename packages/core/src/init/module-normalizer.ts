@@ -27,9 +27,10 @@ export class ModuleNormalizer {
    * The directory in which the class was declared.
    */
   protected rootDeclaredInDir: string;
-  protected systemLogMediator: SystemLogMediator;
-
-  constructor(protected metaProcessor = new ModuleMetaProcessor()) {}
+  constructor(
+    protected systemLogMediator: SystemLogMediator,
+    public readonly metaProcessor = new ModuleMetaProcessor(),
+  ) {}
 
   /**
    * Returns normalized module metadata.
@@ -38,8 +39,7 @@ export class ModuleNormalizer {
    * (for dynamic modules with `dynamicAspectOptionsMap` or static modules without own decorators)
    * is handled separately by {@link ModuleAspectPropagator} after the scan phase completes.
    */
-  normalize(modRefId: ModRefId, systemLogMediator: SystemLogMediator) {
-    this.systemLogMediator = systemLogMediator;
+  normalize(modRefId: ModRefId) {
     const meta = this.initNormalizedModuleMeta(modRefId);
     const { staticModuleOptions } = meta;
     this.checkAndMarkExternalModule(staticModuleOptions, meta);
