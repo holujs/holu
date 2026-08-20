@@ -120,29 +120,22 @@ export class ModuleAspectPropagator {
     visited.add(startModule);
 
     const meta = this.normalizedMetaMap.get(startModule)!;
-
-    // Build the active aspect context: parent's aspects + current module's own aspects.
-    const activeAspectsMap: AllModuleAspectsMap = new Map(parentAspectsMap);
-    meta.moduleAspectsMap.forEach((moduleAspect, decoratorId) => {
-      activeAspectsMap.set(decoratorId, moduleAspect);
-    });
+    const effectiveAspectsMap: AllModuleAspectsMap = new Map([...parentAspectsMap, ...meta.moduleAspectsMap]);
 
     // Apply aspects for dynamic modules imported with dynamicAspectOptionsMap.
-    this.applyAspectsForDynamicModule(meta, activeAspectsMap);
+    this.applyAspectsForDynamicModule(meta, effectiveAspectsMap);
 
     // Inherit parent aspects for static modules without own decorators.
-    this.inheritParentAspects(meta, activeAspectsMap);
+    this.inheritParentAspects(meta, effectiveAspectsMap);
 
     // After applying/inheriting, rebuild activeAspects to include newly added entries.
-    meta.moduleAspectsMap.forEach((moduleAspect, decoratorId) => {
-      activeAspectsMap.set(decoratorId, moduleAspect);
-    });
+    meta.moduleAspectsMap.forEach((moduleAspect, decoratorId) => effectiveAspectsMap.set(decoratorId, moduleAspect));
 
     // Recurse into children.
     const children = this.childrenMap.get(startModule);
     if (children) {
       for (const child of children) {
-        this.propagateAspectsTopDown(child, activeAspectsMap, visited);
+        this.propagateAspectsTopDown(child, effectiveAspectsMap, visited);
       }
     }
   }
@@ -195,15 +188,15 @@ export class ModuleAspectPropagator {
     });
   }
 
-  protected applyAspectsForDynamicModule(meta: NormalizedModuleMeta, parentAspects: AllModuleAspectsMap) {
-    (meta.modRefId as DynamicModule).dynamicAspectOptionsMap?.forEach((params, decoratorId) => {
+  protected applyAspectsForDynamicModule(meta: NormalizedModuleMeta, effectiveAspectsMap: AllModuleAspectsMap) {
+    (meta.modRefId as DynamicModule).dynamicAspectOptionsMap?.forEach((dynamicModuleOptions, decoratorId) => {
       if (!meta.moduleAspectsMap.has(decoratorId)) {
-        const parentAspect = parentAspects.get(decoratorId);
-        if (parentAspect) {
+        const effectiveAspect = effectiveAspectsMap.get(decoratorId);
+        if (effectiveAspect) {
           try {
-            this.metaProcessor.registerAspectOnModule(meta, decoratorId, parentAspect.clone());
-            if (parentAspect.hostModule) {
-              this.childrenMap.get(meta.modRefId)?.add(parentAspect.hostModule);
+            this.metaProcessor.registerAspectOnModule(meta, decoratorId, effectiveAspect.clone());
+            if (effectiveAspect.hostModule) {
+              this.childrenMap.get(meta.modRefId)?.add(effectiveAspect.hostModule);
             }
           } catch (err: any) {
             throw new NormalizationFailure(meta.name, err);
@@ -213,12 +206,12 @@ export class ModuleAspectPropagator {
     });
   }
 
-  protected inheritParentAspects(meta: NormalizedModuleMeta, parentAspects: AllModuleAspectsMap) {
+  protected inheritParentAspects(meta: NormalizedModuleMeta, effectiveAspectsMap: AllModuleAspectsMap) {
     const inheritsAspects = meta.inheritsAspects ?? !meta.isExternal;
     if (!inheritsAspects || meta.moduleAspectsMap.size > 0) {
       return;
     }
-    parentAspects.forEach((aspect, decoratorId) => {
+    effectiveAspectsMap.forEach((aspect, decoratorId) => {
       try {
         this.metaProcessor.registerAspectOnModule(meta, decoratorId, aspect.clone());
         if (aspect.hostModule) {
