@@ -271,7 +271,7 @@ export class TrpcRequestDispatcherExtension implements Extension<void> {
         throw new GuardNotFound(g.normalizedModuleMeta.name, controllerName, g.guard.name, levelNames, perReq);
       }
 
-      const injectorPerMod = this.moduleRegistry.getInjectorPerMod(g.normalizedModuleMeta.modRefId, true);
+      const injectorPerMod = this.moduleRegistry.injectorStore.getInjectorPerMod(g.normalizedModuleMeta.modRefId, true);
       const injectorPerRou = injectorPerMod.createChildFromResolved(resolvedPerRou, 'Rou');
 
       const resolvedGuard: ModuleScopedResolvedGuard = {

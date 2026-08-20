@@ -47,10 +47,8 @@ export interface TrpcStaticOptions extends StaticAspectOptions<TrpcDynamicOption
   controllers?: Class[];
 }
 
-export const aspectTrpcModule: ModuleAspectDecorator<TrpcStaticOptions, TrpcDynamicOptions, TrpcAspectMeta> = Reflector.makeClassDecorator(
-  transformAspectMeta,
-  'aspectTrpcModule',
-);
+export const aspectTrpcModule: ModuleAspectDecorator<TrpcStaticOptions, TrpcDynamicOptions, TrpcAspectMeta> =
+  Reflector.makeClassDecorator(transformAspectMeta, 'aspectTrpcModule');
 export const trpcRootModule: ModuleAspectDecorator<
   TrpcStaticOptions & { resolvedCollisionsPerApp?: [any, ModRefId | ForwardRefFn<StaticModule>][] },
   TrpcDynamicOptions,

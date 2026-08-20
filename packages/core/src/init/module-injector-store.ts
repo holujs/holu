@@ -78,4 +78,3 @@ export class ModuleInjectorStore {
     return this.getInjectorPerMod(moduleId, throwErrIfNotFound)?.get(Mod);
   }
 }
-

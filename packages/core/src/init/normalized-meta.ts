@@ -3,7 +3,12 @@ import type { ModRefId, StaticModule } from '#decorators/module-decorator-option
 import type { Class, Provider } from '#di/top/types-and-models.js';
 import type { DynamicModule } from '../decorators/module-decorator-options.js';
 import type { BaseExtensionConfig, ExtensionConfig } from '#extension/extension-providers-and-configs.js';
-import type { NormalizedAspectsMetaMap, ModuleAspectHandler, AllModuleAspectsMap, ModuleAspectDecorator } from '#decorators/module-aspects.js';
+import type {
+  NormalizedAspectsMetaMap,
+  ModuleAspectHandler,
+  AllModuleAspectsMap,
+  ModuleAspectDecorator,
+} from '#decorators/module-aspects.js';
 import type { ExtensionClass } from '#extension/extension-types.js';
 import type { ExtensionGroupToken } from '#di/key-registry.js';
 import type { MultiProvider } from '#di/utils.js';

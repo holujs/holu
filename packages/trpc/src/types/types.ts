@@ -31,7 +31,7 @@ export type RawResponse = http.ServerResponse | Http2ServerResponse;
 export type RequestListener = (request: RawRequest, response: RawResponse) => void | Promise<void>;
 export type TrpcRootObject<T extends AnyObj> = ReturnType<ReturnType<typeof initTRPC.context<TrpcOpts['ctx'] & T>>['create']>;
 export type SetAppRouterOptions = Override<TrpcRouterOpts, { router?: never; createContext?: never }>;
- 
+
 declare const t: ReturnType<typeof initTRPC.create>;
 
 export type RouterOptions = Parameters<typeof t.router>[0];

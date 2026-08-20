@@ -6,6 +6,6 @@ export class TrpcService {
   constructor(protected moduleRegistry: ModuleRegistry) {}
 
   getModuleConfig<T extends ModuleWithTrpcRoutes<any>>(modRefId: ModRefId<T>) {
-    return this.moduleRegistry.getInstanceOf(modRefId, true).getRouterConfig();
+    return this.moduleRegistry.injectorStore.getInstanceOf(modRefId, true).getRouterConfig();
   }
 }

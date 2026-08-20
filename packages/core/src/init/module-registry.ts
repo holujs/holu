@@ -260,11 +260,12 @@ export class ModuleRegistry {
         this.rootDeclaredInDir = meta.declaredInDir;
       }
       return meta;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const cause = err instanceof Error ? err : new Error(String(err));
       const moduleName = getDebugClassName(modRefId);
       let path = [...this.scanningModules].map((id) => getDebugClassName(id)).join(' -> ');
       path = this.scanningModules.size > 1 ? `${moduleName} (${path})` : `${moduleName}`;
-      throw new NormalizationFailure(path, err);
+      throw new NormalizationFailure(path, cause);
     }
   }
 }

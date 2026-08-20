@@ -2,8 +2,8 @@ import type { ModRefId, ProvidersByLevel } from '@holu/core';
 import { AppInitializer, NormalizedModuleMeta } from '@holu/core';
 import { initTRPC } from '@trpc/server';
 
-import type { RequestListener, TrpcRootModule } from '../types/types.js';
-import { SERVER } from '../types/types.js';
+import type { RequestListener, TrpcRootModule } from '#types/types.js';
+import { SERVER } from '#types/types.js';
 import { TrpcRequestDispatcher } from '#services/request-dispatcher.js';
 import type { HttpServer } from '#types/server-options.js';
 import { TRPC_ROOT } from '#types/constants.js';
@@ -27,7 +27,7 @@ export class TrpcAppInitializer extends AppInitializer {
   }
 
   protected getTrpcRootObject() {
-    const mod = this.moduleRegistry.getInstanceOf('root', true) as Partial<TrpcRootModule>;
+    const mod = this.moduleRegistry.injectorStore.getInstanceOf('root', true) as Partial<TrpcRootModule>;
     return initTRPC.create(mod.setTrpcCreateOptions?.());
   }
 
@@ -47,7 +47,7 @@ export class TrpcAppInitializer extends AppInitializer {
   }
 
   async resetRequestListener() {
-    const injectorPerMod = this.moduleRegistry.getInjectorPerMod('root', true);
+    const injectorPerMod = this.moduleRegistry.injectorStore.getInjectorPerMod('root', true);
     const trpcInternalService = injectorPerMod.get(TrpcInternalService) as TrpcInternalService;
     trpcInternalService.setTrpcRouter(this.normalizedModuleMeta);
   }
