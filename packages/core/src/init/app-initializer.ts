@@ -260,7 +260,7 @@ export class AppInitializer implements BaseAppInitializer {
     for (const [modRefId, { normalizedModuleMeta }] of resolvedModuleMetaMap) {
       try {
         const injectorPerMod = await this.initModuleAndGetInjectorPerMod(normalizedModuleMeta);
-        this.moduleRegistry.setInjectorPerMod(modRefId, injectorPerMod);
+        this.moduleRegistry.injectorStore.setInjectorPerMod(modRefId, injectorPerMod);
       } catch (err: any) {
         const debugModuleName = getDebugClassName(modRefId) || 'unknown';
         throw new ModuleInjectorCreationFailure(debugModuleName, err);
@@ -273,7 +273,7 @@ export class AppInitializer implements BaseAppInitializer {
           if (!ext.stage2) {
             continue;
           }
-          const injectorPerMod = this.moduleRegistry.getInjectorPerMod(modRefId, true);
+          const injectorPerMod = this.moduleRegistry.injectorStore.getInjectorPerMod(modRefId, true);
           await ext.stage2(injectorPerMod);
         } catch (err: any) {
           const debugModuleName = getDebugClassName(modRefId) || 'unknown';

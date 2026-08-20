@@ -1,20 +1,18 @@
 import type { SystemLogMediator } from '#logger/system-log-mediator.js';
-import type { AnyObj } from '#types/mix.js';
 import type { StaticModule, ModRefId } from '#decorators/module-decorator-options.js';
 import type { BaseNormalizedModuleMeta, NormalizedModuleMeta } from '#init/normalized-meta.js';
 import type { Provider } from '#di/top/types-and-models.js';
-import type { Injector } from '#di/injector.js';
 import { resolveForwardRef, type ForwardRefFn } from '#di/forward-ref.js';
 import { isRootModule } from '#decorators/type-guards.js';
 import { clearDebugClassNames, getDebugClassName } from '#utils/get-debug-class-name.js';
 import { ModuleNormalizer } from '#init/module-normalizer.js';
 import { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
 import { ModuleIdNotFound, NormalizationFailure, MissingRootDecorator, MeaninglessModuleMetadata } from '#errors';
-import { getModule } from '#utils/get-module.js';
+import { ModuleInjectorStore, type ModuleId } from '#init/module-injector-store.js';
 
 export type ModulesMap = Map<ModRefId, NormalizedModuleMeta>;
 export type ModulesMapId = Map<string, ModRefId>;
-export type ModuleId = string | ModRefId;
+export { type ModuleId };
 
 /**
  * Recursively scans metadata attached to module classes via decorators, normalizes it, and validates it.
@@ -26,11 +24,12 @@ export type ModuleId = string | ModRefId;
  * and coordinates aspect propagation via `ModuleAspectPropagator`.
  */
 export class ModuleRegistry {
-  protected injectorPerModMap = new Map<ModRefId, Injector>();
   protected normalizedMetaMap: ModulesMap = new Map();
   protected moduleIdMap = new Map<'root' | (string & {}), ModRefId>();
+  public readonly injectorStore = new ModuleInjectorStore(this.moduleIdMap);
   protected scanningModules = new Set<ModRefId>();
   protected scannedModules = new Set<ModRefId>();
+  protected rootDeclaredInDir?: string;
   protected propsWithModules = [
     'importedStaticModules',
     'importedDynamicModules',
@@ -68,13 +67,6 @@ export class ModuleRegistry {
     return this.normalizedMetaMap;
   }
 
-  /**
-   * Returns the internal registry mapping module reference IDs (`ModRefId`) to their instantiated module-level injectors.
-   */
-  get injectorsPerMod(): ReadonlyMap<ModRefId, Injector> {
-    return this.injectorPerModMap;
-  }
-
   constructor(
     protected systemLogMediator: SystemLogMediator,
     protected moduleNormalizer: ModuleNormalizer = new ModuleNormalizer(systemLogMediator),
@@ -89,10 +81,11 @@ export class ModuleRegistry {
     }
     this.providersPerApp = [];
     this.childrenMap.clear();
+    this.rootDeclaredInDir = undefined;
     const normalizedModuleMeta = this.scanModule(appModule);
     this.moduleIdMap.set('root', appModule);
     this.propagateAspectsAndValidate(appModule);
-    this.injectorPerModMap.clear();
+    this.injectorStore.clear();
     this.scanningModules.clear();
     this.scannedModules.clear();
     clearDebugClassNames();
@@ -257,67 +250,16 @@ export class ModuleRegistry {
   }
 
   /**
-   * Registers an instantiated module-level DI {@link Injector} for the specified module reference or ID.
-   */
-  setInjectorPerMod(moduleId: ModuleId, injectorPerMod: Injector) {
-    if (typeof moduleId == 'string') {
-      const modRefId = this.moduleIdMap.get(moduleId);
-      if (modRefId) {
-        this.injectorPerModMap.set(modRefId, injectorPerMod);
-      } else {
-        throw new ModuleIdNotFound(moduleId);
-      }
-    } else {
-      this.injectorPerModMap.set(moduleId, injectorPerMod);
-    }
-  }
-
-  /**
-   * Retrieves the module-level DI {@link Injector} associated with the given module ID or reference.
-   */
-  getInjectorPerMod(moduleId: ModuleId, throwErrIfNotFound: true): Injector;
-  getInjectorPerMod(moduleId: ModuleId, throwErrIfNotFound?: false): Injector | undefined;
-  getInjectorPerMod(moduleId: ModuleId, throwErrIfNotFound?: boolean): Injector | undefined {
-    let inj: Injector | undefined;
-    if (typeof moduleId == 'string') {
-      const modRefId = this.moduleIdMap.get(moduleId);
-      if (modRefId) {
-        inj = this.injectorPerModMap.get(modRefId);
-      }
-    } else {
-      inj = this.injectorPerModMap.get(moduleId);
-    }
-
-    if (!inj && throwErrIfNotFound) {
-      const moduleName = getDebugClassName(moduleId) || 'unknown';
-      throw new ModuleIdNotFound(moduleName);
-    }
-    return inj;
-  }
-
-  /**
-   * Retrieves the instantiated singleton class instance of a module from its corresponding module-level injector.
-   */
-  getInstanceOf<T extends AnyObj>(modRefId: ModRefId<T>, throwErrIfNotFound: true): T;
-  getInstanceOf<T extends AnyObj>(modRefId: ModRefId<T>, throwErrIfNotFound?: false): T | undefined;
-  getInstanceOf(moduleId: ModuleId, throwErrIfNotFound: true): AnyObj;
-  getInstanceOf(moduleId: ModuleId, throwErrIfNotFound?: false): AnyObj | undefined;
-  getInstanceOf(moduleId: ModuleId, throwErrIfNotFound?: boolean) {
-    const modRefId = typeof moduleId == 'string' ? this.moduleIdMap.get(moduleId)! : moduleId;
-    const Mod = getModule(modRefId);
-    if (throwErrIfNotFound === true) {
-      return this.getInjectorPerMod(moduleId, true).get(Mod);
-    }
-    return this.getInjectorPerMod(moduleId, throwErrIfNotFound)?.get(Mod);
-  }
-
-  /**
    * Delegates module decorator reflection and metadata normalization to {@link ModuleNormalizer}.
    * On failure, enriches the error message with the full dependency scan trajectory (e.g., `ModuleA -> ModuleB`).
    */
   protected normalizeMeta(modRefId: ModRefId): NormalizedModuleMeta {
     try {
-      return this.moduleNormalizer.normalize(modRefId);
+      const meta = this.moduleNormalizer.normalize(modRefId, this.rootDeclaredInDir);
+      if (!this.rootDeclaredInDir && isRootModule(meta.staticModuleOptions) && meta.declaredInDir !== '.') {
+        this.rootDeclaredInDir = meta.declaredInDir;
+      }
+      return meta;
     } catch (err: any) {
       const moduleName = getDebugClassName(modRefId);
       let path = [...this.scanningModules].map((id) => getDebugClassName(id)).join(' -> ');

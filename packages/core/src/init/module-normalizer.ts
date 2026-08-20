@@ -23,10 +23,6 @@ import type { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
  * {@link ModuleRegistry} during aspect propagation.
  */
 export class ModuleNormalizer {
-  /**
-   * The directory in which the class was declared.
-   */
-  protected rootDeclaredInDir: string;
   constructor(
     protected systemLogMediator: SystemLogMediator,
     public readonly metaProcessor = new ModuleMetaProcessor(),
@@ -39,10 +35,10 @@ export class ModuleNormalizer {
    * (for dynamic modules with `dynamicAspectOptionsMap` or static modules without own decorators)
    * is handled separately by {@link ModuleAspectPropagator} after the scan phase completes.
    */
-  normalize(modRefId: ModRefId) {
+  normalize(modRefId: ModRefId, rootDeclaredInDir?: string) {
     const meta = this.initNormalizedModuleMeta(modRefId);
     const { staticModuleOptions } = meta;
-    this.checkAndMarkExternalModule(staticModuleOptions, meta);
+    this.checkAndMarkExternalModule(staticModuleOptions, meta, rootDeclaredInDir);
 
     // Phase 1: Normalize base decorator metadata.
     this.metaProcessor.normalizeImports(staticModuleOptions, meta);
@@ -100,20 +96,22 @@ export class ModuleNormalizer {
   }
 
   /**
-   * Since this method relies on the established variable {@link rootDeclaredInDir},
-   * during scanning the {@link ModuleRegistry} must first scan the root module.
+   * Identifies whether a module is an external library or belongs to the local workspace.
    */
-  protected checkAndMarkExternalModule(staticModuleOptions: RootModuleOptions, meta: NormalizedModuleMeta) {
-    if (this.rootDeclaredInDir) {
+  protected checkAndMarkExternalModule(
+    staticModuleOptions: RootModuleOptions,
+    meta: NormalizedModuleMeta,
+    rootDeclaredInDir?: string,
+  ) {
+    if (rootDeclaredInDir) {
       const { declaredInDir } = meta;
       if (declaredInDir !== '.') {
         // Case when CallsiteUtils.getCallerDir() works correctly.
         meta.isExternal =
-          !declaredInDir.startsWith(this.rootDeclaredInDir) ||
-          (!this.rootDeclaredInDir.includes('holu/packages') && declaredInDir.includes('holu/packages'));
+          !declaredInDir.startsWith(rootDeclaredInDir) ||
+          (!rootDeclaredInDir.includes('holu/packages') && declaredInDir.includes('holu/packages'));
       }
     } else if (isRootModule(staticModuleOptions) && meta.declaredInDir !== '.') {
-      this.rootDeclaredInDir = meta.declaredInDir;
       meta.isExternal = false;
     }
 

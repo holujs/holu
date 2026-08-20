@@ -67,7 +67,7 @@ describe('ModuleRegistry', () => {
 
       manager.scanRootModule(AppModule);
 
-      expect(normalizeSpy).toHaveBeenCalledWith(AppModule);
+      expect(normalizeSpy).toHaveBeenCalledWith(AppModule, undefined);
     });
   });
 
@@ -237,21 +237,21 @@ describe('ModuleRegistry', () => {
       mock.scanRootModule(AppModule);
       const fakeInjector = {} as any;
 
-      mock.setInjectorPerMod(dynamicModule, fakeInjector);
-      expect(mock.getInjectorPerMod(dynamicModule)).toBe(fakeInjector);
-      expect(mock.getInjectorPerMod(moduleId)).toBe(fakeInjector);
-      expect(mock.getInjectorPerMod('root')).toBeUndefined();
+      mock.injectorStore.setInjectorPerMod(dynamicModule, fakeInjector);
+      expect(mock.injectorStore.getInjectorPerMod(dynamicModule)).toBe(fakeInjector);
+      expect(mock.injectorStore.getInjectorPerMod(moduleId)).toBe(fakeInjector);
+      expect(mock.injectorStore.getInjectorPerMod('root')).toBeUndefined();
     });
 
     it('should throw a ModuleIdNotFound error when setting an injector for an unregistered module string ID', () => {
       mock.scanRootModule(AppModule);
       const fakeInjector = {} as any;
-      expect(() => mock.setInjectorPerMod('non-existent', fakeInjector)).toThrow(new ModuleIdNotFound('non-existent'));
+      expect(() => mock.injectorStore.setInjectorPerMod('non-existent', fakeInjector)).toThrow(new ModuleIdNotFound('non-existent'));
     });
 
     it('should throw a ModuleIdNotFound error when getting an injector for an unknown module and throwErrIfNotFound is true', () => {
       mock.scanRootModule(AppModule);
-      expect(() => mock.getInjectorPerMod('non-existent', true)).toThrow(new ModuleIdNotFound('non-existent'));
+      expect(() => mock.injectorStore.getInjectorPerMod('non-existent', true)).toThrow(new ModuleIdNotFound('non-existent'));
     });
   });
 
@@ -277,21 +277,21 @@ describe('ModuleRegistry', () => {
         get: jest.fn().mockReturnValue(mockInstance),
       } as any;
 
-      mock.setInjectorPerMod(dynamicModule, fakeInjector);
+      mock.injectorStore.setInjectorPerMod(dynamicModule, fakeInjector);
 
-      expect(mock.getInstanceOf(dynamicModule)).toBe(mockInstance);
-      expect(mock.getInstanceOf(moduleId)).toBe(mockInstance);
+      expect(mock.injectorStore.getInstanceOf(dynamicModule)).toBe(mockInstance);
+      expect(mock.injectorStore.getInstanceOf(moduleId)).toBe(mockInstance);
       expect(fakeInjector.get).toHaveBeenCalledWith(Module1);
     });
 
     it('should throw a ModuleIdNotFound error when the module injector is missing and throwErrIfNotFound is true', () => {
       mock.scanRootModule(AppModule);
-      expect(() => mock.getInstanceOf('non-existent', true)).toThrow(new ModuleIdNotFound('non-existent'));
+      expect(() => mock.injectorStore.getInstanceOf('non-existent', true)).toThrow(new ModuleIdNotFound('non-existent'));
     });
 
     it('should return undefined when the module injector is missing and throwErrIfNotFound is false', () => {
       mock.scanRootModule(AppModule);
-      expect(mock.getInstanceOf('non-existent', false)).toBeUndefined();
+      expect(mock.injectorStore.getInstanceOf('non-existent', false)).toBeUndefined();
     });
   });
 

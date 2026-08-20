@@ -70,7 +70,7 @@ describe('BaseApplication', () => {
 
       expect(moduleNormalizerFactory).toHaveBeenCalledTimes(1);
       expect(moduleNormalizerFactory).toHaveBeenCalledWith(mock.log);
-      expect(normalizeSpy).toHaveBeenCalledWith(AppModule);
+      expect(normalizeSpy).toHaveBeenCalledWith(AppModule, undefined);
     });
 
     it('should pass a ModuleNormalizer created by moduleNormalizerFactory to MutableModuleRegistry', () => {
@@ -88,7 +88,7 @@ describe('BaseApplication', () => {
       expect(moduleRegistry).toBeInstanceOf(MutableModuleRegistry);
       expect(moduleNormalizerFactory).toHaveBeenCalledTimes(1);
       expect(moduleNormalizerFactory).toHaveBeenCalledWith(mock.log);
-      expect(normalizeSpy).toHaveBeenCalledWith(AppModule);
+      expect(normalizeSpy).toHaveBeenCalledWith(AppModule, undefined);
     });
   });
 

@@ -152,7 +152,7 @@ export abstract class BaseApplication {
       activeInjectors.push(this.injectorPerApp);
     }
     if (this.moduleRegistry) {
-      const moduleInjectors = this.moduleRegistry.injectorsPerMod.values();
+      const moduleInjectors = this.moduleRegistry.injectorStore.injectorsPerMod.values();
       activeInjectors.push(...moduleInjectors);
     }
 

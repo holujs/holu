@@ -398,8 +398,8 @@ describe('ModuleNormalizer', () => {
     class ExternalModuleNormalizer extends ModuleNormalizer {
       customMeta = new Map<StaticModule, DecoratorMeta[]>();
 
-      override normalize(modRefId: any): NormalizedModuleMeta {
-        return super.normalize(modRefId);
+      override normalize(modRefId: any, rootDeclaredInDir?: string): NormalizedModuleMeta {
+        return super.normalize(modRefId, rootDeclaredInDir);
       }
 
       protected override getDecoratorMeta(modRefId: any) {
@@ -434,9 +434,10 @@ describe('ModuleNormalizer', () => {
       );
       externalModuleNormalizer.customMeta.set(InternalModule, [internalDec]);
 
-      expect(externalModuleNormalizer.normalize(AppModule).isExternal).toBe(false);
-      expect(externalModuleNormalizer.normalize(ExternalModule).isExternal).toBe(true);
-      expect(externalModuleNormalizer.normalize(InternalModule).isExternal).toBe(false);
+      const rootMeta = externalModuleNormalizer.normalize(AppModule);
+      expect(rootMeta.isExternal).toBe(false);
+      expect(externalModuleNormalizer.normalize(ExternalModule, rootMeta.declaredInDir).isExternal).toBe(true);
+      expect(externalModuleNormalizer.normalize(InternalModule, rootMeta.declaredInDir).isExternal).toBe(false);
     });
 
     it('marks Holu package modules as external when the root module is not declared inside holu/packages', () => {
@@ -454,8 +455,8 @@ describe('ModuleNormalizer', () => {
       const holuDec = new DecoratorMeta(dummyDecorator, holuModuleOptions, undefined, '/user-project/node_modules/holu/packages/core');
       externalModuleNormalizer.customMeta.set(HoluModule, [holuDec]);
 
-      externalModuleNormalizer.normalize(AppModule);
-      expect(externalModuleNormalizer.normalize(HoluModule).isExternal).toBe(true);
+      const rootMeta = externalModuleNormalizer.normalize(AppModule);
+      expect(externalModuleNormalizer.normalize(HoluModule, rootMeta.declaredInDir).isExternal).toBe(true);
     });
 
     it('sets inheritsAspects from moduleOptions when explicitly specified', () => {
