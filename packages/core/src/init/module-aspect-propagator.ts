@@ -78,8 +78,7 @@ export class ModuleAspectPropagator {
     try {
       this.metaProcessor.applyHostStaticAspectOptions(hostMeta, decoratorId, newAspectHandler);
     } catch (err: unknown) {
-      const cause = err instanceof Error ? err : new Error(String(err));
-      throw new NormalizationFailure(hostMeta.name, cause);
+      throw new NormalizationFailure(hostMeta.name, err as Error);
     }
 
     let hasNewSubChildren = false;
@@ -201,8 +200,7 @@ export class ModuleAspectPropagator {
             meta.normalizedAspectsMetaMap.set(decoratorId, readOnlyMeta);
           }
         } catch (err: unknown) {
-          const cause = err instanceof Error ? err : new Error(String(err));
-          throw new NormalizationFailure(meta.name, cause);
+          throw new NormalizationFailure(meta.name, err as Error);
         }
       }
     });
@@ -222,8 +220,7 @@ export class ModuleAspectPropagator {
               this.childrenMap.get(meta.modRefId)?.add(effectiveAspect.hostModule);
             }
           } catch (err: unknown) {
-            const cause = err instanceof Error ? err : new Error(String(err));
-            throw new NormalizationFailure(meta.name, cause);
+            throw new NormalizationFailure(meta.name, err as Error);
           }
         }
       }
@@ -242,8 +239,7 @@ export class ModuleAspectPropagator {
           this.childrenMap.get(meta.modRefId)?.add(aspect.hostModule);
         }
       } catch (err: unknown) {
-        const cause = err instanceof Error ? err : new Error(String(err));
-        throw new NormalizationFailure(meta.name, cause);
+        throw new NormalizationFailure(meta.name, err as Error);
       }
     });
   }

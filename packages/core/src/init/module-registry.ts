@@ -267,11 +267,10 @@ export class ModuleRegistry {
     try {
       return this.moduleNormalizer.normalize(modRefId, this.rootDeclaredInDir);
     } catch (err: unknown) {
-      const cause = err instanceof Error ? err : new Error(String(err));
       const moduleName = getDebugClassName(modRefId);
       let path = [...this.scanningModules].map((id) => getDebugClassName(id)).join(' -> ');
       path = this.scanningModules.size > 1 ? `${moduleName} (${path})` : `${moduleName}`;
-      throw new NormalizationFailure(path, cause);
+      throw new NormalizationFailure(path, err as Error);
     }
   }
 }
