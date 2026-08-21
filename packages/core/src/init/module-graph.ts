@@ -5,35 +5,35 @@ import type { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { isRootModule } from '#decorators/type-guards.js';
 
 export class ModuleGraph {
-  protected _normalizedMetaMap: ModulesMap = new Map();
-  protected _childrenMap = new Map<ModRefId, Set<ModRefId>>();
-  protected _scannedModules = new Set<ModRefId>();
-  protected _scanningModules = new Set<ModRefId>();
-  protected _moduleIdMap = new Map<string, ModRefId>();
-  protected _providersPerApp: Provider[] = [];
+  #normalizedMetaMap: ModulesMap = new Map();
+  #childrenMap = new Map<ModRefId, Set<ModRefId>>();
+  #scannedModules = new Set<ModRefId>();
+  #scanningModules = new Set<ModRefId>();
+  #moduleIdMap = new Map<string, ModRefId>();
+  #providersPerApp: Provider[] = [];
 
   get normalizedMetaMap(): ReadonlyMap<ModRefId, NormalizedModuleMeta> {
-    return this._normalizedMetaMap;
+    return this.#normalizedMetaMap;
   }
 
   get childrenMap(): ReadonlyMap<ModRefId, ReadonlySet<ModRefId>> {
-    return this._childrenMap;
+    return this.#childrenMap;
   }
 
   get moduleIdMap(): ReadonlyMap<string, ModRefId> {
-    return this._moduleIdMap;
+    return this.#moduleIdMap;
   }
 
   get providersPerApp(): readonly Provider[] {
-    return this._providersPerApp;
+    return this.#providersPerApp;
   }
 
   get scanningModules(): ReadonlySet<ModRefId> {
-    return this._scanningModules;
+    return this.#scanningModules;
   }
 
   get scannedModules(): ReadonlySet<ModRefId> {
-    return this._scannedModules;
+    return this.#scannedModules;
   }
 
   /**
@@ -41,93 +41,93 @@ export class ModuleGraph {
    */
   clone(): ModuleGraph {
     const copy = new ModuleGraph();
-    this._normalizedMetaMap.forEach((meta, id) => {
-      copy._normalizedMetaMap.set(id, meta.clone());
+    this.#normalizedMetaMap.forEach((meta, id) => {
+      copy.#normalizedMetaMap.set(id, meta.clone());
     });
-    this._childrenMap.forEach((children, id) => {
-      copy._childrenMap.set(id, new Set(children));
+    this.#childrenMap.forEach((children, id) => {
+      copy.#childrenMap.set(id, new Set(children));
     });
-    copy._scannedModules = new Set(this._scannedModules);
-    copy._scanningModules = new Set(this._scanningModules);
-    copy._moduleIdMap = new Map(this._moduleIdMap);
-    copy._providersPerApp = this._providersPerApp.slice();
+    copy.#scannedModules = new Set(this.#scannedModules);
+    copy.#scanningModules = new Set(this.#scanningModules);
+    copy.#moduleIdMap = new Map(this.#moduleIdMap);
+    copy.#providersPerApp = this.#providersPerApp.slice();
     return copy;
   }
 
   clear(): void {
-    this._providersPerApp = [];
-    this._childrenMap.clear();
-    this._normalizedMetaMap.clear();
-    this._moduleIdMap.clear();
-    this._scanningModules.clear();
-    this._scannedModules.clear();
+    this.#providersPerApp = [];
+    this.#childrenMap.clear();
+    this.#normalizedMetaMap.clear();
+    this.#moduleIdMap.clear();
+    this.#scanningModules.clear();
+    this.#scannedModules.clear();
   }
 
   setMeta(modRefId: ModRefId, meta: NormalizedModuleMeta): void {
-    this._normalizedMetaMap.set(modRefId, meta);
+    this.#normalizedMetaMap.set(modRefId, meta);
     if (meta.id) {
-      this._moduleIdMap.set(meta.id, modRefId);
+      this.#moduleIdMap.set(meta.id, modRefId);
     }
   }
 
   getMeta(modRefId: ModRefId): NormalizedModuleMeta | undefined {
-    return this._normalizedMetaMap.get(modRefId);
+    return this.#normalizedMetaMap.get(modRefId);
   }
 
   setChildren(modRefId: ModRefId, children: Set<ModRefId>): void {
-    this._childrenMap.set(modRefId, children);
+    this.#childrenMap.set(modRefId, children);
   }
 
   addChild(parentId: ModRefId, childId: ModRefId): void {
-    let children = this._childrenMap.get(parentId);
+    let children = this.#childrenMap.get(parentId);
     if (!children) {
       children = new Set();
-      this._childrenMap.set(parentId, children);
+      this.#childrenMap.set(parentId, children);
     }
     children.add(childId);
   }
 
   removeChild(parentId: ModRefId, childId: ModRefId): void {
-    const children = this._childrenMap.get(parentId);
+    const children = this.#childrenMap.get(parentId);
     if (children) {
       children.delete(childId);
     }
   }
 
   addProvidersPerApp(providers: Provider[]): void {
-    this._providersPerApp.push(...providers);
+    this.#providersPerApp.push(...providers);
   }
 
   beginScanning(modRefId: ModRefId): void {
-    this._scanningModules.add(modRefId);
+    this.#scanningModules.add(modRefId);
   }
 
   finishScanning(modRefId: ModRefId): void {
-    this._scanningModules.delete(modRefId);
-    this._scannedModules.add(modRefId);
+    this.#scanningModules.delete(modRefId);
+    this.#scannedModules.add(modRefId);
   }
 
   cancelScanning(modRefId: ModRefId): void {
-    this._scanningModules.delete(modRefId);
+    this.#scanningModules.delete(modRefId);
   }
 
   isScanning(modRefId: ModRefId): boolean {
-    return this._scanningModules.has(modRefId);
+    return this.#scanningModules.has(modRefId);
   }
 
   isScanned(modRefId: ModRefId): boolean {
-    return this._scannedModules.has(modRefId);
+    return this.#scannedModules.has(modRefId);
   }
 
   setRootModuleId(appModule: ModRefId): void {
-    this._moduleIdMap.set('root', appModule);
+    this.#moduleIdMap.set('root', appModule);
   }
 
   rebuildProvidersPerApp(): void {
-    this._providersPerApp = [];
-    this._normalizedMetaMap.forEach((m) => {
+    this.#providersPerApp = [];
+    this.#normalizedMetaMap.forEach((m) => {
       if (!isRootModule(m)) {
-        this._providersPerApp.push(...m.providersPerApp);
+        this.#providersPerApp.push(...m.providersPerApp);
       }
     });
   }
@@ -140,7 +140,7 @@ export class ModuleGraph {
         return;
       }
       reachable.add(modRefId);
-      const children = this._childrenMap.get(modRefId);
+      const children = this.#childrenMap.get(modRefId);
       if (children) {
         for (const child of children) {
           traverse(child);
@@ -148,19 +148,19 @@ export class ModuleGraph {
       }
     };
 
-    const rootModRefId = this._moduleIdMap.get('root');
+    const rootModRefId = this.#moduleIdMap.get('root');
     if (rootModRefId) {
       traverse(rootModRefId);
     }
 
     let hasOrphans = false;
-    for (const [modRefId, meta] of this._normalizedMetaMap.entries()) {
+    for (const [modRefId, meta] of this.#normalizedMetaMap.entries()) {
       if (!reachable.has(modRefId)) {
         hasOrphans = true;
-        this._normalizedMetaMap.delete(modRefId);
-        this._childrenMap.delete(modRefId);
+        this.#normalizedMetaMap.delete(modRefId);
+        this.#childrenMap.delete(modRefId);
         if (meta.id) {
-          this._moduleIdMap.delete(meta.id);
+          this.#moduleIdMap.delete(meta.id);
         }
       }
     }
