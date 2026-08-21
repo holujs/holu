@@ -10,6 +10,9 @@ export class ModuleGraph {
   moduleIdMap = new Map<string, ModRefId>();
   providersPerApp: Provider[] = [];
 
+  /**
+   * @experimental
+   */
   clone(): ModuleGraph {
     const copy = new ModuleGraph();
     this.normalizedMetaMap.forEach((meta, id) => {

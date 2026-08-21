@@ -9,7 +9,6 @@ import type { BaseExtensionConfig } from '#extension/extension-providers-and-con
 import type { ExtensionClass } from '#extension/extension-types.js';
 import type { MultiProvider } from '#di/utils.js';
 import type { ForwardRefFn } from '#di/forward-ref.js';
-
 import { objectKeys } from '#utils/object-keys.js';
 import { Reflector } from '#di/reflector.js';
 import { resolveAllForwardRefs } from '#init/forward-refs-resolver.js';
@@ -41,7 +40,7 @@ export type ProviderLevel = (typeof PROVIDER_LEVELS)[number];
  */
 export class ModuleMetaProcessor {
   normalizeImports(staticModuleOptions: RootModuleOptions, meta: NormalizedModuleMeta) {
-    resolveAllForwardRefs(staticModuleOptions.imports as any[]).forEach((imp: any, i: number) => {
+    resolveAllForwardRefs(staticModuleOptions.imports).forEach((imp, i: number) => {
       if (imp === undefined) {
         throw new UndefinedSymbol('Imports', meta.name, i);
       }
@@ -86,7 +85,7 @@ export class ModuleMetaProcessor {
 
   protected applyAspectImports(decoratorId: AnyFn, staticAspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
     if (staticAspectOptions.imports) {
-      resolveAllForwardRefs(staticAspectOptions.imports as any).forEach((imp: any) => {
+      resolveAllForwardRefs(staticAspectOptions.imports).forEach((imp) => {
         if (isDynamicModule(imp)) {
           const { module, dynamicAspectOptionsMap, ...dynamicOptions } = imp;
           this.mergeAspectOptionsIntoDynamicModule(decoratorId, dynamicOptions, imp, meta);
@@ -106,7 +105,7 @@ export class ModuleMetaProcessor {
   protected applyAspectExports(staticAspectOptions: StaticAspectOptions, meta: NormalizedModuleMeta) {
     // This part is specific to aspects, so we keep it here or delegate.
     if (staticAspectOptions.exports) {
-      resolveAllForwardRefs(staticAspectOptions.exports as any).forEach((exp: any) => {
+      resolveAllForwardRefs(staticAspectOptions.exports).forEach((exp) => {
         if (isDynamicModule(exp)) {
           if (!meta.exportedDynamicModules.includes(exp)) {
             meta.exportedDynamicModules.push(exp);
@@ -197,7 +196,7 @@ export class ModuleMetaProcessor {
     PROVIDER_LEVELS.forEach((level) => {
       const providersKey = `providersPer${level}` as const;
       if (moduleOptions[providersKey]) {
-        const providersPerLevel = resolveAllForwardRefs(moduleOptions[providersKey] as any) as any[];
+        const providersPerLevel = resolveAllForwardRefs(moduleOptions[providersKey]);
         meta[providersKey].push(...providersPerLevel);
       }
     });
@@ -228,7 +227,7 @@ export class ModuleMetaProcessor {
     }
     const tokensAtAllLevels = getTokens(meta.providersPerApp.concat(meta.providersPerMod, meta.providersPerRou, meta.providersPerReq));
 
-    resolveAllForwardRefs(moduleOptions.exports as any[]).forEach((exp: any, i: number) => {
+    resolveAllForwardRefs(moduleOptions.exports).forEach((exp, i: number) => {
       if (exp === undefined) {
         throw new UndefinedSymbol(action, meta.name, i);
       }
@@ -257,7 +256,7 @@ export class ModuleMetaProcessor {
       const providers = meta[`providersPer${level}`].filter((p) => getToken(p) === token);
       if (providers.length) {
         found = true;
-        if (providers.some((p: any) => p.multi)) {
+        if (providers.some((p) => (p as MultiProvider).multi)) {
           meta[`exportedMultiProvidersPer${level}`].push(...(providers as MultiProvider[]));
         } else {
           meta[`exportedProvidersPer${level}`].push(...providers);
@@ -333,7 +332,7 @@ export class ModuleMetaProcessor {
         // ignore
       } else if (Array.isArray(base[prop])) {
         if (base[prop].length) {
-          overrides[prop] = (base[prop] as any[]).concat(overrides[prop] || []);
+          overrides[prop] = base[prop].concat(overrides[prop] || []);
         }
       } else if (base[prop] !== null && typeof base[prop] == 'object') {
         overrides[prop] = Object.assign({}, base[prop], overrides[prop]);
