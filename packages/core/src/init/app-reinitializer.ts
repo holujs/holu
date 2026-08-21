@@ -31,7 +31,6 @@ export class AppReinitializer {
     // Before init new logger, works previous logger.
     try {
       this.moduleRegistry.startTransaction();
-      this.moduleRegistry.reset();
       this.appInitializer.bootstrapProvidersPerApp();
       (this.log as PublicLogMediator).updateOutputLogLevel();
     } catch (err) {

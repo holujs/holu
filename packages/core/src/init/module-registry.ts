@@ -9,6 +9,7 @@ import { ModuleNormalizer } from '#init/module-normalizer.js';
 import { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
 import { ModuleIdNotFound, NormalizationFailure, MissingRootDecorator, MeaninglessModuleMetadata } from '#errors';
 import { ModuleInjectorStore, type ModuleId } from '#init/module-injector-store.js';
+import { ModuleGraph } from '#init/module-graph.js';
 
 export type ModulesMap = Map<ModRefId, NormalizedModuleMeta>;
 export type ModulesMapId = Map<string, ModRefId>;
@@ -24,11 +25,8 @@ export { type ModuleId };
  * and coordinates aspect propagation via `ModuleAspectPropagator`.
  */
 export class ModuleRegistry {
-  protected normalizedMetaMap: ModulesMap = new Map();
-  protected moduleIdMap = new Map<'root' | (string & {}), ModRefId>();
-  public readonly injectorStore = new ModuleInjectorStore(this.moduleIdMap);
-  protected scanningModules = new Set<ModRefId>();
-  protected scannedModules = new Set<ModRefId>();
+  protected moduleGraph = new ModuleGraph();
+  public readonly injectorStore = new ModuleInjectorStore(this.moduleGraph.moduleIdMap);
   protected rootDeclaredInDir?: string;
   protected propsWithModules = [
     'importedStaticModules',
@@ -36,8 +34,6 @@ export class ModuleRegistry {
     'exportedStaticModules',
     'exportedDynamicModules',
   ] satisfies (keyof BaseNormalizedModuleMeta)[];
-  #childrenMap = new Map<ModRefId, Set<ModRefId>>();
-  #providersPerApp: Provider[] = [];
   /**
    * Represents the module dependency graph.
    *
@@ -47,24 +43,16 @@ export class ModuleRegistry {
    * for recursive traversal, such as propagating parent module aspects to child modules.
    */
   protected get childrenMap() {
-    return this.#childrenMap;
+    return this.moduleGraph.childrenMap;
   }
-  protected set childrenMap(val: Map<ModRefId, Set<ModRefId>>) {
-    this.#childrenMap = val;
-  }
-
   get providersPerApp(): Provider[] {
-    return this.#providersPerApp;
+    return this.moduleGraph.providersPerApp;
   }
-  protected set providersPerApp(val: Provider[]) {
-    this.#providersPerApp = val;
-  }
-
   /**
    * Returns the active mapping between module reference IDs (`ModRefId`) and their {@link NormalizedModuleMeta}.
    */
   get modulesMap(): ReadonlyMap<ModRefId, NormalizedModuleMeta> {
-    return this.normalizedMetaMap;
+    return this.moduleGraph.normalizedMetaMap;
   }
 
   constructor(
@@ -79,17 +67,17 @@ export class ModuleRegistry {
     if (!isRootModule(appModule)) {
       throw new MissingRootDecorator(appModule.name);
     }
-    this.providersPerApp = [];
-    this.childrenMap.clear();
-    this.normalizedMetaMap.clear();
-    this.moduleIdMap.clear();
+    this.moduleGraph.providersPerApp = [];
+    this.moduleGraph.childrenMap.clear();
+    this.moduleGraph.normalizedMetaMap.clear();
+    this.moduleGraph.moduleIdMap.clear();
     this.rootDeclaredInDir = undefined;
     const normalizedModuleMeta = this.scanModule(appModule);
-    this.moduleIdMap.set('root', appModule);
+    this.moduleGraph.moduleIdMap.set('root', appModule);
     this.propagateAspectsAndValidate(appModule);
     this.injectorStore.clear();
-    this.scanningModules.clear();
-    this.scannedModules.clear();
+    this.moduleGraph.scanningModules.clear();
+    this.moduleGraph.scannedModules.clear();
     clearDebugClassNames();
     return normalizedModuleMeta;
   }
@@ -98,7 +86,7 @@ export class ModuleRegistry {
    * Recursively normalizes and registers metadata for a specified static or dynamic module reference.
    *
    * Traverses module dependencies (`imports`, `exports`, and modules discovered via specialized module aspects such as `appends`
-   * or `controllers`), builds the module dependency graph (`this.childrenMap`), accumulates global providers into `providersPerApp`,
+   * or `controllers`), builds the module dependency graph (`this.moduleGraph.childrenMap`), accumulates global providers into `providersPerApp`,
    * and stores normalized metadata.
    *
    * Only processes each module's own decorators. Cross-module aspect propagation is handled
@@ -117,17 +105,17 @@ export class ModuleRegistry {
     }
 
     const children = new Set<ModRefId>();
-    this.childrenMap.set(normalizedModuleMeta.modRefId, children);
+    this.moduleGraph.childrenMap.set(normalizedModuleMeta.modRefId, children);
 
     for (const child of this.getModulesToScan(normalizedModuleMeta)) {
       children.add(child);
-      if (this.scanningModules.has(child) || this.scannedModules.has(child)) {
+      if (this.moduleGraph.scanningModules.has(child) || this.moduleGraph.scannedModules.has(child)) {
         continue;
       }
-      this.scanningModules.add(child);
+      this.moduleGraph.scanningModules.add(child);
       this.scanModule(child);
-      this.scanningModules.delete(child);
-      this.scannedModules.add(child);
+      this.moduleGraph.scanningModules.delete(child);
+      this.moduleGraph.scannedModules.add(child);
     }
 
     this.registerModuleId(normalizedModuleMeta, modRefId);
@@ -152,39 +140,29 @@ export class ModuleRegistry {
 
   protected registerModuleId(normalizedModuleMeta: NormalizedModuleMeta, modRefId: ModRefId) {
     if (normalizedModuleMeta.id) {
-      this.moduleIdMap.set(normalizedModuleMeta.id, modRefId);
+      this.moduleGraph.moduleIdMap.set(normalizedModuleMeta.id, modRefId);
       this.systemLogMediator.moduleHasId(this, normalizedModuleMeta.id);
     }
   }
 
   protected accumulateProvidersPerApp(normalizedModuleMeta: NormalizedModuleMeta) {
     const providersPerApp = isRootModule(normalizedModuleMeta) ? [] : normalizedModuleMeta.providersPerApp;
-    this.providersPerApp.push(...providersPerApp);
+    this.moduleGraph.providersPerApp.push(...providersPerApp);
   }
 
   protected getMeta(modRefId: ModRefId): NormalizedModuleMeta | undefined {
-    return this.normalizedMetaMap.get(modRefId);
+    return this.moduleGraph.normalizedMetaMap.get(modRefId);
   }
 
   protected setNormalizedModuleMeta(modRefId: ModRefId, normalizedModuleMeta: NormalizedModuleMeta) {
-    this.normalizedMetaMap.set(modRefId, normalizedModuleMeta);
-  }
-
-  protected get activeMetaMap() {
-    return this.normalizedMetaMap;
+    this.moduleGraph.normalizedMetaMap.set(modRefId, normalizedModuleMeta);
   }
 
   protected propagateAspectsAndValidate(modRefId: ModRefId) {
-    const propagator = new ModuleAspectPropagator(
-      this.moduleNormalizer.metaProcessor,
-      this.activeMetaMap,
-      this.childrenMap,
-      this.scannedModules,
-      this.propsWithModules,
-    );
+    const propagator = new ModuleAspectPropagator(this.moduleNormalizer.metaProcessor, this.moduleGraph, this.propsWithModules);
     propagator.applyHostStaticAspectOptions((modulesToScan) => this.scanNewlyAddedModules(modulesToScan));
 
-    const rootModule = this.moduleIdMap.get('root') || resolveForwardRef(modRefId);
+    const rootModule = this.moduleGraph.moduleIdMap.get('root') || resolveForwardRef(modRefId);
     propagator.propagateAspectsTopDown(rootModule);
     propagator.accumulateAspectsBottomUp(rootModule);
     this.checkModulesHaveMeaningfulMetadata();
@@ -192,11 +170,11 @@ export class ModuleRegistry {
 
   protected scanNewlyAddedModules(modulesToScan: Set<ModRefId>) {
     for (const input of modulesToScan) {
-      if (!this.scannedModules.has(input)) {
-        this.scanningModules.add(input);
+      if (!this.moduleGraph.scannedModules.has(input)) {
+        this.moduleGraph.scanningModules.add(input);
         this.scanModule(input);
-        this.scanningModules.delete(input);
-        this.scannedModules.add(input);
+        this.moduleGraph.scanningModules.delete(input);
+        this.moduleGraph.scannedModules.add(input);
       }
     }
   }
@@ -206,7 +184,7 @@ export class ModuleRegistry {
    * (which typically indicates missing module decorators or invalid import structures).
    */
   protected checkModulesHaveMeaningfulMetadata() {
-    this.normalizedMetaMap.forEach((meta) => this.checkFeatureModuleHasMeaningfulMetadata(meta));
+    this.moduleGraph.normalizedMetaMap.forEach((meta) => this.checkFeatureModuleHasMeaningfulMetadata(meta));
   }
 
   protected checkFeatureModuleHasMeaningfulMetadata(normalizedModuleMeta: NormalizedModuleMeta) {
@@ -226,7 +204,7 @@ export class ModuleRegistry {
   }
 
   /**
-   * Returns a mutable {@link NormalizedModuleMeta} from the active workspace mapping (`this.normalizedMetaMap`).
+   * Returns a mutable {@link NormalizedModuleMeta} from the active workspace mapping (`this.moduleGraph.normalizedMetaMap`).
    * Therefore, if you retrieve a {@link NormalizedModuleMeta} using this method and subsequently modify it,
    * the next call will return the already modified {@link NormalizedModuleMeta}.
    *
@@ -238,12 +216,12 @@ export class ModuleRegistry {
   getNormalizedModuleMeta(moduleId: ModuleId, throwErrIfNotFound?: boolean) {
     let normalizedModuleMeta: NormalizedModuleMeta | undefined;
     if (typeof moduleId == 'string') {
-      const moduleIdMap = this.moduleIdMap.get(moduleId);
+      const moduleIdMap = this.moduleGraph.moduleIdMap.get(moduleId);
       if (moduleIdMap) {
-        normalizedModuleMeta = this.normalizedMetaMap.get(moduleIdMap);
+        normalizedModuleMeta = this.moduleGraph.normalizedMetaMap.get(moduleIdMap);
       }
     } else {
-      normalizedModuleMeta = this.normalizedMetaMap.get(moduleId);
+      normalizedModuleMeta = this.moduleGraph.normalizedMetaMap.get(moduleId);
     }
 
     if (throwErrIfNotFound && !normalizedModuleMeta) {
@@ -268,8 +246,8 @@ export class ModuleRegistry {
       return this.moduleNormalizer.normalize(modRefId, this.rootDeclaredInDir);
     } catch (err: unknown) {
       const moduleName = getDebugClassName(modRefId);
-      let path = [...this.scanningModules].map((id) => getDebugClassName(id)).join(' -> ');
-      path = this.scanningModules.size > 1 ? `${moduleName} (${path})` : `${moduleName}`;
+      let path = [...this.moduleGraph.scanningModules].map((id) => getDebugClassName(id)).join(' -> ');
+      path = this.moduleGraph.scanningModules.size > 1 ? `${moduleName} (${path})` : `${moduleName}`;
       throw new NormalizationFailure(path, err as Error);
     }
   }

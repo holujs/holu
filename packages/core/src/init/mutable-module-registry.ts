@@ -1,14 +1,14 @@
-import { format } from 'node:util';
-import type { Provider } from '#di/top/types-and-models.js';
-
 import type { ModuleId } from '#init/module-registry.js';
-import { ModuleRegistry } from '#init/module-registry.js';
-import { ModuleGraphState } from '#init/module-graph-state.js';
+import type { ModRefId } from '#decorators/module-decorator-options.js';
 import type { NormalizedModuleMeta } from '#init/normalized-meta.js';
-import type { ModRefId, StaticModule } from '#decorators/module-decorator-options.js';
+import type { StaticModule } from '#decorators/module-decorator-options.js';
+import type { ModuleGraph } from '#init/module-graph.js';
 import { isDynamicModule } from '#decorators/type-guards.js';
+import { ModuleRegistry } from '#init/module-registry.js';
+import { format } from 'node:util';
 import { getDebugClassName } from '#utils/get-debug-class-name.js';
-import { ImportAdditionFailure, ImportRemovalFailure, ForbiddenRollback, ForbiddenSavingSnapshot } from '#errors';
+import { ImportAdditionFailure, ImportRemovalFailure, ForbiddenRollback } from '#errors';
+import { isRootModule } from '#decorators/type-guards.js';
 
 /**
  * @experimental The mutability of the module graph is an experimental feature.
@@ -17,41 +17,14 @@ import { ImportAdditionFailure, ImportRemovalFailure, ForbiddenRollback, Forbidd
  * at runtime. Modifying the module graph is done transactionally.
  */
 export class MutableModuleRegistry extends ModuleRegistry {
-  protected state = new ModuleGraphState();
-  protected oldState?: ModuleGraphState;
-
-  protected override get childrenMap() {
-    return this.state.childrenMap;
-  }
-
-  protected override set childrenMap(val: Map<ModRefId, Set<ModRefId>>) {
-    this.state.childrenMap = val;
-  }
-
-  override get providersPerApp() {
-    return this.state.providersPerApp;
-  }
-
-  protected override set providersPerApp(val: Provider[]) {
-    this.state.providersPerApp = val;
-  }
+  protected oldGraph?: ModuleGraph;
 
   override scanRootModule(appModule: StaticModule): NormalizedModuleMeta {
-    if (this.state.snapshotMap.size) {
+    if (this.moduleGraph.normalizedMetaMap.size) {
       this.systemLogMediator.forbiddenRescanRootModule(this);
       return this.getNormalizedModuleMeta('root', true);
     }
-    const meta = super.scanRootModule(appModule);
-    this.saveSnapshot();
-    return meta;
-  }
-
-  protected override setNormalizedModuleMeta(modRefId: ModRefId, normalizedModuleMeta: NormalizedModuleMeta) {
-    if (this.oldState) {
-      this.state.snapshotMap.set(modRefId, normalizedModuleMeta);
-    } else {
-      this.normalizedMetaMap.set(modRefId, normalizedModuleMeta);
-    }
+    return super.scanRootModule(appModule);
   }
 
   /**
@@ -60,7 +33,7 @@ export class MutableModuleRegistry extends ModuleRegistry {
    * Dynamically adds a module import to a specified target module.
    */
   addImport(inputModule: ModRefId, targetModuleId: ModuleId = 'root'): boolean | void {
-    const targetNormalizedModuleMeta = this.getNormalizedModuleMetaFromSnapshot(targetModuleId);
+    const targetNormalizedModuleMeta = this.getNormalizedModuleMeta(targetModuleId);
     if (!targetNormalizedModuleMeta) {
       const modName = getDebugClassName(inputModule);
       const modIdStr = format(targetModuleId).slice(0, 50);
@@ -77,10 +50,10 @@ export class MutableModuleRegistry extends ModuleRegistry {
     this.startTransaction();
     try {
       (targetNormalizedModuleMeta[prop] as ModRefId[]).push(inputModule);
-      let children = this.state.childrenMap.get(targetNormalizedModuleMeta.modRefId);
+      let children = this.moduleGraph.childrenMap.get(targetNormalizedModuleMeta.modRefId);
       if (!children) {
         children = new Set();
-        this.state.childrenMap.set(targetNormalizedModuleMeta.modRefId, children);
+        this.moduleGraph.childrenMap.set(targetNormalizedModuleMeta.modRefId, children);
       }
       children.add(inputModule);
 
@@ -99,14 +72,14 @@ export class MutableModuleRegistry extends ModuleRegistry {
    * Dynamically removes a module import from a specified target module.
    */
   removeImport(inputModuleId: ModuleId, targetModuleId: ModuleId = 'root'): boolean | void {
-    const inputNormalizedModuleMeta = this.getNormalizedModuleMetaFromSnapshot(inputModuleId);
+    const inputNormalizedModuleMeta = this.getNormalizedModuleMeta(inputModuleId);
     if (!inputNormalizedModuleMeta) {
       const modIdStr = format(inputModuleId).slice(0, 50);
       this.systemLogMediator.moduleNotFound(this, modIdStr);
       return false;
     }
 
-    const targetMeta = this.getNormalizedModuleMetaFromSnapshot(targetModuleId);
+    const targetMeta = this.getNormalizedModuleMeta(targetModuleId);
     if (!targetMeta) {
       const modIdStr = format(targetModuleId).slice(0, 50);
       throw new ImportRemovalFailure(inputNormalizedModuleMeta.name, modIdStr);
@@ -122,12 +95,12 @@ export class MutableModuleRegistry extends ModuleRegistry {
     this.startTransaction();
     try {
       targetMeta[prop].splice(index, 1);
-      const targetChildren = this.state.childrenMap.get(targetMeta.modRefId);
+      const targetChildren = this.moduleGraph.childrenMap.get(targetMeta.modRefId);
       if (targetChildren) {
         targetChildren.delete(inputNormalizedModuleMeta.modRefId);
       }
       if (!this.includesInSomeModule(inputModuleId, 'root')) {
-        this.state.removeOrphanModule(inputNormalizedModuleMeta.modRefId, inputNormalizedModuleMeta.id);
+        this.removeOrphanModule(inputNormalizedModuleMeta.modRefId, inputNormalizedModuleMeta.id);
       }
       this.systemLogMediator.moduleSuccessfulRemoved(this, inputNormalizedModuleMeta.name, targetMeta.name);
       return true;
@@ -136,18 +109,14 @@ export class MutableModuleRegistry extends ModuleRegistry {
     }
   }
 
-  protected override get activeMetaMap() {
-    return this.oldState ? this.state.snapshotMap : this.normalizedMetaMap;
-  }
-
   /**
    * @experimental The mutability of the module graph is an experimental feature.
    */
   startTransaction() {
-    if (this.oldState) {
+    if (this.oldGraph) {
       return false;
     }
-    this.oldState = this.state.clone();
+    this.oldGraph = this.moduleGraph.clone();
     return true;
   }
 
@@ -155,10 +124,10 @@ export class MutableModuleRegistry extends ModuleRegistry {
    * @experimental The mutability of the module graph is an experimental feature.
    */
   rollback(err?: Error) {
-    if (!this.oldState) {
+    if (!this.oldGraph) {
       throw new ForbiddenRollback();
     }
-    this.state = this.oldState;
+    this.moduleGraph = this.oldGraph;
     this.commit();
     if (err) {
       throw err;
@@ -170,35 +139,8 @@ export class MutableModuleRegistry extends ModuleRegistry {
    * @experimental The mutability of the module graph is an experimental feature.
    */
   commit() {
-    this.oldState = undefined;
+    this.oldGraph = undefined;
     return this;
-  }
-
-  /**
-   * @experimental The mutability of the module graph is an experimental feature.
-   */
-  reset() {
-    this.normalizedMetaMap = new Map();
-    this.state.snapshotMap.forEach((normalizedModuleMeta, key) => this.normalizedMetaMap.set(key, normalizedModuleMeta.clone()));
-    this.moduleIdMap = new Map(this.state.snapshotMapId);
-    return this;
-  }
-
-  protected getNormalizedModuleMetaFromSnapshot(moduleId: ModuleId) {
-    let normalizedModuleMeta: NormalizedModuleMeta | undefined;
-    if (typeof moduleId == 'string') {
-      const mapId = this.state.snapshotMapId.get(moduleId);
-      if (mapId) {
-        normalizedModuleMeta = this.state.snapshotMap.get(mapId);
-      }
-    } else {
-      normalizedModuleMeta = this.state.snapshotMap.get(moduleId);
-    }
-    return normalizedModuleMeta;
-  }
-
-  protected rebuildProvidersPerAppFromSnapshot() {
-    this.state.rebuildProvidersPerApp();
   }
 
   protected includesInSomeModule(inputModuleId: ModuleId, targetModuleId: ModuleId, visited = new Set<ModuleId>()): boolean {
@@ -207,7 +149,7 @@ export class MutableModuleRegistry extends ModuleRegistry {
     }
     visited.add(targetModuleId);
 
-    const targetMeta = this.getNormalizedModuleMetaFromSnapshot(targetModuleId);
+    const targetMeta = this.getNormalizedModuleMeta(targetModuleId);
     if (!targetMeta) {
       return false;
     }
@@ -219,13 +161,13 @@ export class MutableModuleRegistry extends ModuleRegistry {
     }
 
     const targetModRefId = targetMeta.modRefId;
-    const children = this.state.childrenMap.get(targetModRefId);
+    const children = this.moduleGraph.childrenMap.get(targetModRefId);
     if (!children || children.size === 0) {
       return false;
     }
 
     const resolvedInputId =
-      typeof inputModuleId === 'string' ? this.state.snapshotMapId.get(inputModuleId) || inputModuleId : inputModuleId;
+      typeof inputModuleId === 'string' ? this.moduleGraph.moduleIdMap.get(inputModuleId) || inputModuleId : inputModuleId;
 
     if (children.has(resolvedInputId as ModRefId)) {
       return true;
@@ -240,31 +182,20 @@ export class MutableModuleRegistry extends ModuleRegistry {
     return false;
   }
 
-  protected saveSnapshot() {
-    if (this.state.snapshotMap.size) {
-      throw new ForbiddenSavingSnapshot();
-    } else {
-      this.normalizedMetaMap.forEach((normalizedModuleMeta, modRefId) =>
-        this.state.snapshotMap.set(modRefId, normalizedModuleMeta.clone()),
-      );
-      this.state.snapshotMapId = new Map(this.moduleIdMap);
+  protected removeOrphanModule(modRefId: ModRefId, id?: string): void {
+    const meta = this.moduleGraph.normalizedMetaMap.get(modRefId);
+    const targetId = id || meta?.id;
+    if (targetId) {
+      this.moduleGraph.moduleIdMap.delete(targetId);
     }
-  }
+    this.moduleGraph.normalizedMetaMap.delete(modRefId);
+    this.moduleGraph.childrenMap.delete(modRefId);
 
-  protected override getMeta(modRefId: ModRefId): NormalizedModuleMeta | undefined {
-    return this.normalizedMetaMap.get(modRefId) || this.state.snapshotMap.get(modRefId);
-  }
-
-  protected override checkModulesHaveMeaningfulMetadata() {
-    const checked = new Set<ModRefId>();
-    this.state.snapshotMap.forEach((meta, modRefId) => {
-      checked.add(modRefId);
-      this.checkFeatureModuleHasMeaningfulMetadata(meta);
-    });
-
-    this.normalizedMetaMap.forEach((meta, modRefId) => {
-      if (!checked.has(modRefId)) {
-        this.checkFeatureModuleHasMeaningfulMetadata(meta);
+    // rebuild providersPerApp
+    this.moduleGraph.providersPerApp = [];
+    this.moduleGraph.normalizedMetaMap.forEach((m) => {
+      if (!isRootModule(m)) {
+        this.moduleGraph.providersPerApp.push(...m.providersPerApp);
       }
     });
   }

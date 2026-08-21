@@ -53,7 +53,7 @@ export { MutableModuleRegistry } from '#init/mutable-module-registry.js';
 export { ModuleNormalizer } from '#init/module-normalizer.js';
 export { ModuleMetaProcessor } from '#init/module-meta-processor.js';
 export { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
-export { ModuleGraphState } from '#init/module-graph-state.js';
+export { ModuleGraph } from '#init/module-graph.js';
 export { Logger, LoggerConfig, InputLogLevel, OutputLogLevel } from '#logger/logger.js';
 export { ResolvedModuleMeta } from '#types/metadata-per-mod.js';
 export {

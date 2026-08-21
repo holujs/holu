@@ -2,8 +2,8 @@ import type { AnyFn } from '#di/top/types-and-models.js';
 import type { ModRefId } from '#decorators/module-decorator-options.js';
 import type { ModuleAspectHandler, AllModuleAspectsMap } from '#decorators/module-aspects.js';
 import type { NormalizedModuleMeta, BaseNormalizedModuleMeta } from '#init/normalized-meta.js';
-import type { ModulesMap } from '#init/module-registry.js';
 import type { ModuleMetaProcessor } from '#init/module-meta-processor.js';
+import type { ModuleGraph } from '#init/module-graph.js';
 import { NormalizationFailure, MissingChildrenMap, MissingModuleMetadata } from '#errors';
 import { getDebugClassName } from '#utils/get-debug-class-name.js';
 import { isDynamicModule } from '#decorators/type-guards.js';
@@ -17,9 +17,7 @@ import { isDynamicModule } from '#decorators/type-guards.js';
 export class ModuleAspectPropagator {
   constructor(
     protected metaProcessor: ModuleMetaProcessor,
-    protected normalizedMetaMap: ModulesMap,
-    protected childrenMap: Map<ModRefId, Set<ModRefId>>,
-    protected scannedModules: Set<ModRefId>,
+    protected moduleGraph: ModuleGraph,
     protected propsWithModules: (keyof BaseNormalizedModuleMeta)[],
   ) {}
 
@@ -38,10 +36,10 @@ export class ModuleAspectPropagator {
       hasNewModules = false;
       const modulesToScan = new Set<ModRefId>();
 
-      this.normalizedMetaMap.forEach((meta) => {
+      this.moduleGraph.normalizedMetaMap.forEach((meta) => {
         meta.moduleAspectsMap.forEach((moduleAspect, decoratorId) => {
           if (moduleAspect.hostModule && moduleAspect.hostStaticAspectOptions) {
-            const hostMeta = this.normalizedMetaMap.get(moduleAspect.hostModule);
+            const hostMeta = this.moduleGraph.normalizedMetaMap.get(moduleAspect.hostModule);
             if (hostMeta && !hostMeta.moduleAspectsMap.has(decoratorId)) {
               const isAdded = this.applyHostAspectAndGatherDependencies(hostMeta, decoratorId, moduleAspect, modulesToScan);
               if (isAdded) {
@@ -82,14 +80,14 @@ export class ModuleAspectPropagator {
     }
 
     let hasNewSubChildren = false;
-    const children = this.childrenMap.get(hostMeta.modRefId);
+    const children = this.moduleGraph.childrenMap.get(hostMeta.modRefId);
     if (!children) {
       throw new MissingChildrenMap(getDebugClassName(hostMeta.modRefId));
     }
     const processInput = (input: ModRefId) => {
       if (!children.has(input)) {
         children.add(input);
-        if (!this.scannedModules.has(input)) {
+        if (!this.moduleGraph.scannedModules.has(input)) {
           modulesToScan.add(input);
           hasNewSubChildren = true;
         }
@@ -124,7 +122,7 @@ export class ModuleAspectPropagator {
     }
     visited.add(startModule);
 
-    const meta = this.normalizedMetaMap.get(startModule);
+    const meta = this.moduleGraph.normalizedMetaMap.get(startModule);
     if (!meta) {
       throw new MissingModuleMetadata(getDebugClassName(startModule));
     }
@@ -140,7 +138,7 @@ export class ModuleAspectPropagator {
     meta.moduleAspectsMap.forEach((moduleAspect, decoratorId) => effectiveAspectsMap.set(decoratorId, moduleAspect));
 
     // Recurse into children.
-    const children = this.childrenMap.get(startModule);
+    const children = this.moduleGraph.childrenMap.get(startModule);
     if (children) {
       for (const child of children) {
         this.propagateAspectsTopDown(child, effectiveAspectsMap, visited);
@@ -165,13 +163,13 @@ export class ModuleAspectPropagator {
     }
     visited.add(startModule);
 
-    const meta = this.normalizedMetaMap.get(startModule);
+    const meta = this.moduleGraph.normalizedMetaMap.get(startModule);
     if (!meta) {
       throw new MissingModuleMetadata(getDebugClassName(startModule));
     }
 
     // Recurse into children first (post-order).
-    const children = this.childrenMap.get(startModule);
+    const children = this.moduleGraph.childrenMap.get(startModule);
     if (children) {
       for (const child of children) {
         this.accumulateAspectsBottomUp(child, visited);
@@ -179,7 +177,7 @@ export class ModuleAspectPropagator {
 
       // Now add children's aspects to the current module's allModuleAspectsMap.
       for (const child of children) {
-        const childMeta = this.normalizedMetaMap.get(child);
+        const childMeta = this.moduleGraph.normalizedMetaMap.get(child);
         if (!childMeta) {
           throw new MissingModuleMetadata(getDebugClassName(child));
         }
@@ -217,7 +215,7 @@ export class ModuleAspectPropagator {
           try {
             this.metaProcessor.registerAspectOnModule(meta, decoratorId, effectiveAspect.clone());
             if (effectiveAspect.hostModule) {
-              this.childrenMap.get(meta.modRefId)?.add(effectiveAspect.hostModule);
+              this.moduleGraph.childrenMap.get(meta.modRefId)?.add(effectiveAspect.hostModule);
             }
           } catch (err: unknown) {
             throw new NormalizationFailure(meta.name, err as Error);
@@ -236,7 +234,7 @@ export class ModuleAspectPropagator {
       try {
         this.metaProcessor.registerAspectOnModule(meta, decoratorId, aspect.clone());
         if (aspect.hostModule) {
-          this.childrenMap.get(meta.modRefId)?.add(aspect.hostModule);
+          this.moduleGraph.childrenMap.get(meta.modRefId)?.add(aspect.hostModule);
         }
       } catch (err: unknown) {
         throw new NormalizationFailure(meta.name, err as Error);

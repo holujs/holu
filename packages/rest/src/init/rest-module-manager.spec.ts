@@ -151,8 +151,8 @@ describe('ModuleRegistry', () => {
     class AppModule {}
 
     mock.scanRootModule(AppModule);
-    const rootNormalizedModuleMeta = mock.normalizedMetaMap.get(AppModule);
-    const normalizedModuleMeta1 = mock.normalizedMetaMap.get(Module1);
+    const rootNormalizedModuleMeta = mock.modulesMap.get(AppModule);
+    const normalizedModuleMeta1 = mock.modulesMap.get(Module1);
 
     expect(normalizedModuleMeta1?.providersPerApp).toEqual([Service1, Service3]);
     expect(normalizedModuleMeta1?.providersPerMod.includes(Service2)).toBeTruthy();
@@ -177,8 +177,8 @@ describe('ModuleRegistry', () => {
     class AppModule {}
 
     mock.scanRootModule(AppModule);
-    expect(mock.normalizedMetaMap.size).toBe(1);
-    expect(mock.normalizedMetaMap.get(AppModule)).toBeDefined();
+    expect(mock.modulesMap.size).toBe(1);
+    expect(mock.modulesMap.get(AppModule)).toBeDefined();
   });
 
   it('empty root module with restAspect decorator', () => {
@@ -186,9 +186,9 @@ describe('ModuleRegistry', () => {
     class AppModule {}
 
     mock.scanRootModule(AppModule);
-    expect(mock.normalizedMetaMap.size).toBe(3);
-    expect(mock.normalizedMetaMap.get(AppModule)).toBeDefined();
-    expect(mock.normalizedMetaMap.get(RestModule)).toBeDefined();
+    expect(mock.modulesMap.size).toBe(3);
+    expect(mock.modulesMap.get(AppModule)).toBeDefined();
+    expect(mock.modulesMap.get(RestModule)).toBeDefined();
   });
 
   it('non properly exports from root module', () => {
@@ -210,7 +210,7 @@ describe('ModuleRegistry', () => {
     class AppModule {}
 
     mock.scanRootModule(AppModule);
-    expect(mock.normalizedMetaMap.size).toBe(3);
+    expect(mock.modulesMap.size).toBe(3);
     expect(getAspectMeta('root')?.providersPerReq).toEqual([Provider1]);
   });
 
@@ -408,15 +408,15 @@ describe('ModuleRegistry', () => {
     class AppModule {}
 
     mock.scanRootModule(AppModule);
-    expect(mock.normalizedMetaMap.size).toBe(6);
+    expect(mock.modulesMap.size).toBe(6);
     expect(getAspectMeta(Module1)?.controllers).toEqual([Controller1]);
 
-    expect(mock.normalizedMetaMap.get(Module2)?.normalizedAspectsMetaMap.get(restAspect)?.providersPerRou).toEqual([Provider1]);
-    expect(mock.normalizedMetaMap.get(Module2)?.normalizedAspectsMetaMap.get(restAspect)?.exportedProvidersPerRou).toEqual([Provider1]);
+    expect(mock.modulesMap.get(Module2)?.normalizedAspectsMetaMap.get(restAspect)?.providersPerRou).toEqual([Provider1]);
+    expect(mock.modulesMap.get(Module2)?.normalizedAspectsMetaMap.get(restAspect)?.exportedProvidersPerRou).toEqual([Provider1]);
 
     expect(getAspectMeta('root')?.importedStaticModules).toEqual([Module1, Module2, RestModule]);
 
-    const aspectMeta = mock.normalizedMetaMap.get(module4WithOpts)?.normalizedAspectsMetaMap.get(restAspect);
+    const aspectMeta = mock.modulesMap.get(module4WithOpts)?.normalizedAspectsMetaMap.get(restAspect);
     expect(aspectMeta?.importedStaticModules).toEqual([RestModule]);
   });
 
@@ -465,7 +465,7 @@ describe('ModuleRegistry', () => {
     class AppModule {}
 
     mock.scanRootModule(AppModule);
-    expect(mock.normalizedMetaMap.size).toBe(5);
+    expect(mock.modulesMap.size).toBe(5);
     expect(getAspectMeta(dynamicModule)?.params.guards).toMatchObject([{ guard: Guard1 }]);
     expect(getAspectMeta(appendsWithOpts)?.params.guards).toMatchObject([{ guard: Guard2 }]);
   });

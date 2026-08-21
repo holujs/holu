@@ -8,7 +8,6 @@ import { ModuleId } from './module-registry.js';
 import { MutableModuleRegistry } from './mutable-module-registry.js';
 import { ModuleAspectDecorator, ModuleAspectHandler } from '#decorators/module-aspects.js';
 import { NormalizedModuleMeta } from '#init/normalized-meta.js';
-import { ModuleGraphState } from '#init/module-graph-state.js';
 import { ModRefId } from '#decorators/module-decorator-options.js';
 import { DynamicModule } from '#decorators/module-decorator-options.js';
 import { clearDebugClassNames } from '#utils/get-debug-class-name.js';
@@ -47,19 +46,11 @@ describe('ModuleRegistry', () => {
     declare systemLogMediator: SystemLogMediator;
     declare normalizedMetaMap: Map<ModRefId, NormalizedModuleMeta>;
     declare moduleIdMap: Map<string, ModRefId>;
-    declare state: ModuleGraphState;
-    declare oldState: ModuleGraphState | undefined;
+    declare moduleGraph: any;
+    declare oldGraph: any;
 
     override normalizeMeta(modRefId: ModRefId): NormalizedModuleMeta {
       return super.normalizeMeta(modRefId);
-    }
-
-    override getNormalizedModuleMetaFromSnapshot(moduleId: ModuleId) {
-      return super.getNormalizedModuleMetaFromSnapshot(moduleId);
-    }
-
-    override saveSnapshot() {
-      super.saveSnapshot();
     }
   }
 
@@ -140,39 +131,30 @@ describe('ModuleRegistry', () => {
       const expectedMeta1 = getExpectedMeta1();
 
       mock.scanRootModule(AppModule);
-      expect(mock.normalizedMetaMap.size).toBe(1);
-      expect(mock.getNormalizedModuleMeta('root')).not.toBe(mock.getNormalizedModuleMetaFromSnapshot('root'));
       expect(mock.getNormalizedModuleMeta('root')).toBe(mock.getNormalizedModuleMeta('root'));
       expect(mock.getNormalizedModuleMeta('root')).toEqual(expectedMeta1);
 
       expect(mock.addImport(Module1)).toBe(true);
-      expect(mock.state.snapshotMap.size).toBe(2);
-      expect(mock.normalizedMetaMap.size).toBe(1);
-      expect(mock.state.snapshotMap.has(Module1)).toBe(true);
-      expect(mock.normalizedMetaMap.has(Module1)).toBe(false);
-      expect(mock.oldState?.snapshotMapId.size).toBe(1);
-      expect(mock.oldState?.snapshotMapId.get('root')).toBe(AppModule);
-      expect(mock.oldState?.snapshotMap.size).toBe(1);
-      expect(mock.oldState?.snapshotMap.get(AppModule)).toEqual(expectedMeta1);
+      expect(mock.moduleGraph.normalizedMetaMap.size).toBe(2);
+      expect(mock.moduleGraph.normalizedMetaMap.has(Module1)).toBe(true);
+      expect(mock.oldGraph?.moduleIdMap.size).toBe(1);
+      expect(mock.oldGraph?.moduleIdMap.get('root')).toBe(AppModule);
+      expect(mock.oldGraph?.normalizedMetaMap.size).toBe(1);
+      expect(mock.oldGraph?.normalizedMetaMap.get(AppModule)).toEqual(expectedMeta1);
 
       mock.commit();
-      expect(mock.oldState).toBeUndefined();
-      expect(mock.state.snapshotMap.size).toBe(2);
-      expect(mock.state.snapshotMap.has(AppModule)).toBe(true);
-      expect(mock.state.snapshotMap.has(Module1)).toBe(true);
+      expect(mock.oldGraph).toBeUndefined();
+      expect(mock.moduleGraph.normalizedMetaMap.size).toBe(2);
+      expect(mock.moduleGraph.normalizedMetaMap.has(AppModule)).toBe(true);
+      expect(mock.moduleGraph.normalizedMetaMap.has(Module1)).toBe(true);
 
-      mock.reset();
-      expect(mock.oldState).toBeUndefined();
-      expect(mock.normalizedMetaMap.size).toBe(2);
-      expect(mock.normalizedMetaMap.has(AppModule)).toBe(true);
-      expect(mock.normalizedMetaMap.has(Module1)).toBe(true);
+      expect(mock.oldGraph).toBeUndefined();
     });
 
     it('should return false when trying to add an already imported module', () => {
       mock.scanRootModule(AppModule);
       expect(mock.addImport(Module1)).toBe(true);
       mock.commit();
-      mock.reset();
 
       const spy = jest.spyOn(mock.systemLogMediator, 'moduleAlreadyImported').mockImplementation(() => {});
       expect(mock.addImport(Module1)).toBe(false);
@@ -188,13 +170,11 @@ describe('ModuleRegistry', () => {
       mock.scanRootModule(AppModule);
       mock.addImport(Module1);
       mock.commit();
-      mock.reset();
 
       mock.addImport(Module2);
       mock.addImport(Module4);
 
       mock.commit();
-      mock.reset();
 
       const expectedMeta3 = new NormalizedModuleMeta();
       expectedMeta3.id = '';
@@ -214,7 +194,6 @@ describe('ModuleRegistry', () => {
       mock.scanRootModule(AppModule);
       mock.addImport(Module1);
       mock.commit();
-      mock.reset();
 
       const expectedMeta3 = new NormalizedModuleMeta();
       expectedMeta3.id = '';
@@ -228,17 +207,15 @@ describe('ModuleRegistry', () => {
       expectedMeta3.staticModuleOptions = expect.any(Object);
 
       mock.addImport(module3WithProviders);
-      expect(mock.state.snapshotMap.size).toBe(3);
-      expect(mock.normalizedMetaMap.size).toBe(2);
-      expect(mock.getNormalizedModuleMetaFromSnapshot('root')).toEqual({
+      expect(mock.moduleGraph.normalizedMetaMap.size).toBe(3);
+      expect(mock.getNormalizedModuleMeta('root')).toEqual({
         ...expectedMeta3,
         importedDynamicModules: [module3WithProviders],
       });
 
       mock.rollback();
-      expect(mock.state.snapshotMap.size).toBe(2);
-      expect(mock.normalizedMetaMap.size).toBe(2);
-      expect(mock.getNormalizedModuleMetaFromSnapshot('root')).toEqual(expectedMeta3);
+      expect(mock.moduleGraph.normalizedMetaMap.size).toBe(2);
+      expect(mock.getNormalizedModuleMeta('root')).toEqual(expectedMeta3);
       expect(mock.getNormalizedModuleMeta('root')).toEqual(expectedMeta3);
     });
 
@@ -274,7 +251,6 @@ describe('ModuleRegistry', () => {
 
       mock.addImport(DynamicallyAddedModule, AspectAppModule);
       mock.commit();
-      mock.reset();
 
       const dynamicMeta = mock.getNormalizedModuleMeta(DynamicallyAddedModule);
       expect(dynamicMeta).toBeDefined();
@@ -344,37 +320,29 @@ describe('ModuleRegistry', () => {
 
     it('should remove a module from imports and update maps/snapshots correctly', () => {
       mock.scanRootModule(AppModule);
-      expect(mock.state.snapshotMap.size).toBe(6);
-      expect(mock.normalizedMetaMap.size).toBe(6);
+      expect(mock.moduleGraph.normalizedMetaMap.size).toBe(6);
       expect(mock.getNormalizedModuleMeta('root')).toEqual(getExpectedMeta1());
 
       expect(mock.removeImport(Module0, Module1)).toBe(true);
-      expect(mock.state.snapshotMap.get(Module1)?.importedStaticModules).toEqual([]);
-      expect(mock.normalizedMetaMap.get(Module1)?.importedStaticModules).toEqual([Module0]);
+      expect(mock.moduleGraph.normalizedMetaMap.get(Module1)?.importedStaticModules).toEqual([]);
 
       expect(mock.removeImport(Module0, Module2)).toBe(true);
-      expect(mock.state.snapshotMap.get(Module2)?.importedStaticModules).toEqual([]);
-      expect(mock.normalizedMetaMap.get(Module2)?.importedStaticModules).toEqual([Module0]);
-      expect(mock.state.snapshotMap.size).toBe(5);
-      expect(mock.normalizedMetaMap.size).toBe(6);
+      expect(mock.moduleGraph.normalizedMetaMap.get(Module2)?.importedStaticModules).toEqual([]);
+      expect(mock.moduleGraph.normalizedMetaMap.size).toBe(5);
 
       mock.commit();
-      mock.reset();
-      expect(mock.state.snapshotMap.size).toBe(5);
-      expect(mock.normalizedMetaMap.size).toBe(5);
+      expect(mock.moduleGraph.normalizedMetaMap.size).toBe(5);
 
       expect(mock.removeImport(Module2)).toBe(true);
-      expect(mock.getNormalizedModuleMetaFromSnapshot('root')?.importedStaticModules).toEqual([Module1]);
-      expect(mock.getNormalizedModuleMeta('root')?.importedStaticModules).toEqual([Module1, Module2]);
-      expect(mock.state.snapshotMap.size).toBe(4);
-      expect(mock.normalizedMetaMap.size).toBe(5);
+      expect(mock.getNormalizedModuleMeta('root')?.importedStaticModules).toEqual([Module1]);
+      expect(mock.moduleGraph.normalizedMetaMap.size).toBe(4);
 
       expect(mock.removeImport(module3WithProviders)).toBe(true);
-      expect(mock.getNormalizedModuleMetaFromSnapshot('root')?.importedDynamicModules).toEqual([module4WithProviders]);
-      expect(mock.state.snapshotMap.size).toBe(3);
+      expect(mock.getNormalizedModuleMeta('root')?.importedDynamicModules).toEqual([module4WithProviders]);
+      expect(mock.moduleGraph.normalizedMetaMap.size).toBe(3);
 
       expect(mock.removeImport(moduleId)).toBe(true);
-      expect(mock.state.snapshotMap.size).toBe(2);
+      expect(mock.moduleGraph.normalizedMetaMap.size).toBe(2);
     });
 
     it('should return false when trying to remove a module that is not imported', () => {
@@ -402,11 +370,10 @@ describe('ModuleRegistry', () => {
     it('should support rollback operations during removal', () => {
       mock.scanRootModule(AppModule);
       mock.removeImport(moduleId);
-      expect(mock.state.snapshotMap.size).toBe(5);
+      expect(mock.moduleGraph.normalizedMetaMap.size).toBe(5);
 
       mock.rollback();
-      expect(mock.state.snapshotMap.size).toBe(6);
-      expect(mock.normalizedMetaMap.size).toBe(6);
+      expect(mock.moduleGraph.normalizedMetaMap.size).toBe(6);
       expect(mock.getNormalizedModuleMeta('root')).toEqual(getExpectedMeta1());
     });
   });
@@ -422,7 +389,6 @@ describe('ModuleRegistry', () => {
       @rootModule({ providersPerApp: [Service1] })
       class AppModule {}
       mock.scanRootModule(AppModule);
-      expect(() => mock.saveSnapshot()).toThrow(new ForbiddenSavingSnapshot());
     });
   });
 
@@ -494,7 +460,7 @@ describe('ModuleRegistry', () => {
     });
   });
 
-  describe('ModuleGraphState (Memento pattern) integration', () => {
+  describe('ModuleGraph clone and restore', () => {
     it('should clone state and preserve independent snapshots during transactions', () => {
       @featureModule({ providersPerApp: [{ token: 'stateToken', useValue: 'stateVal' }] })
       class StateModule {}
@@ -505,25 +471,23 @@ describe('ModuleRegistry', () => {
       class AppModule {}
 
       mock.scanRootModule(AppModule);
-      expect(mock.state).toBeInstanceOf(ModuleGraphState);
-      expect(mock.oldState).toBeUndefined();
+      expect(mock.oldGraph).toBeUndefined();
 
       // Start transaction
       expect(mock.startTransaction()).toBe(true);
-      expect(mock.oldState).toBeInstanceOf(ModuleGraphState);
-      expect(mock.oldState).not.toBe(mock.state);
+      expect(mock.oldGraph).not.toBe(mock.moduleGraph);
 
       // Verify deep copying of NormalizedModuleMeta
-      const activeMeta = mock.state.snapshotMap.get(StateModule);
-      const backupMeta = mock.oldState?.snapshotMap.get(StateModule);
+      const activeMeta = mock.moduleGraph.normalizedMetaMap.get(StateModule);
+      const backupMeta = mock.oldGraph?.normalizedMetaMap.get(StateModule);
       expect(backupMeta).toEqual(activeMeta);
       expect(backupMeta).not.toBe(activeMeta);
 
       // Rollback restores exact previous oldState reference
-      const savedOldState = mock.oldState;
+      const savedOldState = mock.oldGraph;
       mock.rollback();
-      expect(mock.state).toBe(savedOldState!);
-      expect(mock.oldState).toBeUndefined();
+      expect(mock.moduleGraph).toBe(savedOldState!);
+      expect(mock.oldGraph).toBeUndefined();
     });
 
     it('should return false when starting a transaction while one is already active and preserve original backup', () => {
@@ -535,9 +499,9 @@ describe('ModuleRegistry', () => {
 
       mock.scanRootModule(AppModule);
       expect(mock.startTransaction()).toBe(true);
-      const originalBackup = mock.oldState;
+      const originalBackup = mock.oldGraph;
       expect(mock.startTransaction()).toBe(false);
-      expect(mock.oldState).toBe(originalBackup);
+      expect(mock.oldGraph).toBe(originalBackup);
     });
 
     it('should throw ForbiddenRollback when rollback is invoked without startTransaction', () => {
