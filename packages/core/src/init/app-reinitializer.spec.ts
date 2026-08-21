@@ -19,7 +19,6 @@ describe('AppReinitializer', () => {
 
     mockModuleRegistry = {
       startTransaction: jest.fn(),
-      reset: jest.fn(),
       commit: jest.fn(),
       rollback: jest.fn(),
     } as unknown as jest.Mocked<MutableModuleRegistry>;
@@ -53,7 +52,6 @@ describe('AppReinitializer', () => {
       expect(mockLog.startReinitApp).toHaveBeenCalledWith(appReinitializer);
 
       expect(mockModuleRegistry.startTransaction).toHaveBeenCalled();
-      expect(mockModuleRegistry.reset).toHaveBeenCalled();
       expect(mockAppInitializer.bootstrapProvidersPerApp).toHaveBeenCalled();
 
       expect(mockAppInitializer.bootstrapModulesAndExtensions).toHaveBeenCalled();
@@ -71,9 +69,9 @@ describe('AppReinitializer', () => {
       expect(mockLog.finishReinitApp).toHaveBeenCalledWith(appReinitializer);
     });
 
-    it('should handle error during reset/bootstrapProvidersPerApp', async () => {
+    it('should handle error during startTransaction/bootstrapProvidersPerApp', async () => {
       const error = new Error('Test error');
-      mockModuleRegistry.reset.mockImplementation(() => {
+      mockModuleRegistry.startTransaction.mockImplementation(() => {
         throw error;
       });
 

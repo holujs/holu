@@ -25,8 +25,6 @@ export { type ModuleId };
  * and coordinates aspect propagation via `ModuleAspectPropagator`.
  */
 export class ModuleRegistry {
-  protected moduleGraph = new ModuleGraph();
-  public readonly injectorStore = new ModuleInjectorStore(this.moduleGraph.moduleIdMap);
   protected rootDeclaredInDir?: string;
   protected propsWithModules = [
     'importedStaticModules',
@@ -58,6 +56,8 @@ export class ModuleRegistry {
   constructor(
     protected systemLogMediator: SystemLogMediator,
     protected moduleNormalizer: ModuleNormalizer = new ModuleNormalizer(systemLogMediator),
+    protected moduleGraph: ModuleGraph = new ModuleGraph(),
+    public readonly injectorStore: ModuleInjectorStore = new ModuleInjectorStore(moduleGraph.moduleIdMap),
   ) {}
 
   /**
