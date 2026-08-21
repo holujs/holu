@@ -79,8 +79,8 @@ export class ModuleInjectorStore {
     }
     const Mod = getModule(modRefId);
     if (throwErrIfNotFound === true) {
-      return this.getInjectorPerMod(moduleId, true).get(Mod);
+      return this.getInjectorPerMod(modRefId, true).get(Mod);
     }
-    return this.getInjectorPerMod(moduleId, throwErrIfNotFound)?.get(Mod);
+    return this.getInjectorPerMod(modRefId, throwErrIfNotFound)?.get(Mod);
   }
 }

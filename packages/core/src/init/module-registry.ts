@@ -108,6 +108,14 @@ export class ModuleRegistry {
     modRefId = resolveForwardRef(modRefId);
     const normalizedModuleMeta = this.normalizeMeta(modRefId);
 
+    if (
+      !this.rootDeclaredInDir &&
+      isRootModule(normalizedModuleMeta.staticModuleOptions) &&
+      normalizedModuleMeta.declaredInDir !== '.'
+    ) {
+      this.rootDeclaredInDir = normalizedModuleMeta.declaredInDir;
+    }
+
     const children = new Set<ModRefId>();
     this.childrenMap.set(normalizedModuleMeta.modRefId, children);
 
@@ -257,11 +265,7 @@ export class ModuleRegistry {
    */
   protected normalizeMeta(modRefId: ModRefId): NormalizedModuleMeta {
     try {
-      const meta = this.moduleNormalizer.normalize(modRefId, this.rootDeclaredInDir);
-      if (!this.rootDeclaredInDir && isRootModule(meta.staticModuleOptions) && meta.declaredInDir !== '.') {
-        this.rootDeclaredInDir = meta.declaredInDir;
-      }
-      return meta;
+      return this.moduleNormalizer.normalize(modRefId, this.rootDeclaredInDir);
     } catch (err: unknown) {
       const cause = err instanceof Error ? err : new Error(String(err));
       const moduleName = getDebugClassName(modRefId);
