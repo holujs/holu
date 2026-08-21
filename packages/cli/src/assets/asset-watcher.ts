@@ -79,10 +79,10 @@ export class AssetWatcher extends EventEmitter {
         this.debouncedHandleChange(absPath);
       });
       this.watcher.on('error', (err: unknown) => {
-        this.emit('error', err instanceof Error ? err : new Error(String(err)));
+        this.emit('error', err as Error);
       });
     } catch (err: unknown) {
-      this.emit('error', err instanceof Error ? err : new Error(String(err)));
+      this.emit('error', err as Error);
     }
   }
 
@@ -108,7 +108,7 @@ export class AssetWatcher extends EventEmitter {
         }
       }
     } catch (err) {
-      this.emit('error', err instanceof Error ? err : new Error(String(err)));
+      this.emit('error', err as Error);
     }
   }
 
@@ -145,7 +145,7 @@ export class AssetWatcher extends EventEmitter {
       fs.copyFileSync(srcPath, destPath);
       this.emit('change', srcPath, destPath);
     } catch (err) {
-      this.emit('error', err instanceof Error ? err : new Error(String(err)));
+      this.emit('error', err as Error);
     }
   }
 
@@ -157,7 +157,7 @@ export class AssetWatcher extends EventEmitter {
         this.emit('change', srcPath, destPath);
       }
     } catch (err) {
-      this.emit('error', err instanceof Error ? err : new Error(String(err)));
+      this.emit('error', err as Error);
     }
   }
 
