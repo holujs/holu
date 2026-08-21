@@ -592,3 +592,15 @@ export class RuntimeReinitDisabled extends CustomError {
     });
   }
 }
+
+/**
+ * `${prop} is reserved for internal use by NormalizedModuleMeta. You cannot use ${aspectMetaClassName}.${prop}.`
+ */
+export class ReservedMetaProp extends CustomError {
+  constructor(prop: string, aspectMetaClassName: string) {
+    super({
+      msg1: `${prop} is reserved for internal use by NormalizedModuleMeta. You cannot use ${aspectMetaClassName}.${prop}.`,
+      level: 'fatal',
+    });
+  }
+}

@@ -10,6 +10,7 @@ import { DynamicModuleOptions, DynamicModule } from '#decorators/module-decorato
 import { isDynamicModule } from '#decorators/type-guards.js';
 import { ModuleRegistry } from '#init/module-registry.js';
 import { SystemLogMediator } from '#logger/system-log-mediator.js';
+import { ReservedMetaProp } from '#error/core-errors.js';
 
 describe('NormalizedModuleMeta', () => {
   @injectable()
@@ -154,6 +155,23 @@ describe('NormalizedModuleMeta', () => {
       copiedMod1.providersPerApp.push({ token: 'new-token', useValue: 'new-val' });
       expect(originalProxy.providersPerApp.some((p) => (p as any).token === 'new-token')).toBe(false);
       expect(copiedProxy.providersPerApp.some((p) => (p as any).token === 'new-token')).toBe(true);
+    });
+  });
+
+  describe('createAspectMetaProxy', () => {
+    it('should throw ReservedMetaProp if writing to a reserved property that exists in both NormalizedModuleMeta and AspectMeta', () => {
+      class AspectMeta extends BaseNormalizedModuleMeta {
+        override id: string = ''; // this exists in BaseNormalizedModuleMeta so it's a reserved property
+      }
+      const normalizedMeta = new NormalizedModuleMeta();
+      const proxy = createAspectMetaProxy(normalizedMeta, AspectMeta);
+
+      expect(() => {
+        proxy.id = 'new-id';
+      }).toThrow(ReservedMetaProp);
+      expect(() => {
+        proxy.id = 'new-id';
+      }).toThrow(/id is reserved for internal use by NormalizedModuleMeta/);
     });
   });
 });

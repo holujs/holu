@@ -43,6 +43,7 @@ export {
   RuntimeReinitDisabled,
   MissingChildrenMap,
   MissingModuleMetadata,
+  ReservedMetaProp,
 } from '#error/core-errors.js';
 
 export * from '#di/errors.js';

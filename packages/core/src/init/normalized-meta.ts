@@ -13,6 +13,7 @@ import type { ExtensionClass } from '#extension/extension-types.js';
 import type { ExtensionGroupToken } from '#di/key-registry.js';
 import type { MultiProvider } from '#di/utils.js';
 import { objectKeys } from '#utils/object-keys.js';
+import { ReservedMetaProp } from '#error/core-errors.js';
 
 export class BaseNormalizedModuleMeta<A extends AnyObj = AnyObj> {
   /**
@@ -135,9 +136,7 @@ export function createAspectMetaProxy<T extends BaseNormalizedModuleMeta>(
     },
     set(meta, prop: keyof NormalizedModuleMeta, value, proxy) {
       if (Reflect.has(normalizedModuleMeta, prop) && Reflect.has(meta, prop)) {
-        // @todo Create special error
-        const msg = `${prop} is reserved for internal use by NormalizedModuleMeta. You cannot use ${AspectMetaClass.name}.${prop}.`;
-        throw new TypeError(msg);
+        throw new ReservedMetaProp(prop as string, AspectMetaClass.name);
       } else if (Reflect.has(normalizedModuleMeta, prop)) {
         return Reflect.set(normalizedModuleMeta, prop, value, proxy);
       } else {
