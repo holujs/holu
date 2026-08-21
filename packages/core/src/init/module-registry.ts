@@ -81,6 +81,8 @@ export class ModuleRegistry {
     }
     this.providersPerApp = [];
     this.childrenMap.clear();
+    this.normalizedMetaMap.clear();
+    this.moduleIdMap.clear();
     this.rootDeclaredInDir = undefined;
     const normalizedModuleMeta = this.scanModule(appModule);
     this.moduleIdMap.set('root', appModule);
