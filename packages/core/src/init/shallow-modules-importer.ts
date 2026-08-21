@@ -357,7 +357,7 @@ export class ShallowModulesImporter {
     this.checkCollisionsWithLevelsMix(mergedProvidersAndTokens, ['Req']);
   }
 
-  protected checkCollisionsWithLevelsMix(providers: any[], levels: Level[]) {
+  protected checkCollisionsWithLevelsMix(providers: readonly any[], levels: Level[]) {
     getTokens(providers).forEach((token) => {
       for (const level of levels) {
         const declaredTokens = getTokens(this.normalizedModuleMeta[`providersPer${level}`]);

@@ -43,7 +43,7 @@ export class ModuleRegistry {
   protected get childrenMap() {
     return this.moduleGraph.childrenMap;
   }
-  get providersPerApp(): Provider[] {
+  get providersPerApp(): readonly Provider[] {
     return this.moduleGraph.providersPerApp;
   }
   /**
@@ -71,17 +71,12 @@ export class ModuleRegistry {
     if (!isRootModule(appModule)) {
       throw new MissingRootDecorator(appModule.name);
     }
-    this.moduleGraph.providersPerApp = [];
-    this.moduleGraph.childrenMap.clear();
-    this.moduleGraph.normalizedMetaMap.clear();
-    this.moduleGraph.moduleIdMap.clear();
+    this.moduleGraph.clear();
     this.rootDeclaredInDir = undefined;
     const normalizedModuleMeta = this.scanModule(appModule);
-    this.moduleGraph.moduleIdMap.set('root', appModule);
+    this.moduleGraph.setRootModuleId(appModule);
     this.propagateAspectsAndValidate(appModule);
     this.injectorStore.clear();
-    this.moduleGraph.scanningModules.clear();
-    this.moduleGraph.scannedModules.clear();
     clearDebugClassNames();
     return normalizedModuleMeta;
   }
@@ -108,18 +103,16 @@ export class ModuleRegistry {
       this.rootDeclaredInDir = normalizedModuleMeta.declaredInDir;
     }
 
-    const children = new Set<ModRefId>();
-    this.moduleGraph.childrenMap.set(normalizedModuleMeta.modRefId, children);
+    const children = new Set<ModRefId>(this.getModulesToScan(normalizedModuleMeta));
+    this.moduleGraph.setChildren(normalizedModuleMeta.modRefId, children);
 
-    for (const child of this.getModulesToScan(normalizedModuleMeta)) {
-      children.add(child);
-      if (this.moduleGraph.scanningModules.has(child) || this.moduleGraph.scannedModules.has(child)) {
+    for (const child of children) {
+      if (this.moduleGraph.isScanning(child) || this.moduleGraph.isScanned(child)) {
         continue;
       }
-      this.moduleGraph.scanningModules.add(child);
+      this.moduleGraph.beginScanning(child);
       this.scanModule(child);
-      this.moduleGraph.scanningModules.delete(child);
-      this.moduleGraph.scannedModules.add(child);
+      this.moduleGraph.finishScanning(child);
     }
 
     this.registerModuleId(normalizedModuleMeta, modRefId);
@@ -144,22 +137,24 @@ export class ModuleRegistry {
 
   protected registerModuleId(normalizedModuleMeta: NormalizedModuleMeta, modRefId: ModRefId) {
     if (normalizedModuleMeta.id) {
-      this.moduleGraph.moduleIdMap.set(normalizedModuleMeta.id, modRefId);
+      // It sets in setMeta now, but if we want to log:
       this.systemLogMediator.moduleHasId(this, normalizedModuleMeta.id);
     }
   }
 
   protected accumulateProvidersPerApp(normalizedModuleMeta: NormalizedModuleMeta) {
+    // Already done in ModuleGraph.rebuildProvidersPerApp or ModuleGraph.setMeta if we refactored properly.
+    // Wait, ModuleGraph doesn't accumulate on setMeta. So we do it here:
     const providersPerApp = isRootModule(normalizedModuleMeta) ? [] : normalizedModuleMeta.providersPerApp;
-    this.moduleGraph.providersPerApp.push(...providersPerApp);
+    this.moduleGraph.addProvidersPerApp(providersPerApp);
   }
 
   protected getMeta(modRefId: ModRefId): NormalizedModuleMeta | undefined {
-    return this.moduleGraph.normalizedMetaMap.get(modRefId);
+    return this.moduleGraph.getMeta(modRefId);
   }
 
   protected setNormalizedModuleMeta(modRefId: ModRefId, normalizedModuleMeta: NormalizedModuleMeta) {
-    this.moduleGraph.normalizedMetaMap.set(modRefId, normalizedModuleMeta);
+    this.moduleGraph.setMeta(modRefId, normalizedModuleMeta);
   }
 
   protected propagateAspectsAndValidate(modRefId: ModRefId) {
@@ -174,11 +169,10 @@ export class ModuleRegistry {
 
   protected scanNewlyAddedModules(modulesToScan: Set<ModRefId>) {
     for (const input of modulesToScan) {
-      if (!this.moduleGraph.scannedModules.has(input)) {
-        this.moduleGraph.scanningModules.add(input);
+      if (!this.moduleGraph.isScanned(input)) {
+        this.moduleGraph.beginScanning(input);
         this.scanModule(input);
-        this.moduleGraph.scanningModules.delete(input);
-        this.moduleGraph.scannedModules.add(input);
+        this.moduleGraph.finishScanning(input);
       }
     }
   }

@@ -86,8 +86,8 @@ export class ModuleAspectPropagator {
     }
     const processInput = (input: ModRefId) => {
       if (!children.has(input)) {
-        children.add(input);
-        if (!this.moduleGraph.scannedModules.has(input)) {
+        this.moduleGraph.addChild(hostMeta.modRefId, input);
+        if (!this.moduleGraph.isScanned(input)) {
           modulesToScan.add(input);
           hasNewSubChildren = true;
         }
@@ -215,7 +215,7 @@ export class ModuleAspectPropagator {
           try {
             this.metaProcessor.registerAspectOnModule(meta, decoratorId, effectiveAspect.clone());
             if (effectiveAspect.hostModule) {
-              this.moduleGraph.childrenMap.get(meta.modRefId)?.add(effectiveAspect.hostModule);
+              this.moduleGraph.addChild(meta.modRefId, effectiveAspect.hostModule);
             }
           } catch (err: unknown) {
             throw new NormalizationFailure(meta.name, err as Error);
@@ -234,7 +234,7 @@ export class ModuleAspectPropagator {
       try {
         this.metaProcessor.registerAspectOnModule(meta, decoratorId, aspect.clone());
         if (aspect.hostModule) {
-          this.moduleGraph.childrenMap.get(meta.modRefId)?.add(aspect.hostModule);
+          this.moduleGraph.addChild(meta.modRefId, aspect.hostModule);
         }
       } catch (err: unknown) {
         throw new NormalizationFailure(meta.name, err as Error);

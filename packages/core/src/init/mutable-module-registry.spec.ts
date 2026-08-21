@@ -434,7 +434,7 @@ describe('ModuleRegistry', () => {
 
       // Start manual transaction and push temporary providersPerApp
       mock.startTransaction();
-      mock.providersPerApp.push({ token: 'tokenB', useValue: 'valueB' });
+      mock.moduleGraph.addProvidersPerApp([{ token: 'tokenB', useValue: 'valueB' }]);
       expect(mock.providersPerApp.length).toBe(2);
 
       // Rollback should restore providersPerApp from oldState

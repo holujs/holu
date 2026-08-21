@@ -50,12 +50,7 @@ export class MutableModuleRegistry extends ModuleRegistry {
     this.startTransaction();
     try {
       (targetNormalizedModuleMeta[prop] as ModRefId[]).push(inputModule);
-      let children = this.moduleGraph.childrenMap.get(targetNormalizedModuleMeta.modRefId);
-      if (!children) {
-        children = new Set();
-        this.moduleGraph.childrenMap.set(targetNormalizedModuleMeta.modRefId, children);
-      }
-      children.add(inputModule);
+      this.moduleGraph.addChild(targetNormalizedModuleMeta.modRefId, inputModule);
 
       this.scanModule(inputModule);
       this.propagateAspectsAndValidate(inputModule);
@@ -95,11 +90,8 @@ export class MutableModuleRegistry extends ModuleRegistry {
     this.startTransaction();
     try {
       targetMeta[prop].splice(index, 1);
-      const targetChildren = this.moduleGraph.childrenMap.get(targetMeta.modRefId);
-      if (targetChildren) {
-        targetChildren.delete(inputNormalizedModuleMeta.modRefId);
-      }
-      this.pruneUnreachableModules();
+      this.moduleGraph.removeChild(targetMeta.modRefId, inputNormalizedModuleMeta.modRefId);
+      this.moduleGraph.pruneUnreachableModules();
       this.systemLogMediator.moduleSuccessfulRemoved(this, inputNormalizedModuleMeta.name, targetMeta.name);
       return true;
     } catch (err) {
@@ -139,49 +131,5 @@ export class MutableModuleRegistry extends ModuleRegistry {
   commit() {
     this.oldGraph = undefined;
     return this;
-  }
-
-  protected pruneUnreachableModules(): void {
-    const reachable = new Set<ModRefId>();
-
-    const traverse = (modRefId: ModRefId) => {
-      if (reachable.has(modRefId)) {
-        return;
-      }
-      reachable.add(modRefId);
-      const children = this.moduleGraph.childrenMap.get(modRefId);
-      if (children) {
-        for (const child of children) {
-          traverse(child);
-        }
-      }
-    };
-
-    const rootModRefId = this.moduleGraph.moduleIdMap.get('root');
-    if (rootModRefId) {
-      traverse(rootModRefId);
-    }
-
-    let hasOrphans = false;
-    for (const [modRefId, meta] of this.moduleGraph.normalizedMetaMap.entries()) {
-      if (!reachable.has(modRefId)) {
-        hasOrphans = true;
-        this.moduleGraph.normalizedMetaMap.delete(modRefId);
-        this.moduleGraph.childrenMap.delete(modRefId);
-        if (meta.id) {
-          this.moduleGraph.moduleIdMap.delete(meta.id);
-        }
-      }
-    }
-
-    if (hasOrphans) {
-      // rebuild providersPerApp
-      this.moduleGraph.providersPerApp = [];
-      this.moduleGraph.normalizedMetaMap.forEach((m) => {
-        if (!isRootModule(m)) {
-          this.moduleGraph.providersPerApp.push(...m.providersPerApp);
-        }
-      });
-    }
   }
 }

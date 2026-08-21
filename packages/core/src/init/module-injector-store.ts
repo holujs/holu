@@ -10,7 +10,9 @@ export type ModuleId = string | ModRefId;
 export class ModuleInjectorStore {
   protected injectorPerModMap = new Map<ModRefId, Injector>();
 
-  constructor(protected moduleIdMapSource: Map<'root' | (string & {}), ModRefId> | (() => Map<'root' | (string & {}), ModRefId>)) {}
+  constructor(
+    protected moduleIdMapSource: ReadonlyMap<'root' | (string & {}), ModRefId> | (() => ReadonlyMap<'root' | (string & {}), ModRefId>),
+  ) {}
 
   protected get moduleIdMap() {
     return typeof this.moduleIdMapSource == 'function' ? this.moduleIdMapSource() : this.moduleIdMapSource;

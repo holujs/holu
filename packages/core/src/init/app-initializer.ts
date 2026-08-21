@@ -71,7 +71,7 @@ export class AppInitializer implements BaseAppInitializer {
   protected prepareProvidersPerApp() {
     // Here we work only with providers declared at the application level.
 
-    const exportedProviders = this.moduleRegistry.providersPerApp;
+    const exportedProviders = [...this.moduleRegistry.providersPerApp];
     const exportedNormProviders = normalizeProviders(exportedProviders);
     const exportedTokens = exportedNormProviders.map((np) => np.token);
     const exportedMultiTokens = exportedNormProviders.filter((np) => np.multi).map((np) => np.token);
