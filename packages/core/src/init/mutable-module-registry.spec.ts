@@ -458,6 +458,32 @@ describe('ModuleRegistry', () => {
       expect(mock.removeImport(RemovableModule, AppModule)).toBe(true);
       expect(mock.providersPerApp).toEqual([]);
     });
+
+    it('should cascadedly remove orphaned modules (and their providers) when a parent module is removed', () => {
+      @featureModule({ providersPerApp: [{ token: 'childToken', useValue: 'child' }] })
+      class ChildModule {}
+
+      @featureModule({ imports: [ChildModule], providersPerApp: [{ token: 'parentToken', useValue: 'parent' }] })
+      class ParentModule {}
+
+      @rootModule({
+        imports: [ParentModule],
+      })
+      class AppModule {}
+
+      mock.scanRootModule(AppModule);
+      expect(mock.providersPerApp).toEqual(
+        expect.arrayContaining([
+          { token: 'childToken', useValue: 'child' },
+          { token: 'parentToken', useValue: 'parent' },
+        ]),
+      );
+      expect(mock.moduleGraph.normalizedMetaMap.has(ChildModule)).toBe(true);
+
+      expect(mock.removeImport(ParentModule, AppModule)).toBe(true);
+      expect(mock.providersPerApp).toEqual([]);
+      expect(mock.moduleGraph.normalizedMetaMap.has(ChildModule)).toBe(false);
+    });
   });
 
   describe('ModuleGraph clone and restore', () => {

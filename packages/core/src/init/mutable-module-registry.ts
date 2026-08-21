@@ -99,9 +99,7 @@ export class MutableModuleRegistry extends ModuleRegistry {
       if (targetChildren) {
         targetChildren.delete(inputNormalizedModuleMeta.modRefId);
       }
-      if (!this.includesInSomeModule(inputModuleId, 'root')) {
-        this.removeOrphanModule(inputNormalizedModuleMeta.modRefId, inputNormalizedModuleMeta.id);
-      }
+      this.pruneUnreachableModules();
       this.systemLogMediator.moduleSuccessfulRemoved(this, inputNormalizedModuleMeta.name, targetMeta.name);
       return true;
     } catch (err) {
@@ -143,60 +141,47 @@ export class MutableModuleRegistry extends ModuleRegistry {
     return this;
   }
 
-  protected includesInSomeModule(inputModuleId: ModuleId, targetModuleId: ModuleId, visited = new Set<ModuleId>()): boolean {
-    if (visited.has(targetModuleId)) {
-      return false;
-    }
-    visited.add(targetModuleId);
+  protected pruneUnreachableModules(): void {
+    const reachable = new Set<ModRefId>();
 
-    const targetMeta = this.getNormalizedModuleMeta(targetModuleId);
-    if (!targetMeta) {
-      return false;
-    }
-    if (targetMeta.modRefId !== targetModuleId) {
-      if (visited.has(targetMeta.modRefId)) {
-        return false;
+    const traverse = (modRefId: ModRefId) => {
+      if (reachable.has(modRefId)) {
+        return;
       }
-      visited.add(targetMeta.modRefId);
+      reachable.add(modRefId);
+      const children = this.moduleGraph.childrenMap.get(modRefId);
+      if (children) {
+        for (const child of children) {
+          traverse(child);
+        }
+      }
+    };
+
+    const rootModRefId = this.moduleGraph.moduleIdMap.get('root');
+    if (rootModRefId) {
+      traverse(rootModRefId);
     }
 
-    const targetModRefId = targetMeta.modRefId;
-    const children = this.moduleGraph.childrenMap.get(targetModRefId);
-    if (!children || children.size === 0) {
-      return false;
-    }
-
-    const resolvedInputId =
-      typeof inputModuleId === 'string' ? this.moduleGraph.moduleIdMap.get(inputModuleId) || inputModuleId : inputModuleId;
-
-    if (children.has(resolvedInputId as ModRefId)) {
-      return true;
-    }
-
-    for (const child of children) {
-      if (this.includesInSomeModule(resolvedInputId, child, visited)) {
-        return true;
+    let hasOrphans = false;
+    for (const [modRefId, meta] of this.moduleGraph.normalizedMetaMap.entries()) {
+      if (!reachable.has(modRefId)) {
+        hasOrphans = true;
+        this.moduleGraph.normalizedMetaMap.delete(modRefId);
+        this.moduleGraph.childrenMap.delete(modRefId);
+        if (meta.id) {
+          this.moduleGraph.moduleIdMap.delete(meta.id);
+        }
       }
     }
 
-    return false;
-  }
-
-  protected removeOrphanModule(modRefId: ModRefId, id?: string): void {
-    const meta = this.moduleGraph.normalizedMetaMap.get(modRefId);
-    const targetId = id || meta?.id;
-    if (targetId) {
-      this.moduleGraph.moduleIdMap.delete(targetId);
+    if (hasOrphans) {
+      // rebuild providersPerApp
+      this.moduleGraph.providersPerApp = [];
+      this.moduleGraph.normalizedMetaMap.forEach((m) => {
+        if (!isRootModule(m)) {
+          this.moduleGraph.providersPerApp.push(...m.providersPerApp);
+        }
+      });
     }
-    this.moduleGraph.normalizedMetaMap.delete(modRefId);
-    this.moduleGraph.childrenMap.delete(modRefId);
-
-    // rebuild providersPerApp
-    this.moduleGraph.providersPerApp = [];
-    this.moduleGraph.normalizedMetaMap.forEach((m) => {
-      if (!isRootModule(m)) {
-        this.moduleGraph.providersPerApp.push(...m.providersPerApp);
-      }
-    });
   }
 }
