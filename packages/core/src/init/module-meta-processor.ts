@@ -12,8 +12,9 @@ import { isDynamicModule, isDynamicModuleWrapper, isFeatureModule } from '#decor
 import { ProvidersProcessor } from '#init/providers-processor.js';
 import { ExtensionsProcessor } from '#init/extensions-processor.js';
 import { ImportsExportsProcessor } from '#init/imports-exports-processor.js';
+import { PROVIDER_LEVELS } from '#init/providers-processor.js';
 
-export const PROVIDER_LEVELS = ['App', 'Mod', 'Rou', 'Req'] as const;
+export { PROVIDER_LEVELS };
 export type ProviderLevel = (typeof PROVIDER_LEVELS)[number];
 
 /**

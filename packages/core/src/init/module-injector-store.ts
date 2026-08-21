@@ -70,7 +70,13 @@ export class ModuleInjectorStore {
   getInstanceOf(moduleId: ModuleId, throwErrIfNotFound: true): AnyObj;
   getInstanceOf(moduleId: ModuleId, throwErrIfNotFound?: false): AnyObj | undefined;
   getInstanceOf(moduleId: ModuleId, throwErrIfNotFound?: boolean) {
-    const modRefId = typeof moduleId == 'string' ? this.moduleIdMap.get(moduleId)! : moduleId;
+    const modRefId = typeof moduleId == 'string' ? this.moduleIdMap.get(moduleId) : moduleId;
+    if (!modRefId) {
+      if (throwErrIfNotFound === true) {
+        throw new ModuleIdNotFound(moduleId as string);
+      }
+      return undefined;
+    }
     const Mod = getModule(modRefId);
     if (throwErrIfNotFound === true) {
       return this.getInjectorPerMod(moduleId, true).get(Mod);

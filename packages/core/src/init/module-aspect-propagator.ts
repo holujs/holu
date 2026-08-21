@@ -1,11 +1,12 @@
 import type { AnyFn } from '#di/top/types-and-models.js';
-import type { ModRefId, DynamicModule } from '#decorators/module-decorator-options.js';
+import type { ModRefId } from '#decorators/module-decorator-options.js';
 import type { ModuleAspectHandler, AllModuleAspectsMap } from '#decorators/module-aspects.js';
 import type { NormalizedModuleMeta, BaseNormalizedModuleMeta } from '#init/normalized-meta.js';
 import type { ModulesMap } from '#init/module-registry.js';
 import type { ModuleMetaProcessor } from '#init/module-meta-processor.js';
 import { NormalizationFailure, MissingChildrenMap, MissingModuleMetadata } from '#errors';
 import { getDebugClassName } from '#utils/get-debug-class-name.js';
+import { isDynamicModule } from '#decorators/type-guards.js';
 
 /**
  * Orchestrates the propagation and aggregation of module aspects across the dependency graph.
@@ -194,16 +195,24 @@ export class ModuleAspectPropagator {
     // Create read-only normalizedAspectsMetaMap entries for accumulated (non-own) aspects.
     meta.allModuleAspectsMap.forEach((aspect, decoratorId) => {
       if (!meta.moduleAspectsMap.has(decoratorId) && !meta.normalizedAspectsMetaMap.has(decoratorId)) {
-        const readOnlyMeta = aspect.clone().normalize(meta);
-        if (readOnlyMeta) {
-          meta.normalizedAspectsMetaMap.set(decoratorId, readOnlyMeta);
+        try {
+          const readOnlyMeta = aspect.clone().normalize(meta);
+          if (readOnlyMeta) {
+            meta.normalizedAspectsMetaMap.set(decoratorId, readOnlyMeta);
+          }
+        } catch (err: unknown) {
+          const cause = err instanceof Error ? err : new Error(String(err));
+          throw new NormalizationFailure(meta.name, cause);
         }
       }
     });
   }
 
   protected applyAspectsForDynamicModule(meta: NormalizedModuleMeta, effectiveAspectsMap: AllModuleAspectsMap) {
-    (meta.modRefId as DynamicModule).dynamicAspectOptionsMap?.forEach((dynamicModuleOptions, decoratorId) => {
+    if (!isDynamicModule(meta.modRefId)) {
+      return;
+    }
+    meta.modRefId.dynamicAspectOptionsMap?.forEach((dynamicModuleOptions, decoratorId) => {
       if (!meta.moduleAspectsMap.has(decoratorId)) {
         const effectiveAspect = effectiveAspectsMap.get(decoratorId);
         if (effectiveAspect) {
