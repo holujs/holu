@@ -10,7 +10,11 @@ export type ModuleId = string | ModRefId;
 export class ModuleInjectorStore {
   protected injectorPerModMap = new Map<ModRefId, Injector>();
 
-  constructor(protected moduleIdMap: Map<'root' | (string & {}), ModRefId>) {}
+  constructor(protected moduleIdMapSource: Map<'root' | (string & {}), ModRefId> | (() => Map<'root' | (string & {}), ModRefId>)) {}
+
+  protected get moduleIdMap() {
+    return typeof this.moduleIdMapSource == 'function' ? this.moduleIdMapSource() : this.moduleIdMapSource;
+  }
 
   /**
    * Returns the internal registry mapping module reference IDs (`ModRefId`) to their instantiated module-level injectors.

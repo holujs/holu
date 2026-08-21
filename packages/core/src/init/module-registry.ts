@@ -53,12 +53,16 @@ export class ModuleRegistry {
     return this.moduleGraph.normalizedMetaMap;
   }
 
+  readonly injectorStore: ModuleInjectorStore;
+
   constructor(
     protected systemLogMediator: SystemLogMediator,
     protected moduleNormalizer: ModuleNormalizer = new ModuleNormalizer(systemLogMediator),
     protected moduleGraph: ModuleGraph = new ModuleGraph(),
-    public readonly injectorStore: ModuleInjectorStore = new ModuleInjectorStore(moduleGraph.moduleIdMap),
-  ) {}
+    injectorStore?: ModuleInjectorStore,
+  ) {
+    this.injectorStore = injectorStore || new ModuleInjectorStore(() => this.moduleGraph.moduleIdMap);
+  }
 
   /**
    * Resets internal scan state and initiates recursive metadata resolution for all imported feature modules in the dependency graph.
