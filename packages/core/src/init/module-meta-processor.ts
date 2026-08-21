@@ -1,20 +1,37 @@
-import type { PickProps, AnyObj } from '#types/mix.js';
+import type { PickProps, AnyObj, Level } from '#types/mix.js';
 import type { ProvidersByLevel } from '#types/providers-metadata.js';
-import type { AnyFn } from '#di/top/types-and-models.js';
-import type { DynamicModule, FeatureModuleOptions, DynamicModuleOptions } from '#decorators/module-decorator-options.js';
+import type { AnyFn, Provider } from '#di/top/types-and-models.js';
+import type { DynamicModule, FeatureModuleOptions, DynamicModuleOptions, ModRefId } from '#decorators/module-decorator-options.js';
 import type { StaticAspectOptions, ModuleAspectHandler, ModuleAspectDecorator } from '#decorators/module-aspects.js';
 import type { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import type { RootModuleOptions } from '#decorators/root-module.js';
+import type { BaseExtensionConfig } from '#extension/extension-providers-and-configs.js';
+import type { ExtensionClass } from '#extension/extension-types.js';
+import type { MultiProvider } from '#di/utils.js';
+import type { ForwardRefFn } from '#di/forward-ref.js';
+
 import { objectKeys } from '#utils/object-keys.js';
 import { Reflector } from '#di/reflector.js';
 import { resolveAllForwardRefs } from '#init/forward-refs-resolver.js';
-import { isDynamicModule, isDynamicModuleWrapper, isFeatureModule } from '#decorators/type-guards.js';
-import { ProvidersProcessor } from '#init/providers-processor.js';
-import { ExtensionsProcessor } from '#init/extensions-processor.js';
-import { ImportsExportsProcessor } from '#init/imports-exports-processor.js';
-import { PROVIDER_LEVELS } from '#init/providers-processor.js';
+import { resolveForwardRef } from '#di/forward-ref.js';
+import { isDynamicModule, isDynamicModuleWrapper, isFeatureModule, isModuleDecorator, isRootModule } from '#decorators/type-guards.js';
+import { isNormalizedProvider, isClassProvider, isTokenProvider, isValueProvider } from '#di/utils.js';
+import { normalizeExtensionConfig } from '#extension/extension-providers-and-configs.js';
+import { isExtensionConfig } from '#extension/type-guards.js';
+import { getToken, getTokens } from '#utils/get-tokens.js';
+import { normalizeProviders, stringify } from '#utils/ng-utils.js';
+import { getDebugClassName } from '#utils/get-debug-class-name.js';
+import {
+  InvalidExtension,
+  ResolvedCollisionTokensOnly,
+  UndefinedSymbol,
+  ForbiddenNormalizedExport,
+  UnknownExport,
+  ForbiddenAppExport,
+  ReexportFailure,
+} from '#errors';
 
-export { PROVIDER_LEVELS };
+export const PROVIDER_LEVELS = ['App', 'Mod', 'Rou', 'Req'] as const;
 export type ProviderLevel = (typeof PROVIDER_LEVELS)[number];
 
 /**
@@ -23,12 +40,17 @@ export type ProviderLevel = (typeof PROVIDER_LEVELS)[number];
  * (mutation of existing metadata during aspect propagation).
  */
 export class ModuleMetaProcessor {
-  protected providersProcessor = new ProvidersProcessor();
-  protected extensionsProcessor = new ExtensionsProcessor();
-  protected importsExportsProcessor = new ImportsExportsProcessor();
-
   normalizeImports(staticModuleOptions: RootModuleOptions, meta: NormalizedModuleMeta) {
-    this.importsExportsProcessor.normalizeImports(staticModuleOptions, meta);
+    resolveAllForwardRefs(staticModuleOptions.imports as any[]).forEach((imp: any, i: number) => {
+      if (imp === undefined) {
+        throw new UndefinedSymbol('Imports', meta.name, i);
+      }
+      if (isDynamicModule(imp)) {
+        meta.importedDynamicModules.push(imp);
+      } else {
+        meta.importedStaticModules.push(imp);
+      }
+    });
   }
 
   /**
@@ -106,22 +128,151 @@ export class ModuleMetaProcessor {
     staticModuleOptions: PickProps<FeatureModuleOptions, 'extensions' | 'extensionsMeta'>,
     meta: NormalizedModuleMeta,
   ) {
-    this.extensionsProcessor.normalizeExtensions(staticModuleOptions, meta);
+    if (staticModuleOptions.extensionsMeta) {
+      meta.extensionsMeta = {
+        ...meta.extensionsMeta,
+        ...staticModuleOptions.extensionsMeta,
+      };
+    }
+
+    staticModuleOptions.extensions?.forEach((extensionClassOrConfig) => {
+      if (!isExtensionConfig(extensionClassOrConfig)) {
+        extensionClassOrConfig = { extension: extensionClassOrConfig } as BaseExtensionConfig;
+      }
+      const normalizedExtensionConfig = normalizeExtensionConfig(extensionClassOrConfig);
+      normalizedExtensionConfig.providers.forEach((p) => this.assertValidExtensionProvider(p, meta));
+      if (normalizedExtensionConfig.config) {
+        meta.extensionConfigs.push(normalizedExtensionConfig.config);
+      }
+      if (normalizedExtensionConfig.exportedConfig) {
+        meta.exportedExtensionConfigs.push(normalizedExtensionConfig.exportedConfig);
+      }
+      meta.extensionProviders.push(...normalizedExtensionConfig.providers);
+      meta.exportedExtensionProviders.push(...normalizedExtensionConfig.exportedProviders);
+      normalizedExtensionConfig.groupTokensMap?.forEach((groupToken, LeadExtensionCls) => {
+        if (!meta.extensionGroupTokensMap.has(LeadExtensionCls)) {
+          meta.extensionGroupTokensMap.set(LeadExtensionCls, groupToken);
+          meta.extensionProviders.unshift({ token: groupToken, useToken: LeadExtensionCls, multi: true });
+        }
+      });
+      normalizedExtensionConfig.exportedGroupTokensMap?.forEach((groupToken, ExtensionCls) => {
+        if (!meta.exportedExtensionGroupTokensMap.has(ExtensionCls)) {
+          meta.exportedExtensionGroupTokensMap.set(ExtensionCls, groupToken);
+        }
+      });
+    });
+  }
+
+  protected assertValidExtensionProvider(extensionsProvider: Provider, meta: NormalizedModuleMeta) {
+    const np = normalizeProviders([extensionsProvider])[0];
+    let ExtensionCls: ExtensionClass | undefined;
+    if (isClassProvider(np)) {
+      ExtensionCls = resolveForwardRef(np.useClass);
+    } else if (isTokenProvider(np) && np.useToken instanceof Function) {
+      ExtensionCls = resolveForwardRef(np.useToken);
+    } else if (isValueProvider(np) && np.useValue.constructor instanceof Function) {
+      ExtensionCls = np.useValue.constructor;
+    }
+
+    if (
+      !ExtensionCls ||
+      (typeof ExtensionCls.prototype?.stage1 != 'function' &&
+        typeof ExtensionCls.prototype?.stage2 != 'function' &&
+        typeof ExtensionCls.prototype?.stage3 != 'function')
+    ) {
+      const token = getToken(extensionsProvider);
+      throw new InvalidExtension(meta.name, token.name || token);
+    }
   }
 
   normalizeProvidersAndResolvedCollisions(
     staticAspectOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
     meta: NormalizedModuleMeta,
   ) {
-    this.providersProcessor.normalizeProvidersAndResolvedCollisions(staticAspectOptions, meta);
+    this.normalizeProviders(staticAspectOptions, meta);
+    this.normalizeResolvedCollisions(staticAspectOptions, meta);
   }
 
   normalizeProviders(moduleOptions: Partial<ProvidersByLevel>, meta: NormalizedModuleMeta) {
-    this.providersProcessor.normalizeProviders(moduleOptions, meta);
+    PROVIDER_LEVELS.forEach((level) => {
+      const providersKey = `providersPer${level}` as const;
+      if (moduleOptions[providersKey]) {
+        const providersPerLevel = resolveAllForwardRefs(moduleOptions[providersKey] as any) as any[];
+        meta[providersKey].push(...providersPerLevel);
+      }
+    });
+  }
+
+  protected normalizeResolvedCollisions(
+    staticAspectOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
+    meta: NormalizedModuleMeta,
+  ) {
+    PROVIDER_LEVELS.forEach((level) => {
+      const resolvedCollisionKey = `resolvedCollisionsPer${level}` as const;
+      if (staticAspectOptions[resolvedCollisionKey]) {
+        staticAspectOptions[resolvedCollisionKey]!.forEach(([token, module]) => {
+          token = resolveForwardRef(token);
+          module = resolveForwardRef(module);
+          if (isDynamicModule(module)) {
+            module.module = resolveForwardRef(module.module);
+          }
+          meta[resolvedCollisionKey].push([token, module]);
+        });
+      }
+    });
   }
 
   normalizeExports(moduleOptions: { exports?: any[] }, action: 'Static exports' | 'Dynamic exports', meta: NormalizedModuleMeta) {
-    this.importsExportsProcessor.normalizeExports(moduleOptions, action, meta);
+    if (!moduleOptions.exports) {
+      return;
+    }
+    const tokensAtAllLevels = getTokens(meta.providersPerApp.concat(meta.providersPerMod, meta.providersPerRou, meta.providersPerReq));
+
+    resolveAllForwardRefs(moduleOptions.exports as any[]).forEach((exp: any, i: number) => {
+      if (exp === undefined) {
+        throw new UndefinedSymbol(action, meta.name, i);
+      }
+      if (isNormalizedProvider(exp)) {
+        throw new ForbiddenNormalizedExport(meta.name, exp.token.name || exp.token);
+      }
+      if (isDynamicModule(exp)) {
+        if (!meta.exportedDynamicModules.includes(exp)) {
+          meta.exportedDynamicModules.push(exp);
+        }
+      } else if (tokensAtAllLevels.includes(exp)) {
+        this.exportProviders(exp, meta);
+      } else if (Reflector.getClassLevelMeta(exp)?.some(isModuleDecorator)) {
+        if (!meta.exportedStaticModules.includes(exp)) {
+          meta.exportedStaticModules.push(exp);
+        }
+      } else {
+        throw new UnknownExport(meta.name, stringify(exp));
+      }
+    });
+  }
+
+  protected exportProviders(token: any, meta: NormalizedModuleMeta): void {
+    let found = false;
+    (['Mod', 'Rou', 'Req'] satisfies Level[]).forEach((level) => {
+      const providers = meta[`providersPer${level}`].filter((p) => getToken(p) === token);
+      if (providers.length) {
+        found = true;
+        if (providers.some((p: any) => p.multi)) {
+          meta[`exportedMultiProvidersPer${level}`].push(...(providers as MultiProvider[]));
+        } else {
+          meta[`exportedProvidersPer${level}`].push(...providers);
+        }
+      }
+    });
+
+    if (!found) {
+      const providerName = token.name || token;
+      if (meta.providersPerApp.some((p) => getToken(p) === token)) {
+        throw new ForbiddenAppExport(meta.name, providerName);
+      } else {
+        throw new UnknownExport(meta.name, providerName);
+      }
+    }
   }
 
   normalizeAspectMeta(decoratorId: AnyFn, aspectHandler: ModuleAspectHandler, meta: NormalizedModuleMeta) {
@@ -198,10 +349,34 @@ export class ModuleMetaProcessor {
     staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
     meta: NormalizedModuleMeta,
   ) {
-    this.providersProcessor.assertResolvedCollisionTokensOnly(staticModuleOptions, meta);
+    const resolvedCollisionsPerLevel: [any, ModRefId | ForwardRefFn][] = [];
+    PROVIDER_LEVELS.forEach((level) => {
+      if (Array.isArray(staticModuleOptions[`resolvedCollisionsPer${level}`])) {
+        resolvedCollisionsPerLevel.push(...staticModuleOptions[`resolvedCollisionsPer${level}`]!);
+      }
+    });
+
+    resolvedCollisionsPerLevel.forEach(([provider]) => {
+      provider = resolveForwardRef(provider);
+      if (isNormalizedProvider(provider)) {
+        const providerName = provider.token.name || provider.token;
+        throw new ResolvedCollisionTokensOnly(meta.name, providerName);
+      }
+    });
   }
 
   assertReexportedModulesAreImported(meta: NormalizedModuleMeta) {
-    this.importsExportsProcessor.assertReexportedModulesAreImported(meta);
+    if (isRootModule(meta.staticModuleOptions)) {
+      // Allow exporting from the root module without importing.
+      return;
+    }
+    const imports = [...meta.importedStaticModules, ...meta.importedDynamicModules];
+    const exports = [...meta.exportedStaticModules, ...meta.exportedDynamicModules];
+
+    exports.forEach((modRefId) => {
+      if (!imports.includes(modRefId)) {
+        throw new ReexportFailure(meta.name, getDebugClassName(modRefId) || '""');
+      }
+    });
   }
 }
