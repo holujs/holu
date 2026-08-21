@@ -36,6 +36,55 @@ export class ModuleGraph {
     return this.#scannedModules;
   }
 
+  clear(): void {
+    this.#providersPerApp = [];
+    this.#childrenMap.clear();
+    this.#normalizedMetaMap.clear();
+    this.#moduleIdMap.clear();
+    this.#scanningModules.clear();
+    this.#scannedModules.clear();
+  }
+
+  setChildren(modRefId: ModRefId, children: Set<ModRefId>): void {
+    this.#childrenMap.set(modRefId, children);
+  }
+
+  isScanning(modRefId: ModRefId): boolean {
+    return this.#scanningModules.has(modRefId);
+  }
+
+  beginScanning(modRefId: ModRefId): void {
+    this.#scanningModules.add(modRefId);
+  }
+
+  finishScanning(modRefId: ModRefId): void {
+    this.#scanningModules.delete(modRefId);
+    this.#scannedModules.add(modRefId);
+  }
+
+  setRootModuleId(appModule: ModRefId): void {
+    this.#moduleIdMap.set('root', appModule);
+  }
+
+  addProvidersPerApp(providers: Provider[]): void {
+    this.#providersPerApp.push(...providers);
+  }
+
+  getMeta(modRefId: ModRefId): NormalizedModuleMeta | undefined {
+    return this.#normalizedMetaMap.get(modRefId);
+  }
+
+  setMeta(modRefId: ModRefId, meta: NormalizedModuleMeta): void {
+    this.#normalizedMetaMap.set(modRefId, meta);
+    if (meta.id) {
+      this.#moduleIdMap.set(meta.id, modRefId);
+    }
+  }
+
+  isScanned(modRefId: ModRefId): boolean {
+    return this.#scannedModules.has(modRefId);
+  }
+
   /**
    * @experimental
    */
@@ -54,30 +103,6 @@ export class ModuleGraph {
     return copy;
   }
 
-  clear(): void {
-    this.#providersPerApp = [];
-    this.#childrenMap.clear();
-    this.#normalizedMetaMap.clear();
-    this.#moduleIdMap.clear();
-    this.#scanningModules.clear();
-    this.#scannedModules.clear();
-  }
-
-  setMeta(modRefId: ModRefId, meta: NormalizedModuleMeta): void {
-    this.#normalizedMetaMap.set(modRefId, meta);
-    if (meta.id) {
-      this.#moduleIdMap.set(meta.id, modRefId);
-    }
-  }
-
-  getMeta(modRefId: ModRefId): NormalizedModuleMeta | undefined {
-    return this.#normalizedMetaMap.get(modRefId);
-  }
-
-  setChildren(modRefId: ModRefId, children: Set<ModRefId>): void {
-    this.#childrenMap.set(modRefId, children);
-  }
-
   addChild(parentId: ModRefId, childId: ModRefId): void {
     let children = this.#childrenMap.get(parentId);
     if (!children) {
@@ -94,33 +119,8 @@ export class ModuleGraph {
     }
   }
 
-  addProvidersPerApp(providers: Provider[]): void {
-    this.#providersPerApp.push(...providers);
-  }
-
-  beginScanning(modRefId: ModRefId): void {
-    this.#scanningModules.add(modRefId);
-  }
-
-  finishScanning(modRefId: ModRefId): void {
-    this.#scanningModules.delete(modRefId);
-    this.#scannedModules.add(modRefId);
-  }
-
   cancelScanning(modRefId: ModRefId): void {
     this.#scanningModules.delete(modRefId);
-  }
-
-  isScanning(modRefId: ModRefId): boolean {
-    return this.#scanningModules.has(modRefId);
-  }
-
-  isScanned(modRefId: ModRefId): boolean {
-    return this.#scannedModules.has(modRefId);
-  }
-
-  setRootModuleId(appModule: ModRefId): void {
-    this.#moduleIdMap.set('root', appModule);
   }
 
   rebuildProvidersPerApp(): void {
