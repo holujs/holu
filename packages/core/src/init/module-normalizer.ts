@@ -9,7 +9,6 @@ import { Reflector } from '#di/reflector.js';
 import { isDynamicModule, isRootModule, isModuleDecorator, isModuleWithModuleAspect } from '#decorators/type-guards.js';
 import { MissingModuleDecorator, InvalidModRefId } from '#errors';
 import { ModuleMetaProcessor } from '#init/module-meta-processor.js';
-import type { ModuleRegistry } from '#init/module-registry.js';
 import type { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
 
 /**

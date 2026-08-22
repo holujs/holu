@@ -1,11 +1,12 @@
-import type { ModuleId } from '#init/module-registry.js';
+import { format } from 'node:util';
+
+import type { ModuleId } from './module-injector-store.js';
 import type { ModRefId } from '#decorators/module-decorator-options.js';
 import type { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import type { StaticModule } from '#decorators/module-decorator-options.js';
 import type { ModuleGraph } from '#init/module-graph.js';
 import { isDynamicModule } from '#decorators/type-guards.js';
 import { ModuleRegistry } from '#init/module-registry.js';
-import { format } from 'node:util';
 import { getDebugClassName } from '#utils/get-debug-class-name.js';
 import { ImportAdditionFailure, ImportRemovalFailure, ForbiddenRollback } from '#errors';
 

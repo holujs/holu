@@ -13,7 +13,6 @@ import { ModuleGraph } from '#init/module-graph.js';
 
 export type ModulesMap = Map<ModRefId, NormalizedModuleMeta>;
 export type ModulesMapId = Map<string, ModRefId>;
-export { type ModuleId };
 
 /**
  * Orchestrates the recursive scanning of metadata attached to module classes via decorators.
