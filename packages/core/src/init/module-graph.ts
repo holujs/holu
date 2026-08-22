@@ -79,6 +79,9 @@ export class ModuleGraph {
     if (meta.id) {
       this.#moduleIdMap.set(meta.id, modRefId);
     }
+    if (!isRootModule(meta)) {
+      this.addProvidersPerApp(meta.providersPerApp);
+    }
   }
 
   isScanned(modRefId: ModRefId): boolean {

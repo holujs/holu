@@ -115,9 +115,10 @@ export class ModuleRegistry {
       this.moduleGraph.finishScanning(child);
     }
 
-    this.registerModuleId(normalizedModuleMeta, modRefId);
-    this.accumulateProvidersPerApp(normalizedModuleMeta);
-    this.setNormalizedModuleMeta(modRefId, normalizedModuleMeta);
+    if (normalizedModuleMeta.id) {
+      this.systemLogMediator.moduleHasId(this, normalizedModuleMeta.id);
+    }
+    this.moduleGraph.setMeta(modRefId, normalizedModuleMeta);
 
     return normalizedModuleMeta;
   }
@@ -133,28 +134,6 @@ export class ModuleRegistry {
 
     this.propsWithModules.forEach((p) => importsOrExports.push(...normalizedModuleMeta[p]));
     return importsOrExports;
-  }
-
-  protected registerModuleId(normalizedModuleMeta: NormalizedModuleMeta, modRefId: ModRefId) {
-    if (normalizedModuleMeta.id) {
-      // It sets in setMeta now, but if we want to log:
-      this.systemLogMediator.moduleHasId(this, normalizedModuleMeta.id);
-    }
-  }
-
-  protected accumulateProvidersPerApp(normalizedModuleMeta: NormalizedModuleMeta) {
-    // Already done in ModuleGraph.rebuildProvidersPerApp or ModuleGraph.setMeta if we refactored properly.
-    // Wait, ModuleGraph doesn't accumulate on setMeta. So we do it here:
-    const providersPerApp = isRootModule(normalizedModuleMeta) ? [] : normalizedModuleMeta.providersPerApp;
-    this.moduleGraph.addProvidersPerApp(providersPerApp);
-  }
-
-  protected getMeta(modRefId: ModRefId): NormalizedModuleMeta | undefined {
-    return this.moduleGraph.getMeta(modRefId);
-  }
-
-  protected setNormalizedModuleMeta(modRefId: ModRefId, normalizedModuleMeta: NormalizedModuleMeta) {
-    this.moduleGraph.setMeta(modRefId, normalizedModuleMeta);
   }
 
   protected propagateAspectsAndValidate(modRefId: ModRefId) {

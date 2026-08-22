@@ -8,7 +8,6 @@ import { ModuleRegistry } from '#init/module-registry.js';
 import { format } from 'node:util';
 import { getDebugClassName } from '#utils/get-debug-class-name.js';
 import { ImportAdditionFailure, ImportRemovalFailure, ForbiddenRollback } from '#errors';
-import { isRootModule } from '#decorators/type-guards.js';
 
 /**
  * @experimental The mutability of the module graph is an experimental feature.

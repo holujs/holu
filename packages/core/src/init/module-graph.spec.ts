@@ -83,7 +83,6 @@ describe('ModuleGraph', () => {
       graph.setMeta(ModuleB, metaB);
       graph.setMeta(ModuleC, metaC);
 
-      graph.addProvidersPerApp([{ token: 'tokenA', useValue: 'A' }, { token: 'tokenB', useValue: 'B' }, { token: 'tokenC', useValue: 'C' }]);
     });
 
     it('should keep all modules if they are reachable from root', () => {

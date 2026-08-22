@@ -4,19 +4,18 @@ import { Reflector } from '#di/reflector.js';
 import { featureModule } from '#decorators/feature-module.js';
 import { rootModule } from '#decorators/root-module.js';
 import { SystemLogMediator } from '#logger/system-log-mediator.js';
-import { ModuleId } from './module-registry.js';
 import { MutableModuleRegistry } from './mutable-module-registry.js';
 import { ModuleAspectDecorator, ModuleAspectHandler } from '#decorators/module-aspects.js';
 import { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { ModRefId } from '#decorators/module-decorator-options.js';
 import { DynamicModule } from '#decorators/module-decorator-options.js';
 import { clearDebugClassNames } from '#utils/get-debug-class-name.js';
-import { ImportAdditionFailure, ImportRemovalFailure, ForbiddenRollback, ForbiddenSavingSnapshot } from '#errors';
+import { ImportAdditionFailure, ImportRemovalFailure, ForbiddenRollback } from '#errors';
 import { injectable } from '#di/decorators.js';
 import { forwardRef } from '#di/forward-ref.js';
 import type { Provider } from '#di/top/types-and-models.js';
 
-describe('ModuleRegistry', () => {
+describe('MutableModuleRegistry', () => {
   describe('scanRootModule()', () => {
     it('should log a warning and return root metadata if scanned twice', () => {
       @rootModule({ providersPerApp: [Service1] })
@@ -239,9 +238,9 @@ describe('ModuleRegistry', () => {
 
       mock.scanRootModule(AspectAppModule);
 
-      const origGetMeta = mock['getMeta'];
-      jest.spyOn(mock as any, 'getMeta').mockImplementation((modRefId: any) => {
-        const meta = origGetMeta.call(mock, modRefId);
+      const origGetMeta = mock['moduleGraph']['getMeta'];
+      jest.spyOn(mock['moduleGraph'] as any, 'getMeta').mockImplementation((modRefId: any) => {
+        const meta = origGetMeta.call(mock['moduleGraph'], modRefId);
         if (meta && meta.modRefId === DynamicallyAddedModule) {
           meta.isExternal = false;
           meta.inheritsAspects = true;
