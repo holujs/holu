@@ -21,7 +21,8 @@ export { type ModuleId };
  * Essentially, `ModRefId` is the form in which a module is passed in the `imports` array — that is,
  * either the static module class itself (`StaticModule`) or a dynamic module configuration object (`DynamicModule`).
  *
- * `ModuleRegistry` also stores module-level DI injectors, manages application-scoped providers,
+ * `ModuleRegistry` also provides access to the `injectorStore` for module-level DI injectors,
+ * delegates application-scoped providers and graph state to `ModuleGraph`,
  * and coordinates aspect propagation via `ModuleAspectPropagator`.
  */
 export class ModuleRegistry {
@@ -90,9 +91,8 @@ export class ModuleRegistry {
   /**
    * Recursively normalizes and registers metadata for a specified static or dynamic module reference.
    *
-   * Traverses module dependencies (`imports`, `exports`, and modules discovered via specialized module aspects such as `appends`
-   * or `controllers`), builds the module dependency graph (`this.moduleGraph.childrenMap`), accumulates global providers into `providersPerApp`,
-   * and stores normalized metadata.
+   * Traverses module dependencies (`imports`, `exports`, and modules discovered via specialized module aspects),
+   * populates the module dependency graph (`this.moduleGraph`), and stores normalized metadata.
    *
    * Only processes each module's own decorators. Cross-module aspect propagation is handled
    * separately by {@link ModuleAspectPropagator} (invoked in {@link propagateAspectsAndValidate}) after the entire module tree has been scanned.
@@ -170,7 +170,7 @@ export class ModuleRegistry {
   }
 
   /**
-   * Validates all modules in active registries, verifying that no module possesses completely empty metadata
+   * Validates all modules in the active module graph, verifying that no module possesses completely empty metadata
    * (which typically indicates missing module decorators or invalid import structures).
    */
   protected checkModulesHaveMeaningfulMetadata() {

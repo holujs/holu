@@ -20,7 +20,7 @@ import type { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
  * the normalization phases. Stateless metadata processing and validation
  * is delegated to {@link ModuleMetaProcessor}. Mutation of existing metadata
  * (aspect registration, host-aspect application) is handled by
- * {@link ModuleRegistry} during aspect propagation.
+ * {@link ModuleAspectPropagator} during aspect propagation.
  */
 export class ModuleNormalizer {
   constructor(

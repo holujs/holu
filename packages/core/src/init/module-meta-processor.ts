@@ -35,7 +35,7 @@ export type ProviderLevel = (typeof PROVIDER_LEVELS)[number];
 
 /**
  * A stateless utility service containing shared metadata-processing methods used by both
- * {@link ModuleNormalizer} (creation of new metadata) and {@link ModuleRegistry}
+ * {@link ModuleNormalizer} (creation of new metadata) and {@link ModuleAspectPropagator}
  * (mutation of existing metadata during aspect propagation).
  */
 export class ModuleMetaProcessor {

@@ -4,6 +4,12 @@ import type { Provider } from '#di/top/types-and-models.js';
 import type { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { isRootModule } from '#decorators/type-guards.js';
 
+/**
+ * Represents the application's module dependency graph and metadata storage.
+ *
+ * It stores normalized metadata for each module, tracks the relationships between them (`childrenMap`),
+ * manages application-scoped providers (`providersPerApp`), and maintains the scanning state of modules.
+ */
 export class ModuleGraph {
   #normalizedMetaMap: ModulesMap = new Map();
   #childrenMap = new Map<ModRefId, Set<ModRefId>>();
