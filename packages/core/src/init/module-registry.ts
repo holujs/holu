@@ -16,7 +16,8 @@ export type ModulesMapId = Map<string, ModRefId>;
 export { type ModuleId };
 
 /**
- * Recursively scans metadata attached to module classes via decorators, normalizes and validates it.
+ * Orchestrates the recursive scanning of metadata attached to module classes via decorators.
+ * It delegates normalization to {@link ModuleNormalizer} and coordinates validation.
  * As a result of this process, a mapping is created between the module reference (`ModRefId`) and its normalized metadata.
  * Essentially, `ModRefId` is the form in which a module is passed in the `imports` array — that is,
  * either the static module class itself (`StaticModule`) or a dynamic module configuration object (`DynamicModule`).
