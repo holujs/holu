@@ -238,9 +238,9 @@ describe('MutableModuleRegistry', () => {
 
       mock.scanRootModule(AspectAppModule);
 
-      const origGetMeta = mock['moduleGraph']['getMeta'];
-      jest.spyOn(mock['moduleGraph'] as any, 'getMeta').mockImplementation((modRefId: any) => {
-        const meta = origGetMeta.call(mock['moduleGraph'], modRefId);
+      const origGetMeta = mock.getNormalizedModuleMeta;
+      jest.spyOn(mock as any, 'getNormalizedModuleMeta').mockImplementation((...args: any[]) => {
+        const meta = origGetMeta.apply(mock, args as any);
         if (meta && meta.modRefId === DynamicallyAddedModule) {
           meta.isExternal = false;
           meta.inheritsAspects = true;
@@ -433,7 +433,9 @@ describe('MutableModuleRegistry', () => {
 
       // Start manual transaction and push temporary providersPerApp
       mock.startTransaction();
-      mock.moduleGraph.addProvidersPerApp([{ token: 'tokenB', useValue: 'valueB' }]);
+      const mockMeta = new NormalizedModuleMeta();
+      mockMeta.providersPerApp = [{ token: 'tokenB', useValue: 'valueB' }];
+      mock.moduleGraph.setMeta(class {}, mockMeta);
       expect(mock.providersPerApp.length).toBe(2);
 
       // Rollback should restore providersPerApp from oldState

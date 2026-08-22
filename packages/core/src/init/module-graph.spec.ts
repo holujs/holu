@@ -27,9 +27,6 @@ describe('ModuleGraph', () => {
     graph.finishScanning(ModuleA);
     expect(graph.isScanning(ModuleA)).toBe(false);
     expect(graph.isScanned(ModuleA)).toBe(true);
-    
-    graph.cancelScanning(ModuleA);
-    expect(graph.isScanning(ModuleA)).toBe(false);
   });
 
   it('should manage children edges', () => {
@@ -82,7 +79,6 @@ describe('ModuleGraph', () => {
       graph.setMeta(ModuleA, metaA);
       graph.setMeta(ModuleB, metaB);
       graph.setMeta(ModuleC, metaC);
-
     });
 
     it('should keep all modules if they are reachable from root', () => {
@@ -115,33 +111,33 @@ describe('ModuleGraph', () => {
 
       // Providers for C should be removed, leaving A and B
       expect(graph.providersPerApp.length).toBe(2);
-      expect(graph.providersPerApp.some(p => (p as any).token === 'tokenC')).toBe(false);
+      expect(graph.providersPerApp.some((p) => (p as any).token === 'tokenC')).toBe(false);
     });
   });
-  
+
   it('should clone deep structures properly', () => {
     class ModuleA {}
     const metaA = new NormalizedModuleMeta();
     metaA.modRefId = ModuleA;
     metaA.name = 'ModuleA';
-    
+    metaA.providersPerApp = [{ token: 'some', useValue: '1' }];
     graph.setMeta(ModuleA, metaA);
     graph.addChild(ModuleA, class Child {});
-    graph.addProvidersPerApp([{ token: 'some', useValue: '1' }]);
     graph.beginScanning(ModuleA);
-    
+
     const clone = graph.clone();
     expect(clone.normalizedMetaMap.has(ModuleA)).toBe(true);
     expect(clone.childrenMap.get(ModuleA)?.size).toBe(1);
     expect(clone.scanningModules.has(ModuleA)).toBe(true);
     expect(clone.providersPerApp.length).toBe(1);
-    
-    // Mutations on clone should not affect original
-    clone.cancelScanning(ModuleA);
-    clone.addProvidersPerApp([{ token: 'another', useValue: '2' }]);
-    
+
+    clone.finishScanning(ModuleA);
+    const metaClone = new NormalizedModuleMeta();
+    metaClone.modRefId = ModuleA;
+    metaClone.providersPerApp = [{ token: 'another', useValue: '2' }];
+    clone.setMeta(ModuleA, metaClone);
+
     expect(graph.isScanning(ModuleA)).toBe(true);
     expect(graph.providersPerApp.length).toBe(1);
   });
 });
-

@@ -72,21 +72,13 @@ export class ModuleGraph {
     this.#moduleIdMap.set('root', appModule);
   }
 
-  addProvidersPerApp(providers: Provider[]): void {
-    this.#providersPerApp.push(...providers);
-  }
-
-  getMeta(modRefId: ModRefId): NormalizedModuleMeta | undefined {
-    return this.#normalizedMetaMap.get(modRefId);
-  }
-
   setMeta(modRefId: ModRefId, meta: NormalizedModuleMeta): void {
     this.#normalizedMetaMap.set(modRefId, meta);
     if (meta.id) {
       this.#moduleIdMap.set(meta.id, modRefId);
     }
     if (!isRootModule(meta)) {
-      this.addProvidersPerApp(meta.providersPerApp);
+      this.#providersPerApp.push(...meta.providersPerApp);
     }
   }
 
@@ -128,11 +120,7 @@ export class ModuleGraph {
     }
   }
 
-  cancelScanning(modRefId: ModRefId): void {
-    this.#scanningModules.delete(modRefId);
-  }
-
-  rebuildProvidersPerApp(): void {
+  protected rebuildProvidersPerApp(): void {
     this.#providersPerApp = [];
     this.#normalizedMetaMap.forEach((m) => {
       if (!isRootModule(m)) {
