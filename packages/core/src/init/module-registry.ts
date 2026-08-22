@@ -123,6 +123,21 @@ export class ModuleRegistry {
     return normalizedModuleMeta;
   }
 
+  /**
+   * Delegates module decorator reflection and metadata normalization to {@link ModuleNormalizer}.
+   * On failure, enriches the error message with the full dependency scan trajectory (e.g., `ModuleA -> ModuleB`).
+   */
+  protected normalizeMeta(modRefId: ModRefId): NormalizedModuleMeta {
+    try {
+      return this.moduleNormalizer.normalize(modRefId, this.rootDeclaredInDir);
+    } catch (err: unknown) {
+      const moduleName = getDebugClassName(modRefId);
+      let path = [...this.moduleGraph.scanningModules].map((id) => getDebugClassName(id)).join(' -> ');
+      path = this.moduleGraph.scanningModules.size > 1 ? `${moduleName} (${path})` : `${moduleName}`;
+      throw new NormalizationFailure(path, err as Error);
+    }
+  }
+
   protected getModulesToScan(normalizedModuleMeta: NormalizedModuleMeta): ModRefId[] {
     const importsOrExports: ModRefId[] = [];
     normalizedModuleMeta.moduleAspectsMap.forEach((moduleAspect, decoratorId) => {
@@ -212,20 +227,5 @@ export class ModuleRegistry {
     }
 
     return normalizedModuleMeta;
-  }
-
-  /**
-   * Delegates module decorator reflection and metadata normalization to {@link ModuleNormalizer}.
-   * On failure, enriches the error message with the full dependency scan trajectory (e.g., `ModuleA -> ModuleB`).
-   */
-  protected normalizeMeta(modRefId: ModRefId): NormalizedModuleMeta {
-    try {
-      return this.moduleNormalizer.normalize(modRefId, this.rootDeclaredInDir);
-    } catch (err: unknown) {
-      const moduleName = getDebugClassName(modRefId);
-      let path = [...this.moduleGraph.scanningModules].map((id) => getDebugClassName(id)).join(' -> ');
-      path = this.moduleGraph.scanningModules.size > 1 ? `${moduleName} (${path})` : `${moduleName}`;
-      throw new NormalizationFailure(path, err as Error);
-    }
   }
 }
