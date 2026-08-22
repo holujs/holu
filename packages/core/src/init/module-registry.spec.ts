@@ -36,8 +36,8 @@ describe('ModuleRegistry', () => {
       return super.normalizeMeta(modRefId);
     }
 
-    override scanModule(modRefId: ModRefId | ForwardRefFn<ModRefId>) {
-      return super.scanModule(modRefId);
+    override scanModule(modRefId: ModRefId | ForwardRefFn<ModRefId>, normalizedModuleMeta?: NormalizedModuleMeta) {
+      return super.scanModule(modRefId, normalizedModuleMeta);
     }
   }
 

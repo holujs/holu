@@ -16,7 +16,7 @@ export type ModulesMapId = Map<string, ModRefId>;
 export { type ModuleId };
 
 /**
- * Recursively scans metadata attached to module classes via decorators, normalizes it, and validates it.
+ * Recursively scans metadata attached to module classes via decorators, normalizes and validates it.
  * As a result of this process, a mapping is created between the module reference (`ModRefId`) and its normalized metadata.
  * Essentially, `ModRefId` is the form in which a module is passed in the `imports` array — that is,
  * either the static module class itself (`StaticModule`) or a dynamic module configuration object (`DynamicModule`).
@@ -73,7 +73,13 @@ export class ModuleRegistry {
     }
     this.moduleGraph.clear();
     this.rootDeclaredInDir = undefined;
-    const normalizedModuleMeta = this.scanModule(appModule);
+
+    const normalizedModuleMeta = this.normalizeMeta(appModule);
+    if (normalizedModuleMeta.declaredInDir !== '.') {
+      this.rootDeclaredInDir = normalizedModuleMeta.declaredInDir;
+    }
+
+    this.scanModule(appModule, normalizedModuleMeta);
     this.moduleGraph.setRootModuleId(appModule);
     this.propagateAspectsAndValidate(appModule);
     this.injectorStore.clear();
@@ -91,17 +97,9 @@ export class ModuleRegistry {
    * Only processes each module's own decorators. Cross-module aspect propagation is handled
    * separately by {@link ModuleAspectPropagator} (invoked in {@link propagateAspectsAndValidate}) after the entire module tree has been scanned.
    */
-  protected scanModule(modRefId: ModRefId | ForwardRefFn<ModRefId>) {
+  protected scanModule(modRefId: ModRefId | ForwardRefFn<ModRefId>, normalizedModuleMeta?: NormalizedModuleMeta) {
     modRefId = resolveForwardRef(modRefId);
-    const normalizedModuleMeta = this.normalizeMeta(modRefId);
-
-    if (
-      !this.rootDeclaredInDir &&
-      isRootModule(normalizedModuleMeta.staticModuleOptions) &&
-      normalizedModuleMeta.declaredInDir !== '.'
-    ) {
-      this.rootDeclaredInDir = normalizedModuleMeta.declaredInDir;
-    }
+    normalizedModuleMeta ??= this.normalizeMeta(modRefId);
 
     const children = new Set<ModRefId>(this.getModulesToScan(normalizedModuleMeta));
     this.moduleGraph.setChildren(normalizedModuleMeta.modRefId, children);
