@@ -23,8 +23,8 @@ describe('ModuleAspectPropagator', () => {
 
   class MockModuleRegistry extends ModuleRegistry {
     declare systemLogMediator: SystemLogMediator;
-    override get childrenMap() {
-      return super.childrenMap;
+    get childrenMap() {
+      return this.moduleGraph.childrenMap;
     }
     override normalizeMeta(modRefId: ModRefId): NormalizedModuleMeta {
       return super.normalizeMeta(modRefId);

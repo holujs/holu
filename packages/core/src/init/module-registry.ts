@@ -33,17 +33,6 @@ export class ModuleRegistry {
     'exportedStaticModules',
     'exportedDynamicModules',
   ] satisfies (keyof BaseNormalizedModuleMeta)[];
-  /**
-   * Represents the module dependency graph.
-   *
-   * It maps `ModRefId` to a `Set` of `ModRefId` of its child modules
-   * (modules that it imports, exports, or includes via specialized module aspects).
-   * This graph is built during the module scanning phase and is subsequently used
-   * for recursive traversal, such as propagating parent module aspects to child modules.
-   */
-  protected get childrenMap() {
-    return this.moduleGraph.childrenMap;
-  }
   get providersPerApp(): readonly Provider[] {
     return this.moduleGraph.providersPerApp;
   }

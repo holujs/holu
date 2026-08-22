@@ -28,9 +28,6 @@ describe('ModuleRegistry', () => {
     declare systemLogMediator: SystemLogMediator;
     declare normalizedMetaMap: Map<ModRefId, NormalizedModuleMeta>;
     declare moduleIdMap: Map<string, ModRefId>;
-    override get childrenMap() {
-      return super.childrenMap;
-    }
 
     override normalizeMeta(modRefId: ModRefId): NormalizedModuleMeta {
       return super.normalizeMeta(modRefId);
