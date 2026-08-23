@@ -1,7 +1,7 @@
 import type { ModRefId, DynamicModule } from '#decorators/module-decorator-options.js';
-import type { RootModuleOptions } from '#decorators/root-module.js';
 import type { DecoratorMeta } from '#di/top/decorator-and-value.js';
 import type { SystemLogMediator } from '#logger/system-log-mediator.js';
+import type { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
 import { getDebugClassName } from '#utils/get-debug-class-name.js';
 import { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { resolveForwardRef } from '#di/forward-ref.js';
@@ -9,7 +9,6 @@ import { Reflector } from '#di/reflector.js';
 import { isDynamicModule, isRootModule, isModuleDecorator, isModuleWithModuleAspect } from '#decorators/type-guards.js';
 import { MissingModuleDecorator, InvalidModRefId } from '#errors';
 import { ModuleMetaProcessor } from '#init/module-meta-processor.js';
-import type { ModuleAspectPropagator } from '#init/module-aspect-propagator.js';
 
 /**
  * Orchestrates the creation of normalized module metadata.
@@ -36,10 +35,10 @@ export class ModuleNormalizer {
    */
   normalize(modRefId: ModRefId, rootDeclaredInDir?: string) {
     const meta = this.initNormalizedModuleMeta(modRefId);
-    const { staticModuleOptions } = meta;
-    this.checkAndMarkExternalModule(staticModuleOptions, meta, rootDeclaredInDir);
+    this.checkAndMarkExternalModule(meta, rootDeclaredInDir);
 
     // Phase 1: Normalize base decorator metadata.
+    const { staticModuleOptions } = meta;
     this.metaProcessor.normalizeImports(staticModuleOptions, meta);
     this.metaProcessor.normalizeProvidersAndResolvedCollisions(staticModuleOptions, meta);
     this.metaProcessor.normalizeExtensions(staticModuleOptions, meta);
@@ -97,11 +96,7 @@ export class ModuleNormalizer {
   /**
    * Identifies whether a module is an external library or belongs to the local workspace.
    */
-  protected checkAndMarkExternalModule(
-    staticModuleOptions: RootModuleOptions,
-    meta: NormalizedModuleMeta,
-    rootDeclaredInDir?: string,
-  ) {
+  protected checkAndMarkExternalModule(meta: NormalizedModuleMeta, rootDeclaredInDir?: string) {
     if (rootDeclaredInDir) {
       const { declaredInDir } = meta;
       if (declaredInDir !== '.') {
@@ -110,7 +105,7 @@ export class ModuleNormalizer {
           !declaredInDir.startsWith(rootDeclaredInDir) ||
           (!rootDeclaredInDir.includes('holu/packages') && declaredInDir.includes('holu/packages'));
       }
-    } else if (isRootModule(staticModuleOptions) && meta.declaredInDir !== '.') {
+    } else if (isRootModule(meta.staticModuleOptions) && meta.declaredInDir !== '.') {
       meta.isExternal = false;
     }
 
@@ -118,8 +113,8 @@ export class ModuleNormalizer {
       this.systemLogMediator.externalModuleDetectionFailed(this);
     }
 
-    if (staticModuleOptions.inheritsAspects !== undefined) {
-      meta.inheritsAspects = staticModuleOptions.inheritsAspects;
+    if (meta.staticModuleOptions.inheritsAspects !== undefined) {
+      meta.inheritsAspects = meta.staticModuleOptions.inheritsAspects;
     }
   }
 
