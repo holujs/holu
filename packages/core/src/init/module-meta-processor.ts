@@ -39,7 +39,8 @@ export type ProviderLevel = (typeof PROVIDER_LEVELS)[number];
  * (mutation of existing metadata during aspect propagation).
  */
 export class ModuleMetaProcessor {
-  normalizeImports(staticModuleOptions: RootModuleOptions, meta: NormalizedModuleMeta) {
+  normalizeImports(meta: NormalizedModuleMeta) {
+    const staticModuleOptions = meta.staticModuleOptions as RootModuleOptions;
     resolveAllForwardRefs(staticModuleOptions.imports).forEach((imp, i: number) => {
       if (imp === undefined) {
         throw new UndefinedSymbol('Imports', meta.name, i);
@@ -344,14 +345,12 @@ export class ModuleMetaProcessor {
     return overrides;
   }
 
-  assertResolvedCollisionTokensOnly(
-    staticModuleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
-    meta: NormalizedModuleMeta,
-  ) {
+  assertResolvedCollisionTokensOnly(meta: NormalizedModuleMeta) {
     const resolvedCollisionsPerLevel: [any, ModRefId | ForwardRefFn][] = [];
     PROVIDER_LEVELS.forEach((level) => {
-      if (Array.isArray(staticModuleOptions[`resolvedCollisionsPer${level}`])) {
-        resolvedCollisionsPerLevel.push(...staticModuleOptions[`resolvedCollisionsPer${level}`]!);
+      const collisions = meta.staticModuleOptions[`resolvedCollisionsPer${level}`];
+      if (Array.isArray(collisions)) {
+        resolvedCollisionsPerLevel.push(...collisions);
       }
     });
 

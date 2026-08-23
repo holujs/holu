@@ -39,7 +39,7 @@ export class ModuleNormalizer {
 
     // Phase 1: Normalize base decorator metadata.
     const { staticModuleOptions } = meta;
-    this.metaProcessor.normalizeImports(staticModuleOptions, meta);
+    this.metaProcessor.normalizeImports(meta);
     this.metaProcessor.normalizeProvidersAndResolvedCollisions(staticModuleOptions, meta);
     this.metaProcessor.normalizeExtensions(staticModuleOptions, meta);
 
@@ -57,7 +57,7 @@ export class ModuleNormalizer {
     // Phase 2: Process aspect decorators applied directly to the current module.
     this.processOwnModuleAspects(meta);
 
-    this.metaProcessor.assertResolvedCollisionTokensOnly(staticModuleOptions, meta);
+    this.metaProcessor.assertResolvedCollisionTokensOnly(meta);
     return meta;
   }
 
