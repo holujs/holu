@@ -1,5 +1,5 @@
 import type { AnyObj } from '#types/mix.js';
-import type { ModRefId, StaticModule } from '#decorators/module-decorator-options.js';
+import type { FeatureModuleOptions, ModRefId, StaticModule } from '#decorators/module-decorator-options.js';
 import type { Class, Provider } from '#di/top/types-and-models.js';
 import type { DynamicModule } from '../decorators/module-decorator-options.js';
 import type { BaseExtensionConfig, ExtensionConfig } from '#extension/extension-providers-and-configs.js';
@@ -14,6 +14,7 @@ import type { ExtensionGroupToken } from '#di/key-registry.js';
 import type { MultiProvider } from '#di/utils.js';
 import { objectKeys } from '#utils/object-keys.js';
 import { ReservedMetaProp } from '#error/core-errors.js';
+import type { RootModuleOptions } from '#decorators/root-module.js';
 
 export class BaseNormalizedModuleMeta<A extends AnyObj = AnyObj> {
   /**
@@ -150,18 +151,19 @@ export function createAspectMetaProxy<T extends BaseNormalizedModuleMeta>(
  * Normalized metadata taken from the `rootModule` or `featureModule` decorator.
  */
 export class NormalizedModuleMeta<
-  TypeOfModule extends AnyObj = AnyObj,
+  StaticModuleOpts extends RootModuleOptions | FeatureModuleOptions = FeatureModuleOptions,
+  ModuleClassType extends AnyObj = AnyObj,
   ExtensionMeta extends AnyObj = AnyObj,
 > extends BaseNormalizedModuleMeta<ExtensionMeta> {
   /**
    * Metadata returned by the decorator transformer for the module.
    */
-  staticModuleOptions: AnyObj;
+  staticModuleOptions: StaticModuleOpts;
   /**
    * The module set here must be identical to the module
    * passed to "imports" or "exports" array of feature module metadata.
    */
-  modRefId: ModRefId<TypeOfModule>;
+  modRefId: ModRefId<ModuleClassType>;
   /**
    * The module name.
    */
