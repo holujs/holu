@@ -1,5 +1,6 @@
 import type { ForwardRefFn } from '#di/forward-ref.js';
 import type { ModRefId } from './module-decorator-options.js';
+import type { AnyObj } from '#types/mix.js';
 import { Reflector } from '#di/reflector.js';
 import { objectKeys } from '#utils/object-keys.js';
 import { ProviderBuilder } from '#utils/providers.js';
@@ -8,7 +9,7 @@ import { FeatureModuleOptions } from './module-decorator-options.js';
 /**
  * Raw module metadata returned by reflector.
  */
-export class RootModuleOptions extends FeatureModuleOptions {
+export class RootModuleOptions<T extends AnyObj = AnyObj> extends FeatureModuleOptions<T> {
   /**
    * An array of pairs, each of which is in the first place the provider's token,
    * and in the second - the module from which to import the provider with the specified token.
