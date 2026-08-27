@@ -89,7 +89,8 @@ describe('type guards', () => {
     it('returns false for NormalizedModuleMeta with ModuleAspectHandler when moduleRole is not feature', () => {
       const moduleAspect = new ModuleAspectHandler({});
       const normalizedModuleMeta = new NormalizedModuleMeta();
-      normalizedModuleMeta.staticModuleOptions = moduleAspect.staticAspectOptions;
+
+      normalizedModuleMeta.moduleAspectsMap.set(Function as any, moduleAspect);
       expect(isFeatureModule(normalizedModuleMeta)).toBe(false);
     });
 
@@ -97,7 +98,8 @@ describe('type guards', () => {
       const moduleAspect = new ModuleAspectHandler({});
       moduleAspect.moduleRole = 'feature';
       const normalizedModuleMeta = new NormalizedModuleMeta();
-      normalizedModuleMeta.staticModuleOptions = moduleAspect.staticAspectOptions;
+
+      normalizedModuleMeta.moduleAspectsMap.set(Function as any, moduleAspect);
       expect(isFeatureModule(normalizedModuleMeta)).toBe(true);
     });
 
@@ -177,7 +179,8 @@ describe('type guards', () => {
     it('returns false for NormalizedModuleMeta with ModuleAspectHandler when moduleRole is not root', () => {
       const moduleAspect = new ModuleAspectHandler({});
       const normalizedModuleMeta = new NormalizedModuleMeta();
-      normalizedModuleMeta.staticModuleOptions = moduleAspect.staticAspectOptions;
+
+      normalizedModuleMeta.moduleAspectsMap.set(Function as any, moduleAspect);
       expect(isRootModule(normalizedModuleMeta)).toBe(false);
     });
 
@@ -185,7 +188,8 @@ describe('type guards', () => {
       const moduleAspect = new ModuleAspectHandler({});
       moduleAspect.moduleRole = 'root';
       const normalizedModuleMeta = new NormalizedModuleMeta();
-      normalizedModuleMeta.staticModuleOptions = moduleAspect.staticAspectOptions;
+
+      normalizedModuleMeta.moduleAspectsMap.set(Function as any, moduleAspect);
       expect(isRootModule(normalizedModuleMeta)).toBe(true);
     });
 

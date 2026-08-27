@@ -14,8 +14,10 @@ function checkModuleRole(arg: any, expectedRole: 'root' | 'feature', ExpectedCla
     }
     return arg.value instanceof ExpectedClass;
   } else if (isNormalizedModuleMeta(arg)) {
-    if (arg.staticModuleOptions instanceof ModuleAspectHandler) {
-      return arg.staticModuleOptions.moduleRole === expectedRole;
+    for (const handler of arg.moduleAspectsMap.values()) {
+      if (handler.moduleRole === expectedRole) {
+        return true;
+      }
     }
     return arg.staticModuleOptions instanceof ExpectedClass;
   } else if (arg instanceof ModuleAspectHandler) {

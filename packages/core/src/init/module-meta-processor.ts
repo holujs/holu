@@ -347,7 +347,7 @@ export class ModuleMetaProcessor {
   assertResolvedCollisionTokensOnly(meta: NormalizedModuleMeta<RootModuleOptions>) {
     const resolvedCollisionsPerLevel: [any, ModRefId | ForwardRefFn][] = [];
     PROVIDER_LEVELS.forEach((level) => {
-      const collisions = meta.staticModuleOptions[`resolvedCollisionsPer${level}`];
+      const collisions = meta.staticModuleOptions?.[`resolvedCollisionsPer${level}` as const];
       if (Array.isArray(collisions)) {
         resolvedCollisionsPerLevel.push(...collisions);
       }
@@ -363,7 +363,7 @@ export class ModuleMetaProcessor {
   }
 
   assertReexportedModulesAreImported(meta: NormalizedModuleMeta) {
-    if (isRootModule(meta.staticModuleOptions)) {
+    if (isRootModule(meta)) {
       // Allow exporting from the root module without importing.
       return;
     }

@@ -343,12 +343,7 @@ export class SystemLogMediator extends LogMediator {
         if (line.includes('caused by: ERR')) {
           return `${clr.red}${line}${clr.reset}`;
         }
-        if (
-          line.includes('@holu/') ||
-          line.includes('holu/packages') ||
-          line.includes('Array.') ||
-          line.includes('node:internal')
-        ) {
+        if (line.includes('@holu/') || line.includes('holu/packages') || line.includes('Array.') || line.includes('node:internal')) {
           return `${clr.gray}${line}${clr.reset}`;
         }
         return line;

@@ -158,7 +158,7 @@ export class NormalizedModuleMeta<
   /**
    * Metadata returned by the decorator transformer for the module.
    */
-  staticModuleOptions: StaticModuleOpts;
+  staticModuleOptions?: StaticModuleOpts;
   /**
    * The module set here must be identical to the module
    * passed to "imports" or "exports" array of feature module metadata.

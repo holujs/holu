@@ -7,6 +7,7 @@ import { NormalizedModuleMeta } from '#init/normalized-meta.js';
 import { resolveForwardRef } from '#di/forward-ref.js';
 import { Reflector } from '#di/reflector.js';
 import { isDynamicModule, isRootModule, isModuleDecorator, isModuleWithModuleAspect } from '#decorators/type-guards.js';
+import { ModuleAspectHandler } from '#decorators/module-aspects.js';
 import { MissingModuleDecorator, InvalidModRefId } from '#errors';
 import { ModuleMetaProcessor } from '#init/module-meta-processor.js';
 
@@ -38,20 +39,26 @@ export class ModuleNormalizer {
     this.checkAndMarkExternalModule(meta, rootDeclaredInDir);
 
     // Phase 1: Normalize base decorator metadata.
-    this.metaProcessor.normalizeImports(meta);
-    this.metaProcessor.normalizeProvidersAndResolvedCollisions(meta.staticModuleOptions, meta);
-    this.metaProcessor.normalizeExtensions(meta.staticModuleOptions, meta);
+    if (meta.staticModuleOptions) {
+      this.metaProcessor.normalizeImports(meta);
+      this.metaProcessor.normalizeProvidersAndResolvedCollisions(meta.staticModuleOptions, meta);
+      this.metaProcessor.normalizeExtensions(meta.staticModuleOptions, meta);
+    }
 
     if (isDynamicModule(modRefId)) {
       this.normalizeDynamicModule(modRefId, meta);
     }
 
-    this.metaProcessor.normalizeExports(meta.staticModuleOptions, 'Static exports', meta);
+    if (meta.staticModuleOptions) {
+      this.metaProcessor.normalizeExports(meta.staticModuleOptions, 'Static exports', meta);
+    }
     if (isDynamicModule(modRefId)) {
       this.metaProcessor.normalizeExports(modRefId, 'Dynamic exports', meta);
     }
 
-    this.metaProcessor.assertReexportedModulesAreImported(meta);
+    if (meta.staticModuleOptions) {
+      this.metaProcessor.assertReexportedModulesAreImported(meta);
+    }
 
     // Phase 2: Process aspect decorators applied directly to the current module.
     this.processOwnModuleAspects(meta);
@@ -63,12 +70,12 @@ export class ModuleNormalizer {
   protected initNormalizedModuleMeta(modRefId: ModRefId) {
     const decoratorsMeta = this.getDecoratorMeta(modRefId) || [];
     const decoratorMeta = decoratorsMeta.find((d) => isModuleDecorator(d));
-    const staticModuleOptions = decoratorMeta?.value;
+    const staticModuleOptions = decoratorMeta?.value instanceof ModuleAspectHandler ? undefined : decoratorMeta?.value;
     const moduleName = getDebugClassName(modRefId);
     if (!moduleName) {
       throw new InvalidModRefId();
     }
-    if (!staticModuleOptions) {
+    if (!decoratorMeta) {
       throw new MissingModuleDecorator(moduleName);
     }
     const meta = new NormalizedModuleMeta();
@@ -100,7 +107,7 @@ export class ModuleNormalizer {
           !declaredInDir.startsWith(rootDeclaredInDir) ||
           (!rootDeclaredInDir.includes('holu/packages') && declaredInDir.includes('holu/packages'));
       }
-    } else if (isRootModule(meta.staticModuleOptions) && meta.declaredInDir !== '.') {
+    } else if (isRootModule(meta) && meta.declaredInDir !== '.') {
       meta.isExternal = false;
     }
 
@@ -108,7 +115,7 @@ export class ModuleNormalizer {
       this.systemLogMediator.externalModuleDetectionFailed(this);
     }
 
-    if (meta.staticModuleOptions.inheritsAspects !== undefined) {
+    if (meta.staticModuleOptions?.inheritsAspects !== undefined) {
       meta.inheritsAspects = meta.staticModuleOptions.inheritsAspects;
     }
   }
