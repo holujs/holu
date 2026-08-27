@@ -1,6 +1,6 @@
 # Holu
 
-*Holu* is a Hawaiian word for "to run" — and that's what this framework helps you do: **run scalable server-side applications** on Node.js, powered by DI, TypeScript, and true modularity.
+*Holu* is a Hawaiian word for "to move, to stir into motion" — and that's the idea behind this framework: **set your server-side applications in motion** on Node.js, powered by DI, TypeScript, and true modularity.
 
 [![npm latest](https://img.shields.io/npm/v/@holu/core/latest.svg?label=npm)](https://www.npmjs.com/package/@holu/core/v/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)

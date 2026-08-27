@@ -7,7 +7,7 @@ This file provides rules and context for AI agents working inside the **Holu fra
 
 ## Repository Overview
 
-Holu is a Node.js web framework written in TypeScript (ESM). *Holu* is a Hawaiian word for "to run" — and that's what this framework helps you do: **run scalable server-side applications** on Node.js, powered by DI, TypeScript, and true modularity.
+Holu is a Node.js web framework written in TypeScript (ESM). *Holu* is a Hawaiian word for "to move, to stir into motion" — and that's the idea behind this framework: **set your server-side applications in motion** on Node.js, powered by DI, TypeScript, and true modularity.
 
 This is a **Yarn workspaces monorepo**. Key top-level directories:
 
