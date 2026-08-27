@@ -89,6 +89,11 @@ export interface ExportOnlyExtensionConfig extends BaseExtensionConfig {
 export interface OverrideExtensionConfig {
   extension: ExtensionClass;
   overrideExtension: ExtensionClass;
+  export?: never;
+  exportOnly?: never;
+  groups?: never;
+  beforeExtensions?: never;
+  afterExtensions?: never;
 }
 
 export type ExtensionConfig = ExportableExtensionConfig | ExportOnlyExtensionConfig | OverrideExtensionConfig;

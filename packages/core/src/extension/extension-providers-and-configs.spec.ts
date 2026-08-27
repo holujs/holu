@@ -64,6 +64,16 @@ describe('extension-providers-and-configs', () => {
         });
       });
 
+      it('extension with override ignores other properties at runtime', () => {
+        const args = { extension: Extension2, overrideExtension: Extension1, export: true, groups: [Extension3] } as any;
+        const overrideProviders: Provider[] = [{ token: Extension1, useClass: Extension2 }];
+        expect(normalizeExtensionConfig(args)).toMatchObject({
+          providers: overrideProviders,
+          exportedProviders: [],
+        });
+        expect(normalizeExtensionConfig(args).config).toBeUndefined();
+      });
+
       it('extension without exports (export: false)', () => {
         const args: ExtensionConfig = { extension: Extension1, export: false };
         expect(normalizeExtensionConfig(args)).toMatchObject({
