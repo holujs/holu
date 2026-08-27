@@ -39,6 +39,16 @@ export class ModuleNormalizer {
     this.checkAndMarkExternalModule(meta, rootDeclaredInDir);
 
     // Phase 1: Normalize base decorator metadata.
+    this.normalizeBaseMetadata(modRefId, meta);
+
+    // Phase 2: Process aspect decorators applied directly to the current module.
+    this.normalizeAspects(meta);
+
+    this.metaProcessor.assertResolvedCollisionTokensOnly(meta);
+    return meta;
+  }
+
+  protected normalizeBaseMetadata(modRefId: ModRefId, meta: NormalizedModuleMeta) {
     if (meta.staticModuleOptions) {
       this.metaProcessor.normalizeImports(meta);
       this.metaProcessor.normalizeProvidersAndResolvedCollisions(meta.staticModuleOptions, meta);
@@ -59,12 +69,6 @@ export class ModuleNormalizer {
     if (meta.staticModuleOptions) {
       this.metaProcessor.assertReexportedModulesAreImported(meta);
     }
-
-    // Phase 2: Process aspect decorators applied directly to the current module.
-    this.processOwnModuleAspects(meta);
-
-    this.metaProcessor.assertResolvedCollisionTokensOnly(meta);
-    return meta;
   }
 
   protected initNormalizedModuleMeta(modRefId: ModRefId) {
@@ -133,7 +137,7 @@ export class ModuleNormalizer {
     }
   }
 
-  protected processOwnModuleAspects(meta: NormalizedModuleMeta) {
+  protected normalizeAspects(meta: NormalizedModuleMeta) {
     meta.moduleAspectsMap.forEach((moduleAspect, decoratorId) => {
       meta.allModuleAspectsMap.set(decoratorId, moduleAspect);
       this.metaProcessor.ensureHostModuleImported(moduleAspect, meta);
