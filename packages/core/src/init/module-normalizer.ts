@@ -38,16 +38,15 @@ export class ModuleNormalizer {
     this.checkAndMarkExternalModule(meta, rootDeclaredInDir);
 
     // Phase 1: Normalize base decorator metadata.
-    const { staticModuleOptions } = meta;
     this.metaProcessor.normalizeImports(meta);
-    this.metaProcessor.normalizeProvidersAndResolvedCollisions(staticModuleOptions, meta);
-    this.metaProcessor.normalizeExtensions(staticModuleOptions, meta);
+    this.metaProcessor.normalizeProvidersAndResolvedCollisions(meta.staticModuleOptions, meta);
+    this.metaProcessor.normalizeExtensions(meta.staticModuleOptions, meta);
 
     if (isDynamicModule(modRefId)) {
       this.normalizeDynamicModule(modRefId, meta);
     }
 
-    this.metaProcessor.normalizeExports(staticModuleOptions, 'Static exports', meta);
+    this.metaProcessor.normalizeExports(meta.staticModuleOptions, 'Static exports', meta);
     if (isDynamicModule(modRefId)) {
       this.metaProcessor.normalizeExports(modRefId, 'Dynamic exports', meta);
     }
@@ -72,10 +71,6 @@ export class ModuleNormalizer {
     if (!staticModuleOptions) {
       throw new MissingModuleDecorator(moduleName);
     }
-
-    /**
-     * Setting initial properties of metadata.
-     */
     const meta = new NormalizedModuleMeta();
     meta.name = moduleName;
     meta.staticModuleOptions = staticModuleOptions;

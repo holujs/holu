@@ -186,19 +186,18 @@ export class ModuleMetaProcessor {
   }
 
   normalizeProvidersAndResolvedCollisions(
-    staticAspectOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
+    moduleOptions: StaticAspectOptions & PickProps<RootModuleOptions, 'resolvedCollisionsPerApp'>,
     meta: NormalizedModuleMeta,
   ) {
-    this.normalizeProviders(staticAspectOptions, meta);
-    this.normalizeResolvedCollisions(staticAspectOptions, meta);
+    this.normalizeProviders(moduleOptions, meta);
+    this.normalizeResolvedCollisions(moduleOptions, meta);
   }
 
   normalizeProviders(moduleOptions: Partial<ProvidersByLevel>, meta: NormalizedModuleMeta) {
     PROVIDER_LEVELS.forEach((level) => {
       const providersKey = `providersPer${level}` as const;
       if (moduleOptions[providersKey]) {
-        const providersPerLevel = resolveAllForwardRefs(moduleOptions[providersKey]);
-        meta[providersKey].push(...providersPerLevel);
+        meta[providersKey].push(...resolveAllForwardRefs(moduleOptions[providersKey]));
       }
     });
   }
@@ -345,7 +344,7 @@ export class ModuleMetaProcessor {
     return overrides;
   }
 
-  assertResolvedCollisionTokensOnly(meta: NormalizedModuleMeta) {
+  assertResolvedCollisionTokensOnly(meta: NormalizedModuleMeta<RootModuleOptions>) {
     const resolvedCollisionsPerLevel: [any, ModRefId | ForwardRefFn][] = [];
     PROVIDER_LEVELS.forEach((level) => {
       const collisions = meta.staticModuleOptions[`resolvedCollisionsPer${level}`];
