@@ -13,7 +13,7 @@ function checkModuleRole(arg: any, expectedRole: 'root' | 'feature', ExpectedCla
       return arg.value.moduleRole === expectedRole;
     }
     return arg.value instanceof ExpectedClass;
-  } else if (arg instanceof NormalizedModuleMeta) {
+  } else if (isNormalizedModuleMeta(arg)) {
     if (arg.staticModuleOptions instanceof ModuleAspectHandler) {
       return arg.staticModuleOptions.moduleRole === expectedRole;
     }
@@ -23,9 +23,13 @@ function checkModuleRole(arg: any, expectedRole: 'root' | 'feature', ExpectedCla
   }
   const decoratorMeta = Reflector.getClassLevelMeta(arg);
   if (decoratorMeta) {
-    return decoratorMeta.some(m => checkModuleRole(m, expectedRole, ExpectedClass));
+    return decoratorMeta.some((m) => checkModuleRole(m, expectedRole, ExpectedClass));
   }
   return arg instanceof ExpectedClass;
+}
+
+export function isNormalizedModuleMeta(meta: any): meta is NormalizedModuleMeta {
+  return meta instanceof NormalizedModuleMeta;
 }
 
 export function isRootModule(decorMeta?: DecoratorMeta): decorMeta is DecoratorMeta<RootModuleOptions>;
