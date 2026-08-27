@@ -65,6 +65,8 @@ export class FeatureModuleOptions<T extends AnyObj = AnyObj> {
    */
   declare resolvedCollisionsPerReq?: [any, ModRefId | ForwardRefFn<ModRefId>][];
   /**
+   * @experimental
+   *
    * Whether this module inherits module aspects / context (like REST or tRPC) from parent modules.
    * By default, it is true for local modules and false for external modules.
    */
