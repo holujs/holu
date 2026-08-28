@@ -4,7 +4,7 @@ sidebar_position: 0
 
 # Application workflow
 
-As mentioned in [introducing application and initializer classes][1], Holu provides an API for writing applications with different architectural styles (REST, tRPC, GraphQL, WebSockets, Microservices, etc.). Initialization starts with creating an instance of the application class, and it is at this stage that the configuration accepted by the application class and the order of its assembly are determined.
+As mentioned in [introducing application and initializer classes][1], Holu provides an API for writing applications with different architectural styles (REST, tRPC, GraphQL, WebSockets, Microservices, etc.). Each architectural style is delivered via a [platform package][1]. Initialization starts with creating an instance of the application class, and it is at this stage that the configuration accepted by the application class and the order of its assembly are determined.
 
 The initialization stages of applications with different architectural styles may differ, but as a rule, the following happens:
 
