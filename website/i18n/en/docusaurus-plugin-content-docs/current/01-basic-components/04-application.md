@@ -73,24 +73,20 @@ export class MyService implements BeforeShutdown, OnShutdown {
 ### Connection Draining (REST) {#connection-draining}
 
 In `@holu/rest`, when a shutdown signal is received:
+
 1. The server stops accepting new connections immediately (`server.close()`).
 2. All idle keep-alive connections are immediately closed.
 3. Active connections are allowed to finish their current requests.
 4. If active connections do not close within `shutdownTimeout` (default 15 seconds), they are forcefully closed.
 
-You can configure `shutdownTimeout` (in milliseconds) via `AppOptions` in your root module:
+You can configure `shutdownTimeout` (in milliseconds) by passing it as the second argument to `RestApplication.create()` in your `main.ts` file:
 
 ```ts
-import { AppOptions } from '@holu/core';
-import { RestModule } from '@holu/rest';
+import { RestApplication } from '@holu/rest';
+import { AppModule } from './app/app.module.js';
 
-@rootModule({
-  imports: [RestModule],
-  providersPerApp: [
-    { token: AppOptions, useValue: { shutdownTimeout: 20000 } }
-  ]
-})
-export class AppModule {}
+const app = await RestApplication.create(AppModule, { shutdownTimeout: 20000 });
+app.server.listen(3000, '0.0.0.0');
 ```
 
 [1]: /rest-application/rest-module/

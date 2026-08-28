@@ -73,24 +73,20 @@ export class MyService implements BeforeShutdown, OnShutdown {
 ### Очищення з'єднань (REST) {#connection-draining}
 
 У пакеті `@holu/rest` при отриманні сигналу завершення:
+
 1. Вебсервер негайно перестає приймати нові TCP-з'єднання (`server.close()`).
 2. Усі неактивні keep-alive з'єднання відразу закриваються.
 3. Активним з'єднанням дається час на завершення обробки поточних запитів.
 4. Якщо активні з'єднання не закриваються самостійно протягом часу `shutdownTimeout` (за замовчуванням 15 секунд), вони закриваються примусово.
 
-Ви можете налаштувати тайм-аут завершення з'єднань `shutdownTimeout` (у мілісекундах) через `AppOptions` у вашому кореневому модулі:
+Ви можете налаштувати тайм-аут завершення з'єднань `shutdownTimeout` (у мілісекундах), передавши його як другий аргумент до `RestApplication.create()` у файлі `main.ts`:
 
 ```ts
-import { AppOptions } from '@holu/core';
-import { RestModule } from '@holu/rest';
+import { RestApplication } from '@holu/rest';
+import { AppModule } from './app/app.module.js';
 
-@rootModule({
-  imports: [RestModule],
-  providersPerApp: [
-    { token: AppOptions, useValue: { shutdownTimeout: 20000 } }
-  ]
-})
-export class AppModule {}
+const app = await RestApplication.create(AppModule, { shutdownTimeout: 20000 });
+app.server.listen(3000, '0.0.0.0');
 ```
 
 [1]: /rest-application/rest-module/
