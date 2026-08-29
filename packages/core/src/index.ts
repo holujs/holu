@@ -14,7 +14,7 @@ export { DeepModulesImporter } from '#init/deep-modules-importer.js';
 export { AppProviders, AppModuleAspects } from '#types/metadata-per-mod.js';
 export { ShallowModulesImporter } from '#init/shallow-modules-importer.js';
 export { defaultProvidersPerApp } from '#init/default-providers-per-app.js';
-export { OnModuleInit, BeforeShutdown, OnShutdown, SHUTDOWN_SIGNALS } from '#init/hooks.js';
+export { BeforeShutdown, OnShutdown, SHUTDOWN_SIGNALS } from '#init/hooks.js';
 export { featureModule } from '#decorators/feature-module.js';
 export {
   ModuleAspectHandler,

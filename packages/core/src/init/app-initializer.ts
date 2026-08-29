@@ -35,7 +35,7 @@ import {
   ProvidersCollision,
   MetaOverrideFailure,
 } from '#errors';
-import type { OnModuleInit } from './hooks.js';
+
 import { isMultiProvider } from '#di/utils.js';
 import { Injector } from '#di/injector.js';
 import { PROVIDERS_PER_APP } from './constants.js';
@@ -259,7 +259,7 @@ export class AppInitializer implements BaseAppInitializer {
 
     for (const [modRefId, { normalizedModuleMeta }] of resolvedModuleMetaMap) {
       try {
-        const injectorPerMod = await this.initModuleAndGetInjectorPerMod(normalizedModuleMeta);
+        const injectorPerMod = this.initModuleAndGetInjectorPerMod(normalizedModuleMeta);
         this.moduleRegistry.injectorStore.setInjectorPerMod(modRefId, injectorPerMod);
       } catch (err: any) {
         const debugModuleName = getDebugClassName(modRefId) || 'unknown';
@@ -297,12 +297,12 @@ export class AppInitializer implements BaseAppInitializer {
     }
   }
 
-  protected async initModuleAndGetInjectorPerMod(normalizedModuleMeta: NormalizedModuleMeta): Promise<Injector> {
+  protected initModuleAndGetInjectorPerMod(normalizedModuleMeta: NormalizedModuleMeta): Injector {
     const Mod = getModule(normalizedModuleMeta.modRefId);
     const extendedProvidersPerMod = [Mod, ...normalizedModuleMeta.providersPerMod];
     const injectorPerApp = this.injectorPerApp;
     const injectorPerMod = injectorPerApp.resolveAndCreateChild(extendedProvidersPerMod, 'Mod');
-    await (injectorPerMod.get(Mod) as Partial<OnModuleInit>).onModuleInit?.(); // Instantiate the class of the module and call the hook.
+    injectorPerMod.get(Mod); // Instantiate the module class.
     return injectorPerMod;
   }
 
