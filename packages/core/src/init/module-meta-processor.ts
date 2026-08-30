@@ -141,13 +141,13 @@ export class ModuleMetaProcessor {
       }
       const normalizedExtensionConfig = normalizeExtensionConfig(extensionClassOrConfig);
       normalizedExtensionConfig.providers.forEach((p) => this.assertValidExtensionProvider(p, meta));
+      meta.extensionProviders.push(...normalizedExtensionConfig.providers);
       if (normalizedExtensionConfig.config) {
         meta.extensionConfigs.push(normalizedExtensionConfig.config);
       }
       if (normalizedExtensionConfig.exportedConfig) {
         meta.exportedExtensionConfigs.push(normalizedExtensionConfig.exportedConfig);
       }
-      meta.extensionProviders.push(...normalizedExtensionConfig.providers);
       meta.exportedExtensionProviders.push(...normalizedExtensionConfig.exportedProviders);
       normalizedExtensionConfig.groupTokensMap?.forEach((groupToken, LeadExtensionCls) => {
         if (!meta.extensionGroupTokensMap.has(LeadExtensionCls)) {
