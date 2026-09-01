@@ -2,7 +2,7 @@
   "private": true,
   "name": "@holu/rest-diagnostics",
   "type": "module",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/holujs/holu.git"
@@ -32,8 +32,8 @@
   "author": "",
   "license": "MIT",
   "peerDependencies": {
-    "@holu/core": "^0.2.1",
-    "@holu/rest": "^0.2.1"
+    "@holu/core": "0.3.0",
+    "@holu/rest": "0.3.0"
   },
   "publishConfig": {
     "access": "public"

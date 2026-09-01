@@ -1,7 +1,7 @@
 {
   "name": "@holu/cors",
   "type": "module",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/holujs/holu.git"
@@ -35,8 +35,8 @@
     "@ts-stack/cors": "^1.4.2"
   },
   "peerDependencies": {
-    "@holu/core": "^0.2.1",
-    "@holu/rest": "^0.2.1"
+    "@holu/core": "0.3.0",
+    "@holu/rest": "0.3.0"
   },
   "publishConfig": {
     "access": "public"
