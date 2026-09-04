@@ -1,5 +1,9 @@
 import { rootModule } from '@holu/core';
-import { SimpleExtension } from './simple-extension.js';
+import { GreetingService } from './greeting.service.js';
+import { AppExtension } from './simple-extension.js';
 
-@rootModule({ extensions: [SimpleExtension] })
+@rootModule({
+  providersPerMod: [GreetingService],
+  extensions: [AppExtension],
+})
 export class AppModule {}

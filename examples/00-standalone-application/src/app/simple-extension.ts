@@ -1,19 +1,18 @@
 import { injectable, Extension, Logger } from '@holu/core';
+import { GreetingService } from './greeting.service.js';
 
 @injectable()
-export class SimpleExtension implements Extension {
-  constructor(private logger: Logger) {}
+export class AppExtension implements Extension {
+  constructor(
+    private greetingService: GreetingService,
+    private logger: Logger,
+  ) {}
 
   async stage1() {
-    this.logger.log('info', 'Stage 1 in SimpleExtension.');
-  }
-
-  async stage2() {
-    this.logger.log('info', 'Stage 2 in SimpleExtension.');
+    this.logger.log('info', 'AppExtension: initializing in stage1.');
   }
 
   async stage3() {
-    this.logger.log('info', 'Stage 3 in SimpleExtension.');
-    this.logger.log('info', 'Hello World! The StandaloneApplication is a working.');
+    this.greetingService.greet('World');
   }
 }
