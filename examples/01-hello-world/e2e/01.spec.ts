@@ -21,7 +21,7 @@ describe('01-hello-world', () => {
     it('works with GET method', async () => {
       const { status, text } = await testAgent.get('/request-scoped');
       expect(status).toBe(200);
-      expect(text).toBe('ok1');
+      expect(text).toBe('Hello, World!');
     });
   });
 
@@ -29,7 +29,7 @@ describe('01-hello-world', () => {
     it('works with GET method', async () => {
       const { status, text } = await testAgent.get('/route-scoped');
       expect(status).toBe(200);
-      expect(text).toBe('ok2');
+      expect(text).toBe('Hello, Route!');
     });
   });
 });

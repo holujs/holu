@@ -1,21 +1,7 @@
 import { LoggerConfig, ProviderBuilder } from '@holu/core';
-import { controller, route, restRootModule } from '@holu/rest';
-
-@controller()
-export class RequestScopedController {
-  @route('GET', 'request-scoped')
-  tellHello() {
-    return 'ok1';
-  }
-}
-
-@controller({ scope: 'route' })
-export class RouteScopedController {
-  @route('GET', 'route-scoped')
-  tellHello() {
-    return 'ok2';
-  }
-}
+import { restRootModule } from '@holu/rest';
+import { RequestScopedController } from './request-scoped.controller.js';
+import { RouteScopedController } from './route-scoped.controller.js';
 
 @restRootModule({
   controllers: [RequestScopedController, RouteScopedController],
