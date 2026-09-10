@@ -7,28 +7,25 @@ export class MyHttpErrorHandler implements HttpErrorHandler {
   constructor(protected logger: Logger) {}
 
   async handleError(err: Error, ctx: RequestContext) {
-    const errObj = { requestId: ctx.requestId, err, note: 'This is my implementation of HttpErrorHandler' };
+    const requestId = ctx.requestId;
+    const timestamp = new Date().toISOString();
+
     if (isCustomError(err)) {
-      const { level, status } = err.info;
-      this.logger.log(level || 'debug', errObj);
+      const { level, status, code } = err.info;
+      this.logger.log(level || 'debug', { requestId, err });
       ctx.rawRes.statusCode = status || HttpStatus.INTERNAL_SERVER_ERROR;
-      this.sendError(err.message, ctx, ctx.requestId);
+      this.sendError({ error: err.message, code: code || err.code, requestId, timestamp }, ctx);
     } else {
-      this.logger.log('error', errObj);
-      const msg = err.message || 'Internal server error';
-      ctx.rawRes.statusCode = (err as any).status || HttpStatus.INTERNAL_SERVER_ERROR;
-      this.sendError(msg, ctx, ctx.requestId);
+      this.logger.log('error', { requestId, err });
+      ctx.rawRes.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+      this.sendError({ error: 'Internal server error', requestId, timestamp }, ctx);
     }
   }
 
-  protected sendError(error: string, ctx: RequestContext, requestId: string) {
+  protected sendError(body: object, ctx: RequestContext) {
     if (!ctx.rawRes.headersSent) {
-      this.addRequestIdToHeader(requestId, ctx);
-      ctx.sendJson({ error });
+      ctx.rawRes.setHeader('x-requestId', ctx.requestId);
+      ctx.sendJson(body);
     }
-  }
-
-  protected addRequestIdToHeader(requestId: string, ctx: RequestContext) {
-    ctx.rawRes.setHeader('x-requestId', requestId);
   }
 }
