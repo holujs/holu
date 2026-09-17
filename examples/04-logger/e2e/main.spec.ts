@@ -17,23 +17,23 @@ describe('04-logger', () => {
     server?.close();
   });
 
-  it('should works', async () => {
+  it('should work', async () => {
     const { status, text } = await testAgent.get('/');
     expect(status).toBe(200);
     expect(text).toBe('ok');
   });
 
-  it('should works with winston', async () => {
+  it('should work with winston', async () => {
     const { status } = await testAgent.get('/winston');
     expect(status).toBe(200);
   });
 
-  it('should works with bunyan', async () => {
+  it('should work with bunyan', async () => {
     const { status } = await testAgent.get('/bunyan');
     expect(status).toBe(200);
   });
 
-  it('should works with pino', async () => {
+  it('should work with pino', async () => {
     const { status } = await testAgent.get('/pino');
     expect(status).toBe(200);
   });

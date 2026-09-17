@@ -5,7 +5,7 @@ If you haven't prepared the examples repository yet, you can do so:
 ```bash
 git clone https://github.com/holujs/holu.git
 cd holu
-npm i
+yarn install
 ```
 
 ## Logger
@@ -14,7 +14,7 @@ Start from first terminal:
 
 ```bash
 cd examples/04*
-npm start
+yarn start
 ```
 
 From second terminal:
