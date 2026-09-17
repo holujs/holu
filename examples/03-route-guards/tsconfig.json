@@ -5,10 +5,9 @@
     "tsBuildInfoFile": "dist/ts.tsbuildinfo",
     "paths": {
       "#app/*": ["./src/app/*"],
-      "#auth": ["./src/app/modules/auth/index.ts"],
       "@holu/core": ["../../packages/core/src/index.js"],
       "@holu/rest": ["../../packages/rest/src/index.js"],
-      "@holu/rest-testing": ["../../packages/rest-testing/src/index.js"],
+      "@holu/rest-testing": ["../../packages/rest-testing/src/index.js"]
     }
   },
   "include": ["src", "e2e"],
@@ -16,6 +15,6 @@
     { "path": "../../packages/core/tsconfig.build.json" },
     { "path": "../../packages/cli/tsconfig.build.json" },
     { "path": "../../packages/rest/tsconfig.build.json" },
-    { "path": "../../packages/rest-testing/tsconfig.build.json" },
+    { "path": "../../packages/rest-testing/tsconfig.build.json" }
   ]
 }

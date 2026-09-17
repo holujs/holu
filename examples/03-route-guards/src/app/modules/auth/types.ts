@@ -1,8 +1,17 @@
-import { createInjectionSymbol } from '@holu/core';
-
-export const enum Permission {
-  canActivateSomeResource = 1,
-  canActivateAdministration = 2,
+/**
+ * Represents an authenticated user.
+ */
+export interface AuthUser {
+  id: number;
+  username: string;
+  permissions: Permission[];
 }
 
-export const SESSION = createInjectionSymbol('SESSION');
+/**
+ * Available permissions in the system.
+ */
+export const enum Permission {
+  read = 'read',
+  write = 'write',
+  admin = 'admin',
+}

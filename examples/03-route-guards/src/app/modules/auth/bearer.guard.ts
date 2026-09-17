@@ -1,51 +1,37 @@
-import { Injector, Context } from '@holu/core';
-import { CanActivate, guard, RequestContext } from '@holu/rest';
+import { guard, CanActivate, RequestContext } from '@holu/rest';
 
-import { SESSION } from './types.js';
 import { AuthService } from './auth.service.js';
 
-/***
- * This guard works only per request.
+/**
+ * Extracts a Bearer token from the `Authorization` header and verifies it
+ * via {@link AuthService}. On success, populates `ctx.auth` with the user object.
+ *
+ * Returns a 401 `Response` when the token is missing or invalid.
  */
 @guard()
-export class RequestScopedBearerGuard implements CanActivate {
-  constructor(protected ctx: Context, protected authService: AuthService) {}
+export class BearerGuard implements CanActivate {
+  constructor(private authService: AuthService) {}
 
-  async canActivate(ctx: RequestContext, params?: any[]) {
-    const authValue = ctx.rawReq.headers.authorization?.split(' ');
-    if (authValue?.[0] != 'Bearer') {
-      return false;
+  async canActivate(ctx: RequestContext) {
+    const header = ctx.rawReq.headers.authorization;
+    if (!header?.startsWith('Bearer ')) {
+      return this.unauthorized();
     }
 
-    /**
-     * Here you need implement more logic.
-     */
-    const token = authValue[1];
-    const session = await this.authService.getSession(token);
-    this.ctx.set(SESSION, session);
-    return Boolean(token);
+    const token = header.slice(7);
+    const user = await this.authService.verifyToken(token);
+    if (!user) {
+      return this.unauthorized();
+    }
+
+    ctx.auth = user;
+    return true;
   }
-}
 
-/***
- * This guard works only per route.
- */
-@guard()
-export class RouteScopedBearerGuard implements CanActivate {
-  constructor(protected injector: Injector, protected authService: AuthService) {}
-
-  async canActivate(ctx: RequestContext, params?: any[]) {
-    const authValue = ctx.rawReq.headers.authorization?.split(' ');
-    if (authValue?.[0] != 'Bearer') {
-      return false;
-    }
-
-    /**
-     * Here you need implement more logic.
-     */
-    const token = authValue[1];
-    const session = await this.authService.getSession(token);
-    ctx.auth = session;
-    return Boolean(token);
+  private unauthorized() {
+    return new Response('Unauthorized', {
+      status: 401,
+      headers: { 'www-authenticate': 'Bearer' },
+    });
   }
 }

@@ -3,12 +3,12 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "tsBuildInfoFile": "dist/unit.tsbuildinfo",
+    "tsBuildInfoFile": "dist/unit.tsbuildinfo"
   },
   "include": ["src/**/*.spec.ts", "src/**/*.d.ts"],
   "references": [
     { "path": "./tsconfig.build.json" },
     { "path": "../../packages/core/tsconfig.build.json" },
-    { "path": "../../packages/cli/tsconfig.build.json" },
+    { "path": "../../packages/cli/tsconfig.build.json" }
   ]
 }

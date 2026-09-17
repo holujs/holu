@@ -1,33 +1,28 @@
-import { HttpStatus } from '@holu/core';
-import { RequestContext, CanActivate, guard } from '@holu/rest';
-
-const basicAuth = process.env.BASIC_AUTH;
-if (!basicAuth) {
-  throw new Error('You need setup BASIC_AUTH variable in ".env" file.');
-}
+import { guard, CanActivate, RequestContext } from '@holu/rest';
 
 /**
- * See [WWW-Authenticate](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate)
- * for more info.
+ * Implements HTTP Basic Authentication.
+ *
+ * Reads expected credentials from the `BASIC_AUTH_USERNAME` and
+ * `BASIC_AUTH_PASSWORD` environment variables.
  */
 @guard()
-export class RequestScopedBasicGuard implements CanActivate {
-  canActivate(ctx: RequestContext, [realm]: [string?] = []) {
-    const { authorization } = ctx.rawReq.headers;
-    if (!authorization) {
-      return this.unauth(ctx, realm);
-    }
-    const expectBase64 = Buffer.from(basicAuth!, 'utf8').toString('base64');
-    const [authType, actualBase64] = authorization.split(' ');
-    if (authType != 'Basic' || actualBase64 != expectBase64) {
-      return this.unauth(ctx, realm);
-    }
-    return true;
-  }
+export class BasicGuard implements CanActivate {
+  canActivate(ctx: RequestContext) {
+    const header = ctx.rawReq.headers.authorization;
+    if (header?.startsWith('Basic ')) {
+      const decoded = Buffer.from(header.slice(6), 'base64').toString('utf-8');
+      const [username, password] = decoded.split(':');
 
-  protected unauth(ctx: RequestContext, realm?: string): Response {
-    realm ??= 'Access to the API endpoint';
-    ctx.rawRes.setHeader('WWW-Authenticate', `Basic realm="${realm}"`);
-    return new Response(null, { status: HttpStatus.UNAUTHORIZED });
+      if (username === process.env.BASIC_AUTH_USERNAME && password === process.env.BASIC_AUTH_PASSWORD) {
+        ctx.auth = { id: 0, username, permissions: [] };
+        return true;
+      }
+    }
+
+    return new Response('Unauthorized', {
+      status: 401,
+      headers: { 'www-authenticate': 'Basic realm="Admin Area"' },
+    });
   }
 }

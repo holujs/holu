@@ -17,75 +17,74 @@ describe('03-route-guards', () => {
     server?.close();
   });
 
-  describe('request-scoped controller', () => {
-    it('should works', async () => {
-      const { status, text } = await testAgent.get('/controler1-of-module1');
+  describe('public routes', () => {
+    it('GET /articles returns 200 without any token', async () => {
+      const { status, body } = await testAgent.get('/articles');
       expect(status).toBe(200);
-      expect(text).toBe('ok');
-    });
-
-    it('should throw 401', async () => {
-      const { status } = await testAgent.get('/unauth');
-      expect(status).toBe(401);
-    });
-
-    it('should throw 403', async () => {
-      const { status } = await testAgent.get('/forbidden');
-      expect(status).toBe(403);
-    });
-
-    it('should works', async () => {
-      const expectBase64 = Buffer.from(process.env.BASIC_AUTH!, 'utf8').toString('base64');
-      const { status, text } = await testAgent.get('/basic-auth').set('Authorization', `Basic ${expectBase64}`);
-      expect(status).toBe(200);
-      expect(text).toBe('You are now authorized with BasicGuard');
-    });
-
-    it('should throw 401', async () => {
-      const expectBase64 = Buffer.from('fake-string', 'utf8').toString('base64');
-      const { status } = await testAgent.get('/basic-auth').set('Authorization', `Basic ${expectBase64}`);
-      expect(status).toBe(401);
-    });
-
-    it('should throw 401', async () => {
-      const { status } = await testAgent.get('/basic-auth');
-      expect(status).toBe(401);
+      expect(body).toHaveLength(2);
     });
   });
 
-  describe('route-scoped controller', () => {
-    it('should works', async () => {
-      const { status, text } = await testAgent.get('/controler2-of-module1');
-      expect(status).toBe(200);
-      expect(text).toBe('ok');
-    });
-
-    it('should throw 401', async () => {
-      const { status } = await testAgent.get('/unauth2');
+  describe('Bearer authentication', () => {
+    it('GET /articles/1 without token returns 401', async () => {
+      const { status } = await testAgent.get('/articles/1');
       expect(status).toBe(401);
     });
 
-    it('should throw 403', async () => {
-      const { status } = await testAgent.get('/forbidden2');
+    it('GET /articles/1 with invalid token returns 401', async () => {
+      const { status } = await testAgent.get('/articles/1').set('Authorization', 'Bearer invalid');
+      expect(status).toBe(401);
+    });
+
+    it('GET /articles/1 with valid token returns 200 with user info', async () => {
+      const { status, body } = await testAgent.get('/articles/1').set('Authorization', 'Bearer token-viewer');
+      expect(status).toBe(200);
+      expect(body.author).toMatchObject({ username: 'viewer' });
+    });
+  });
+
+  describe('permissions (authorization)', () => {
+    it('POST /articles with viewer token returns 403 (no write permission)', async () => {
+      const { status } = await testAgent.post('/articles').set('Authorization', 'Bearer token-viewer');
       expect(status).toBe(403);
     });
 
-    it('should works', async () => {
-      const expectBase64 = Buffer.from(process.env.BASIC_AUTH!, 'utf8').toString('base64');
-      const { status, text } = await testAgent.get('/basic-auth2').set('Authorization', `Basic ${expectBase64}`);
+    it('POST /articles with editor token returns 200', async () => {
+      const { status, body } = await testAgent.post('/articles').set('Authorization', 'Bearer token-editor');
       expect(status).toBe(200);
-      expect(text).toBe('You are now authorized with BasicGuard');
+      expect(body).toMatchObject({ created: true });
     });
 
-    it('should throw 401', async () => {
-      const expectBase64 = Buffer.from('fake-string', 'utf8').toString('base64');
-      const { status } = await testAgent.get('/basic-auth2').set('Authorization', `Basic ${expectBase64}`);
+    it('DELETE /articles/1 with editor token returns 403 (no admin permission)', async () => {
+      const { status } = await testAgent.delete('/articles/1').set('Authorization', 'Bearer token-editor');
+      expect(status).toBe(403);
+    });
+
+    it('DELETE /articles/1 with admin token returns 200', async () => {
+      const { status, body } = await testAgent.delete('/articles/1').set('Authorization', 'Bearer token-admin');
+      expect(status).toBe(200);
+      expect(body).toMatchObject({ deleted: true });
+    });
+  });
+
+  describe('HTTP Basic authentication', () => {
+    it('GET /admin/status without credentials returns 401 with WWW-Authenticate header', async () => {
+      const res = await testAgent.get('/admin/status');
+      expect(res.status).toBe(401);
+      expect(res.headers['www-authenticate']).toMatch(/Basic/);
+    });
+
+    it('GET /admin/status with wrong credentials returns 401', async () => {
+      const credentials = Buffer.from('wrong:wrong').toString('base64');
+      const { status } = await testAgent.get('/admin/status').set('Authorization', `Basic ${credentials}`);
       expect(status).toBe(401);
     });
 
-    it('should throw 401', async () => {
-      const { status } = await testAgent.get('/basic-auth2');
-      expect(status).toBe(401);
+    it('GET /admin/status with valid credentials returns 200', async () => {
+      const credentials = Buffer.from(`${process.env.BASIC_AUTH_USERNAME}:${process.env.BASIC_AUTH_PASSWORD}`).toString('base64');
+      const { status, body } = await testAgent.get('/admin/status').set('Authorization', `Basic ${credentials}`);
+      expect(status).toBe(200);
+      expect(body.user.username).toBe('demo');
     });
   });
 });

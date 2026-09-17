@@ -1,18 +1,20 @@
-import { HttpStatus } from '@holu/core';
-import { RequestContext, CanActivate, guard } from '@holu/rest';
+import { guard, CanActivate, RequestContext } from '@holu/rest';
 
-import { AuthService } from './auth.service.js';
-import { Permission } from './types.js';
+import type { Permission, AuthUser } from './types.js';
 
+/**
+ * Checks whether the authenticated user has **all** of the required permissions.
+ *
+ * This guard must run **after** {@link BearerGuard} so that `ctx.auth` is already set.
+ * Required permissions are passed as guard parameters via `createGuardHelper`.
+ */
 @guard()
-export class RequestScopedPermissionsGuard implements CanActivate {
-  constructor(private authService: AuthService) {}
-
-  async canActivate(ctx: RequestContext, params?: Permission[]) {
-    if (await this.authService.hasPermissions(params)) {
-      return true;
-    } else {
-      return new Response(null, { status: HttpStatus.FORBIDDEN });
+export class PermissionsGuard implements CanActivate {
+  canActivate(ctx: RequestContext, params?: Permission[]) {
+    const user = ctx.auth as AuthUser | undefined;
+    if (!user || !params?.every((p) => user.permissions.includes(p))) {
+      return new Response('Forbidden', { status: 403 });
     }
+    return true;
   }
 }

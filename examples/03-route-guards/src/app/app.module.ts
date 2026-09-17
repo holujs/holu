@@ -1,10 +1,10 @@
 import { LoggerConfig, ProviderBuilder } from '@holu/core';
 import { restRootModule } from '@holu/rest';
 
-import { Module1 } from './modules/module1.js';
+import { ArticlesModule } from './modules/articles/articles.module.js';
 
 @restRootModule({
-  appends: [Module1],
+  appends: [ArticlesModule],
   providersPerApp: new ProviderBuilder().useValue(LoggerConfig, { level: 'info' }),
 })
 export class AppModule {}

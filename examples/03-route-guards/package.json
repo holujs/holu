@@ -13,8 +13,7 @@
     "build-test": "tsc -b tsconfig.e2e.json"
   },
   "imports": {
-    "#app/*": "./dist/app/*",
-    "#auth": "./dist/app/modules/auth/index.js"
+    "#app/*": "./dist/app/*"
   },
   "devDependencies": {
     "@holu/cli": "0.3.0",
