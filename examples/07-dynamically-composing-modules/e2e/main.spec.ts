@@ -17,30 +17,30 @@ describe('07-dynamically-composing-modules', () => {
     server?.close();
   });
 
-  it('case 1', async () => {
+  it('should respond from the first module', async () => {
     const { status, text } = await testAgent.get('/');
     expect(status).toBe(200);
     expect(text).toBe('first module.\n');
   });
 
-  it('case 2', async () => {
+  it('should return 404 for the second module before it is added', async () => {
     const { status } = await testAgent.get('/get-2');
     expect(status).toBe(404);
   });
 
-  it('case 3', async () => {
+  it('should dynamically add the second module', async () => {
     const { status, text } = await testAgent.get('/add-2');
     expect(status).toBe(200);
-    expect(text).toBe('second successfully importing!\n');
+    expect(text).toBe('Successfully imported second module!\n');
   });
 
-  it('case 4', async () => {
+  it('should respond from the second module after adding it', async () => {
     const { status, text } = await testAgent.get('/get-2');
     expect(status).toBe(200);
     expect(text).toBe('second module.\n');
   });
 
-  it('case 5', async () => {
+  it('should fail to add the third module (misconfigured)', async () => {
     const { status, body, type } = await testAgent.get('/add-3');
     expect(status).toBe(500);
     expect(type).toBe('application/json');
@@ -48,30 +48,30 @@ describe('07-dynamically-composing-modules', () => {
     expect(body).toEqual({ error: expectStr, code: 'NormalizationFailure' });
   });
 
-  it('case 6', async () => {
+  it('should still respond from the first module after a failed import', async () => {
     const { status, text } = await testAgent.get('/');
     expect(status).toBe(200);
     expect(text).toBe('first module.\n');
   });
 
-  it('case 7', async () => {
+  it('should still respond from the second module after a failed import', async () => {
     const { status, text } = await testAgent.get('/get-2');
     expect(status).toBe(200);
     expect(text).toBe('second module.\n');
   });
 
-  it('case 8', async () => {
+  it('should dynamically remove the second module', async () => {
     const { status, text } = await testAgent.get('/del-2');
     expect(status).toBe(200);
-    expect(text).toBe('second successfully removing!\n');
+    expect(text).toBe('Successfully removed second module!\n');
   });
 
-  it('case 9', async () => {
+  it('should return 404 for the second module after removing it', async () => {
     const { status } = await testAgent.get('/get-2');
     expect(status).toBe(404);
   });
 
-  it('case 10', async () => {
+  it('should still respond from the first module after removing the second', async () => {
     const { status, text } = await testAgent.get('/');
     expect(status).toBe(200);
     expect(text).toBe('first module.\n');

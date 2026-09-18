@@ -1,7 +1,7 @@
 import { AppReinitializer, MutableModuleRegistry, DynamicModule, skipSelf } from '@holu/core';
 import { controller, route, RequestContext, RestDynamicOptions } from '@holu/rest';
 
-import { SecondModule } from '../second.module.js';
+import { SecondModule } from '../second/second.module.js';
 import { ThirdModule } from '../third/third.module.js';
 
 const secondDynamicModule: DynamicModule & RestDynamicOptions = { path: '', module: SecondModule };
@@ -22,33 +22,34 @@ export class FirstController {
   @route('GET', 'add-2')
   async addSecondModule(ctx: RequestContext) {
     this.moduleRegistry.addImport(secondDynamicModule);
-    await this.reinitApp(ctx, 'second', 'importing');
+    await this.reinitApp(ctx, 'second', 'import');
   }
 
   @route('GET', 'del-2')
   async removeSecondModule(ctx: RequestContext) {
     this.moduleRegistry.removeImport(secondDynamicModule);
-    await this.reinitApp(ctx, 'second', 'removing');
+    await this.reinitApp(ctx, 'second', 'remove');
   }
 
   @route('GET', 'add-3')
   async addThirdModule(ctx: RequestContext) {
     this.moduleRegistry.addImport(thirdDynamicModule);
-    await this.reinitApp(ctx, 'third', 'importing');
+    await this.reinitApp(ctx, 'third', 'import');
   }
 
   @route('GET', 'del-3')
   async removeThirdModule(ctx: RequestContext) {
     this.moduleRegistry.removeImport(thirdDynamicModule);
-    await this.reinitApp(ctx, 'third', 'removing');
+    await this.reinitApp(ctx, 'third', 'remove');
   }
 
-  private async reinitApp(ctx: RequestContext, moduleName: 'second' | 'third', action: 'importing' | 'removing') {
+  private async reinitApp(ctx: RequestContext, moduleName: 'second' | 'third', action: 'import' | 'remove') {
+    const pastTense = { import: 'imported', remove: 'removed' } as const;
     const err = await this.appReinitializer.reinit();
     if (err) {
-      ctx.send(`${action} ${moduleName} failed: ${err.message}\n`);
+      ctx.send(`Failed to ${action} ${moduleName} module: ${err.message}\n`);
     } else {
-      ctx.send(`${moduleName} successfully ${action}!\n`);
+      ctx.send(`Successfully ${pastTense[action]} ${moduleName} module!\n`);
     }
   }
 }

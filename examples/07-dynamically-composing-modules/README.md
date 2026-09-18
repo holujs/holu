@@ -22,28 +22,28 @@ Check from second terminal:
 ```bash
 curl -i localhost:3000
 
-# 404 from second module
+# 404 from the second module (not yet added)
 curl -i localhost:3000/get-2
 
-# Adding second module
+# Adding the second module
 curl -i localhost:3000/add-2
 
-# 200 from second module
+# 200 from the second module
 curl -i localhost:3000/get-2
 
-# During adding third module, should failed
+# Adding the third module should fail
 curl -i localhost:3000/add-3
 
-# But other modules continue works
+# But the other modules continue to work
 curl -i localhost:3000
 curl -i localhost:3000/get-2
 
-# Removing second module
+# Removing the second module
 curl -i localhost:3000/del-2
 
-# 404 from second module
+# 404 from the second module (removed)
 curl -i localhost:3000/get-2
 
-# But OK first module
+# But the first module still works
 curl -i localhost:3000
 ```

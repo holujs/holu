@@ -1,7 +1,7 @@
 import { LoggerConfig, ProviderBuilder } from '@holu/core';
 import { restModule } from '@holu/rest';
 
-import { SecondController } from './second/second.controller.js';
+import { SecondController } from './second.controller.js';
 
 @restModule({
   controllers: [SecondController],
