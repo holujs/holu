@@ -1,21 +1,19 @@
 import { injectable, Logger } from '@holu/core';
-import { HttpHandler, HttpInterceptor, RequestContext } from '@holu/rest';
+import { BaseRequestContext, HttpHandler, HttpInterceptor } from '@holu/rest';
 
 @injectable()
 export class MyHttpInterceptor implements HttpInterceptor {
   constructor(private logger: Logger) {}
 
-  async intercept(next: HttpHandler, ctx: RequestContext) {
-    const originalMsg = await next.handle(); // Handling request to `HelloWorldController`
+  async intercept(next: HttpHandler, ctx: BaseRequestContext) {
+    const originalMsg = await next.handle(); // Handling request to the controller
 
-    // You can to do something after, for example, log status:
+    // You can do something after, for example, log status:
     if (ctx.rawRes.headersSent) {
       const msg = `MyHttpInterceptor works! HttpStatus code: ${ctx.rawRes.statusCode}`;
       this.logger.log('info', msg);
     } else {
-      ctx.rawRes.setHeader('Content-Type', 'application/json; charset=utf-8');
-      const msg = JSON.stringify({ originalMsg, msg: 'message that attached by interceptor' });
-      ctx.send(msg);
+      ctx.sendJson({ originalMsg, msg: 'message that attached by interceptor' });
     }
 
     return originalMsg;

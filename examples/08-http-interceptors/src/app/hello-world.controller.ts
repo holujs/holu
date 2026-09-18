@@ -14,7 +14,7 @@ export class HelloWorldController {
 }
 
 @controller({ scope: 'route' })
-export class HelloWorldController2 {
+export class RouteScopedController {
   @route('GET', 'route-scoped')
   tellHello(ctx: RequestContext) {
     return 'Original message!';

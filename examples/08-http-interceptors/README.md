@@ -5,7 +5,7 @@ If you haven't prepared the examples repository yet, you can do so:
 ```bash
 git clone https://github.com/holujs/holu.git
 cd holu
-npm i
+yarn install
 ```
 
 ## HTTP interceptors
@@ -14,7 +14,7 @@ Start from first terminal:
 
 ```bash
 cd examples/08*
-npm start
+yarn start
 ```
 
 From second terminal:
@@ -23,8 +23,11 @@ From second terminal:
 curl -i localhost:3000
 ```
 
-and see in first terminal
+The interceptor modifies the response body by wrapping the original message:
 
-```text
-[DefaultLogger:info] MyHttpInterceptor works!
+```json
+{"originalMsg":"Original message!","msg":"message that attached by interceptor"}
 ```
+
+If the response has already been sent (e.g. due to an error), the interceptor logs the status code instead.
+
