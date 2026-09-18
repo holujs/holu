@@ -15,7 +15,7 @@ describe('CommentsController', () => {
     commentsController = injector.get(CommentsController);
   });
 
-  it('should say "Hello, World!"', () => {
+  it('should send comments with path params', () => {
     expect(() => commentsController.sendComments(res)).not.toThrow();
     expect(sendJson).toHaveBeenCalledTimes(1);
   });

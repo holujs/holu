@@ -4,7 +4,7 @@ import { controller, route, PATH_PARAMS, RequestContext } from '@holu/rest';
 @controller()
 export class PostsController {
   /**
-   * As you seen, you can apply multi `@route` statement to a single method.
+   * As you can see, you can apply multiple `@route` decorators to a single method.
    */
   @route('GET')
   @route('GET', ':postId')

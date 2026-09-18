@@ -15,7 +15,7 @@ describe('PostsController', () => {
     postsController = injector.get(PostsController);
   });
 
-  it('should say "Hello, World!"', () => {
+  it('should send posts with path params', () => {
     expect(() => postsController.sendPosts(res)).not.toThrow();
     expect(sendJson).toHaveBeenCalledTimes(1);
   });
