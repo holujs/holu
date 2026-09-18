@@ -2,7 +2,7 @@ import { LoggerConfig, ProviderBuilder } from '@holu/core';
 import { restRootModule } from '@holu/rest';
 import { BodyParserModule } from '@holu/body-parser';
 
-import { SomeModule } from './modules/routed/some.module.js';
+import { UploadModule } from './upload/upload.module.js';
 
 const moduleWithBodyParserConfig = BodyParserModule.withOpts({
   jsonOptions: { limit: '100kb' },
@@ -10,7 +10,7 @@ const moduleWithBodyParserConfig = BodyParserModule.withOpts({
 });
 
 @restRootModule({
-  appends: [SomeModule],
+  appends: [UploadModule],
   imports: [moduleWithBodyParserConfig],
   providersPerApp: new ProviderBuilder().useValue(LoggerConfig, { level: 'info' }),
   exports: [moduleWithBodyParserConfig],

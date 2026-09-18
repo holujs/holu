@@ -30,8 +30,7 @@ export class RequestScopedController {
   async downloadFile(ctx: RequestContext, parse: MulterParser) {
     const parsedForm = await parse.array('fieldName', 5);
     await saveFiles(parsedForm);
-    // @todo Refactoring this for HTTP2
-    (ctx.rawRes as ServerResponse).writeHead(303, { Connection: 'close', Location: '/file-upload' });
+    (ctx.rawRes as ServerResponse).writeHead(303, { Location: '/file-upload' });
     ctx.rawRes.end();
   }
 }

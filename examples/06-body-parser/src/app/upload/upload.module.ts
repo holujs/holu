@@ -1,8 +1,8 @@
 import { restModule } from '@holu/rest';
 import { MulterExtendedOptions } from '@holu/body-parser';
 
-import { RequestScopedController } from './some/some.controller.js';
-import { RouteScopedController } from './some/some-ctx.controller.js';
+import { RequestScopedController } from './request-scoped.controller.js';
+import { RouteScopedController } from './route-scoped.controller.js';
 
 const multerOptions: MulterExtendedOptions = { limits: { files: 20 }, errorLogLevel: 'debug' };
 
@@ -10,4 +10,4 @@ const multerOptions: MulterExtendedOptions = { limits: { files: 20 }, errorLogLe
   providersPerMod: [{ token: MulterExtendedOptions, useValue: multerOptions }],
   controllers: [RequestScopedController, RouteScopedController],
 })
-export class SomeModule {}
+export class UploadModule {}

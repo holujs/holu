@@ -27,8 +27,7 @@ export class RouteScopedController {
   async downloadFile(ctx: RequestContext) {
     const parsedForm = await this.parse.array(ctx, 'fieldName', 5);
     await saveFiles(parsedForm);
-    // @todo Refactoring this for HTTP2
-    (ctx.rawRes as ServerResponse).writeHead(303, { Connection: 'close', Location: '/route-scoped-file-upload' });
+    (ctx.rawRes as ServerResponse).writeHead(303, { Location: '/route-scoped-file-upload' });
     ctx.rawRes.end();
   }
 }
