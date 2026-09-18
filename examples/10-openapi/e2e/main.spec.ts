@@ -60,14 +60,14 @@ describe('10-openapi', () => {
     expect(Number(headers?.['content-length'])).toBeGreaterThan(0);
   });
 
-  it('controller works', async () => {
+  it('controller works for resource/:resourceId', async () => {
     const { status, body, type } = await testAgent.get('/resource/123');
     expect(status).toBe(200);
     expect(type).toBe('application/json');
     expect(body).toEqual({ resourceId: '123', body: 'some body for resourceId 123' });
   });
 
-  it('controller works', async () => {
+  it('controller works for resource2/:resourceId with meta content', async () => {
     const { status, body, type } = await testAgent.get('/resource2/123');
     expect(status).toBe(200);
     expect(type).toBe('application/json');
