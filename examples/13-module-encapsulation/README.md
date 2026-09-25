@@ -8,7 +8,7 @@ cd holu
 npm i
 ```
 
-## Hello world
+## Module encapsulation
 
 Start from first terminal:
 

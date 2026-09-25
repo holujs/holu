@@ -2,7 +2,7 @@ import { restModule } from '@holu/rest';
 
 import { FirstModule } from '../first/first.module.js';
 import { SecondMultiProviderService } from './second-multi-provider.service.js';
-import { SecondController } from './second.controler.js';
+import { SecondController } from './second.controller.js';
 import { SecondService } from './second.service.js';
 
 @restModule({

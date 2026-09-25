@@ -1,7 +1,7 @@
 import { BodyParserModule } from '@holu/body-parser';
 import { restModule } from '@holu/rest';
 
-import { FirstController } from './first.controler.js';
+import { FirstController } from './first.controller.js';
 import { FirstPerRouService } from './first-per-rou.service.js';
 import { FirstService } from './first.service.js';
 import { FirstMultiProviderService } from './first-multi-provider.service.js';

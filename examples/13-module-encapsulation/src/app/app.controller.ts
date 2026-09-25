@@ -2,7 +2,7 @@ import { inject } from '@holu/core';
 import { controller, route, RequestContext } from '@holu/rest';
 
 import { FirstPerRouService } from './first/first-per-rou.service.js';
-import { ThirdService } from './third/three.service.js';
+import { ThirdService } from './third/third.service.js';
 
 @controller()
 export class AppController {
