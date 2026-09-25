@@ -10,14 +10,10 @@ import { CustomHttpErrorHandler } from './custom-controller-error-handler.js';
 import { ErrorContainer } from './error-container.js';
 
 describe('12-testing', () => {
-  let server: HttpServer;
-  let testAgent: ReturnType<typeof request>;
-
   it('controller works case 1', async () => {
     const server = await TestRestApplication.createTestApp(AppModule).getServer();
-    testAgent = request(server);
 
-    const { status, text } = await testAgent.get('/');
+    const { status, text } = await request(server).get('/');
     expect(status).toBe(200);
     expect(text).toBe('Hello, World!\n');
     server?.close();
@@ -25,9 +21,8 @@ describe('12-testing', () => {
 
   it('controller works case 2', async () => {
     const server = await TestRestApplication.createTestApp(AppModule).getServer();
-    testAgent = request(server);
 
-    const { status, text } = await testAgent.get('/admin');
+    const { status, text } = await request(server).get('/admin');
     expect(status).toBe(200);
     expect(text).toBe('Hello, admin!\n');
     server?.close();
@@ -50,7 +45,7 @@ describe('12-testing', () => {
         .getServer();
     });
 
-    afterEach(() => {
+    afterAll(() => {
       server?.close();
     });
 
