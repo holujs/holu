@@ -9,7 +9,7 @@ export class FirstDictEn extends FirstDict {
     return 'en';
   }
   /**
-   * overrided: one, two, three
+   * overridden: one, two, three
    */
-  override countToThree = 'overrided: one, two, three';
+  override countToThree = 'overridden: one, two, three';
 }

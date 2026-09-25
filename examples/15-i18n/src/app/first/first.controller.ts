@@ -6,7 +6,7 @@ export class FirstController {
   constructor(private firstService: FirstService) {}
 
   @route('GET', 'first')
-  tellHefllo(ctx: RequestContext) {
+  tellHello(ctx: RequestContext) {
     ctx.send(this.firstService.countToThree());
   }
 }

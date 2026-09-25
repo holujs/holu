@@ -17,7 +17,7 @@ export class SecondController {
   }
 
   @route('GET', 'first-extended')
-  tellHefllo(ctx: RequestContext, firstService: FirstService) {
+  getFirstExtended(ctx: RequestContext, firstService: FirstService) {
     ctx.send(firstService.countToThree());
   }
 }

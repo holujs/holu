@@ -9,7 +9,7 @@ export class FirstDictUk extends FirstDict {
     return 'uk';
   }
   /**
-   * overrided: один, два, три
+   * overridden: один, два, три
    */
-  override countToThree = 'overrided: один, два, три';
+  override countToThree = 'overridden: один, два, три';
 }

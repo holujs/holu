@@ -9,5 +9,5 @@ export class FirstDict implements Dictionary {
   /**
    * one, two, three
    */
-   countToThree = 'one, two, three';
+  countToThree = 'one, two, three';
 }
