@@ -8,7 +8,7 @@ import { MyJwtPayload } from './modules/services/auth/types.js';
 @controller()
 export class HelloWorldController {
   @route('GET')
-  async getToken(ctx: RequestContext) {
+  async helloWorld(ctx: RequestContext) {
     ctx.send('Hello, World!\n');
   }
 
