@@ -7,6 +7,6 @@ export class SomeService {
   constructor(private someLogMediator: SomeLogMediator) {}
 
   setSomeLog() {
-    this.someLogMediator.someNewMethod(this, 'writen by setSomeLog()');
+    this.someLogMediator.someNewMethod(this, 'written by setSomeLog()');
   }
 }
