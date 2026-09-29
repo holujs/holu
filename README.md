@@ -17,10 +17,10 @@ Most Node.js frameworks give you routing and middleware. Holu gives you a full a
 |---|---|
 | TypeScript-first, native ESM | ✅ |
 | Hierarchical DI (4 levels) | ✅ |
-| True modularity with collision detection | ✅ |
-| Extension system (pre-request hooks) | ✅ |
+| True modularity with provider collision detection | ✅ |
+| Extension system | ✅ |
 | REST and tRPC support | ✅ |
-| OpenAPI generation | ✅ |
+| OpenAPI support | ✅ |
 
 ### Hierarchical Dependency Injection
 
