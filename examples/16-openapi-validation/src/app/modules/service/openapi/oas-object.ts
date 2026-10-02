@@ -1,23 +1,8 @@
-import type { XOasObject} from '@ts-stack/openapi-spec';
+import type { XOasObject } from '@ts-stack/openapi-spec';
 import { openapi } from '@ts-stack/openapi-spec';
 
 export const oasObject: XOasObject = {
   openapi,
-  // Here works the servers that are described using this OpenAPI documentation.
   servers: [{ url: 'http://0.0.0.0:3000' }],
-  info: { title: 'Testing @holu/openapi-validation', version: '1.0.0' },
-  components: {
-    responses: {
-      UnauthorizedError: {
-        description: 'Authentication information is missing or invalid',
-        headers: {
-          WWW_Authenticate: {
-            schema: { type: 'string' },
-            description:
-              'Taken from [swagger.io](https://swagger.io/docs/specification/authentication/basic-authentication/)',
-          },
-        },
-      },
-    },
-  },
+  info: { title: 'OpenAPI Validation Example', version: '1.0.0' },
 };

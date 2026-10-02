@@ -3,14 +3,14 @@ import { ValidationModule } from '@holu/openapi-validation';
 import { BodyParserModule } from '@holu/body-parser';
 import { restAspect, restModule } from '@holu/rest';
 
-import { FirstController } from './first.controller.js';
+import { UsersController } from './users.controller.js';
 
 @restModule({
   imports: [BodyParserModule, ValidationModule],
-  controllers: [FirstController],
+  controllers: [UsersController],
 })
-export class FirstModule {
-  static withPath(path?: string): DynamicModuleWithAspectOptions<FirstModule> {
+export class UsersModule {
+  static withPath(path?: string): DynamicModuleWithAspectOptions<UsersModule> {
     const dynamicAspectOptionsMap: DynamicAspectOptionsMap = new Map();
     dynamicAspectOptionsMap.set(restAspect, { path });
 
