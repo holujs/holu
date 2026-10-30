@@ -128,6 +128,7 @@ app.server.listen(3000);
 This monorepo uses Yarn workspaces.
 
 ```bash
+npm install -g corepack
 corepack enable && corepack install
 yarn install && yarn prepare && yarn build
 ```
