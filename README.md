@@ -7,11 +7,9 @@
 
 [English docs](https://holujs.github.io/en/) · [Українська документація](https://holujs.github.io/)
 
----
-
 ## What makes Holu different
 
-Most Node.js frameworks give you routing and middleware. Holu gives you a full application architecture:
+Holu combines routing with an application architecture built around hierarchical dependency injection, explicit module boundaries, and composable extensions:
 
 | Feature | Holu |
 |---|---|
@@ -65,33 +63,14 @@ export class DbExtension implements Extension<void> {
 
 ### Quick start
 
+Requires **Node.js >= 24.0.0**.
+
 ```bash
 npx @holu/cli new my-app
 cd my-app
-npm start:dev
+npm start
 ```
 
-Or a minimal single file:
-
-```ts
-import { RestApplication, controller, route, restRootModule } from '@holu/rest';
-
-@controller()
-class HelloController {
-  @route('GET', 'hello')
-  hello() {
-    return 'Hello, World!';
-  }
-}
-
-@restRootModule({ controllers: [HelloController] })
-class AppModule {}
-
-const app = await RestApplication.create(AppModule);
-app.server.listen(3000);
-```
-
----
 
 ## Ecosystem
 
@@ -113,15 +92,11 @@ app.server.listen(3000);
 | `@holu/sentry` | Sentry error reporting |
 | `@holu/rest-testing` | Testing utilities |
 
----
-
 ## Benchmarks
 
 [Benchmarks vs other Node.js frameworks][4]
 
 ![Benchmarks for backend frameworks on the JavaScript stack][10]
-
----
 
 ## Contributing
 
