@@ -1,5 +1,6 @@
 import { jest } from '@jest/globals';
-import { Logger, Injector } from '@holu/core';
+import { Injector, SystemLogMediator } from '@holu/core';
+import { DefaultHeadStrategy, HeadStrategy, Router } from '@holu/rest';
 
 // Mock Sentry
 const mockSpan = {
@@ -18,14 +19,11 @@ jest.unstable_mockModule('@sentry/node', () => {
 // Dynamically import code under test
 const { SentryRequestDispatcher } = await import('./sentry-request-dispatcher.js');
 const Sentry = (await import('@sentry/node')) as any;
-const { Router } = await import('@holu/rest');
-const { SystemLogMediator } = await import('@holu/core');
 
 describe('SentryRequestDispatcher', () => {
   let dispatcher: any;
   let mockRouter: any;
   let mockSystemLogMediator: any;
-  let mockLogger: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -34,18 +32,14 @@ describe('SentryRequestDispatcher', () => {
       find: jest.fn(() => ({ handle: jest.fn(() => Promise.resolve()), params: [] })),
     };
 
-    mockLogger = {
-      log: jest.fn(),
-    };
-
     mockSystemLogMediator = {
       internalServerError: jest.fn(),
     };
 
     const injector = Injector.resolveAndCreate([
       { token: Router, useValue: mockRouter },
-      { token: Logger, useValue: mockLogger },
       { token: SystemLogMediator, useValue: mockSystemLogMediator },
+      { token: HeadStrategy, useClass: DefaultHeadStrategy },
       SentryRequestDispatcher,
     ]);
 
@@ -86,14 +80,14 @@ describe('SentryRequestDispatcher', () => {
     expect(mockSpan.setStatus).toHaveBeenCalledWith({ code: 1 });
   });
 
-  it('should capture exception and throw when handler throws error', async () => {
+  it('should capture the exception and send HTTP 500 when the handler rejects', async () => {
     const rawReq = {
       method: 'GET',
       url: '/users/123',
       headers: {},
     };
     const rawRes = {
-      statusCode: 500,
+      statusCode: 200,
       end: jest.fn(),
     };
 
@@ -107,6 +101,7 @@ describe('SentryRequestDispatcher', () => {
 
     expect(Sentry.captureException).toHaveBeenCalledWith(error);
     expect(mockSpan.setStatus).toHaveBeenCalledWith({ code: 2, message: 'HTTP 500' });
+    expect(rawRes.statusCode).toBe(500);
     expect(rawRes.end).toHaveBeenCalled();
   });
 });
