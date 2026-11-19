@@ -1,11 +1,19 @@
-import { AnyObj, inject, injectable, Injector, ResolvedProvider, type ClassFactoryProvider } from '@holu/core';
+import type { AnyObj, ClassFactoryProvider, Override, ResolvedProvider } from '@holu/core';
+import { inject, injectable, Injector } from '@holu/core';
 import type { AnyMiddlewareFunction, TRPCMutationProcedure, TRPCQueryProcedure, TRPCProcedureBuilder } from '@trpc/server';
-import { ParserWithInputOutput, UnsetMarker } from '@trpc/server/unstable-core-do-not-import';
+import type { ParserWithInputOutput, UnsetMarker } from '@trpc/server/unstable-core-do-not-import';
 
 import { TRPC_ROOT } from '#types/constants.js';
-import { TrpcOpts } from '#types/types.js';
-import { TrpcRootObject } from '#types/types.js';
-import { TrpcRouteMeta } from '#types/trpc-route-data.js';
+import type { TrpcOpts, TrpcRootObject } from '#types/types.js';
+import type { TrpcRouteMeta } from '#types/trpc-route-data.js';
+
+/**
+ * Preserve tRPC's procedure definition, including error types, when supplying types known through DI.
+ */
+type DiProcedureDef<Context extends AnyObj, Input, Output> =
+  ReturnType<TrpcRootObject<Context>['procedure']['query']> extends TRPCQueryProcedure<infer Def>
+    ? Override<Def, { input: Input; output: Output; meta: AnyObj }>
+    : never;
 
 @injectable()
 export class TrpcRouteService<Context extends AnyObj = AnyObj, Input = void> {
@@ -70,11 +78,7 @@ export class TrpcRouteService<Context extends AnyObj = AnyObj, Input = void> {
    */
   diQuery<R>(methodAsToken: (...args: any[]) => R) {
     const query = this.getHandler<R>(methodAsToken);
-    return this.#procedure.query(query) as TRPCQueryProcedure<{
-      input: Input;
-      output: R;
-      meta: AnyObj;
-    }>;
+    return this.#procedure.query(query) as TRPCQueryProcedure<DiProcedureDef<Context, Input, R>>;
   }
 
   /**
@@ -95,11 +99,7 @@ export class TrpcRouteService<Context extends AnyObj = AnyObj, Input = void> {
    */
   diInputAndQuery<Input, Output, R>(input: ParserWithInputOutput<Input, Output>, methodAsToken: (...args: any[]) => R) {
     const query = this.getHandler<R>(methodAsToken);
-    return this.#procedure.input(input).query(query) as TRPCQueryProcedure<{
-      input: Input;
-      output: R;
-      meta: AnyObj;
-    }>;
+    return this.#procedure.input(input).query(query) as TRPCQueryProcedure<DiProcedureDef<Context, Input, R>>;
   }
 
   /**
@@ -120,11 +120,7 @@ export class TrpcRouteService<Context extends AnyObj = AnyObj, Input = void> {
    */
   diMutation<R>(methodAsToken: (...args: any[]) => R) {
     const mutation = this.getHandler<R>(methodAsToken);
-    return this.#procedure.input((val) => val).mutation(mutation) as TRPCMutationProcedure<{
-      input: Input;
-      output: R;
-      meta: AnyObj;
-    }>;
+    return this.#procedure.input((val) => val).mutation(mutation) as TRPCMutationProcedure<DiProcedureDef<Context, Input, R>>;
   }
 
   /**
@@ -145,11 +141,7 @@ export class TrpcRouteService<Context extends AnyObj = AnyObj, Input = void> {
    */
   diInputAndMutation<Input, Output, R>(input: ParserWithInputOutput<Input, Output>, methodAsToken: (...args: any[]) => R) {
     const mutation = this.getHandler<R>(methodAsToken);
-    return this.#procedure.input(input).mutation(mutation) as TRPCMutationProcedure<{
-      input: Input;
-      output: R;
-      meta: AnyObj;
-    }>;
+    return this.#procedure.input(input).mutation(mutation) as TRPCMutationProcedure<DiProcedureDef<Context, Input, R>>;
   }
 
   protected getHandler<R>(fn: (...args: any[]) => R) {

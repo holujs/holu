@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# @holu/trpc
+# @holu/trpc {#holutrpc}
 
 The `@holu/trpc` module provides integration with [@trpc/server][1]. A ready-made example of an application with `@holu/trpc` can be [found in the Holu repository][2]. There you can find examples of using guards and interceptors.
 
@@ -250,6 +250,8 @@ export class PostController {
 ```
 
 That is, the `routeService.diQuery()` method accepts a service method that will operate at the HTTP request level, while DI looks up a provider with such a token in the registry and returns its value. In this case, for each request an instance of `PostService` will be created and its `method1` method will be invoked.
+
+DI methods return typed tRPC procedures, preserving the input type, the service method's return type, and the tRPC error type. The input type comes from the second `TrpcRouteService` generic parameter or from the supplied parser for `diInputAndQuery()` and `diInputAndMutation()`.
 
 [1]: https://trpc.io/docs/quickstart
 [2]: https://github.com/holujs/holu/tree/main/examples/18-trpc-server

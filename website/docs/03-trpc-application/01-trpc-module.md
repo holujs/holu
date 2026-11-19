@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# @holu/trpc
+# @holu/trpc {#holutrpc}
 
 Модуль `@holu/trpc` забезпечує інтеграцію з [@trpc/server][1]. Готовий приклад застосунку з `@holu/trpc` можна [проглянути у репозиторії Holu][2]. Там ви можете знайти приклади застосування ґардів та інтерсепторів.
 
@@ -250,6 +250,8 @@ export class PostController {
 ```
 
 Тобто, метод `routeService.diQuery()` приймає метод сервіса, що працюватиме на рівні HTTP-запиту, а DI у реєстрі шукає провайдера з таким токеном, і повертає його значення. В такому разі, під час кожного запиту буде створюватись інстанс `PostService` та викликатись його метод `method1`.
+
+DI-методи повертають типізовані tRPC-процедури, зберігаючи тип інпуту, тип результату методу сервісу та тип помилки tRPC. Тип інпуту береться з другого дженеріка `TrpcRouteService` або з переданого парсера для методів `diInputAndQuery()` і `diInputAndMutation()`.
 
 [1]: https://trpc.io/docs/quickstart
 [2]: https://github.com/holujs/holu/tree/main/examples/18-trpc-server
