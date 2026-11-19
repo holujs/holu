@@ -54,8 +54,8 @@
     "@trpc/server": "^11.5.0"
   },
   "devDependencies": {
-    "@trpc/server": "^11.18.0",
-    "jest": "^30.4.2",
+    "@trpc/server": "^11.29.4",
+    "jest": "^30.5.2",
     "typescript-7": "npm:typescript@^7.0.2"
   },
   "publishConfig": {

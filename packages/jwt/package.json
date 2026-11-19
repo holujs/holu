@@ -35,7 +35,7 @@
     "@holu/core": "0.3.0"
   },
   "devDependencies": {
-    "jest": "^30.4.2",
+    "jest": "^30.5.2",
     "typescript-7": "npm:typescript@^7.0.2"
   },
   "publishConfig": {

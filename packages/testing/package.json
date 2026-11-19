@@ -41,7 +41,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "jest": "^30.4.2",
+    "jest": "^30.5.2",
     "typescript-7": "npm:typescript@^7.0.2"
   },
   "gitHead": "eaf8f20b4e75e38c7a51fd1c3174b691cea756fa"

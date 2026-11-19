@@ -45,19 +45,19 @@
   "license": "MIT",
   "dependencies": {
     "@ts-stack/openapi-spec": "^3.1.6",
-    "yaml": "^2.9.0"
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
     "@types/swagger-ui": "^5.32.0",
     "copy-webpack-plugin": "^14.0.0",
-    "css-loader": "^7.1.4",
+    "css-loader": "^7.1.5",
     "html-webpack-plugin": "^5.6.8",
-    "jest": "^30.4.2",
+    "jest": "^30.5.2",
     "json-loader": "^0.5.7",
     "style-loader": "^4.0.0",
     "swagger-ui": "~5.27.1",
     "typescript-7": "npm:typescript@^7.0.2",
-    "webpack": "^5.109.0",
+    "webpack": "^5.112.2",
     "yaml-loader": "^0.9.0"
   },
   "peerDependencies": {
