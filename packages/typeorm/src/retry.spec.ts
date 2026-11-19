@@ -1,4 +1,6 @@
 import { jest } from '@jest/globals';
+import type { DataSource } from 'typeorm';
+
 import type { TypeormLogMediator } from './typeorm.log-mediator.js';
 import { initializeWithRetry } from './retry.js';
 
@@ -14,7 +16,7 @@ describe('retry', () => {
 
   it('should initialize DataSource immediately on first try', async () => {
     const dsMock = {
-      initialize: jest.fn<any>(),
+      initialize: jest.fn<DataSource['initialize']>(),
     } as any;
     dsMock.initialize.mockResolvedValue(dsMock);
 
@@ -27,7 +29,7 @@ describe('retry', () => {
 
   it('should retry initialization on failure and succeed', async () => {
     const dsMock = {
-      initialize: jest.fn<any>(),
+      initialize: jest.fn<DataSource['initialize']>(),
     } as any;
 
     dsMock.initialize
@@ -47,7 +49,7 @@ describe('retry', () => {
   it('should throw error if retryAttempts limit is reached', async () => {
     const error = new Error('Database down');
     const dsMock = {
-      initialize: jest.fn<any>().mockRejectedValue(error),
+      initialize: jest.fn<DataSource['initialize']>().mockRejectedValue(error),
     } as any;
 
     await expect(initializeWithRetry(dsMock, { retryAttempts: 2, retryDelay: 1 }, logMediatorMock, sender, 'default')).rejects.toThrow(
@@ -61,7 +63,7 @@ describe('retry', () => {
   it('should rethrow the last error (not a wrapper) when retries are exhausted', async () => {
     const originalError = new Error('Specific DB error');
     const dsMock = {
-      initialize: jest.fn<any>().mockRejectedValue(originalError),
+      initialize: jest.fn<DataSource['initialize']>().mockRejectedValue(originalError),
     } as any;
 
     const thrown = await initializeWithRetry(dsMock, { retryAttempts: 1, retryDelay: 1 }, logMediatorMock, sender, 'default').catch(
@@ -74,7 +76,7 @@ describe('retry', () => {
   it('should stop retrying immediately if toRetry returns false', async () => {
     const error = new Error('Fatal auth error');
     const dsMock = {
-      initialize: jest.fn<any>().mockRejectedValue(error),
+      initialize: jest.fn<DataSource['initialize']>().mockRejectedValue(error),
     } as any;
 
     const toRetry = jest.fn<(err: any) => boolean>().mockReturnValue(false);
@@ -91,7 +93,7 @@ describe('retry', () => {
   it('should retry when toRetry returns true', async () => {
     const error = new Error('Transient error');
     const dsMock = {
-      initialize: jest.fn<any>(),
+      initialize: jest.fn<DataSource['initialize']>(),
     } as any;
     dsMock.initialize.mockRejectedValueOnce(error).mockResolvedValue(dsMock);
 
@@ -108,7 +110,7 @@ describe('retry', () => {
   it('should make exactly 1 attempt when retryAttempts is 0', async () => {
     const error = new Error('Immediate failure');
     const dsMock = {
-      initialize: jest.fn<any>().mockRejectedValue(error),
+      initialize: jest.fn<DataSource['initialize']>().mockRejectedValue(error),
     } as any;
 
     await expect(initializeWithRetry(dsMock, { retryAttempts: 0, retryDelay: 1 }, logMediatorMock, sender, 'default')).rejects.toThrow(
@@ -122,7 +124,7 @@ describe('retry', () => {
   it('should include error message when verboseRetryLog is true', async () => {
     const error = new Error('Socket timeout');
     const dsMock = {
-      initialize: jest.fn<any>(),
+      initialize: jest.fn<DataSource['initialize']>(),
     } as any;
     dsMock.initialize.mockRejectedValueOnce(error).mockResolvedValue(dsMock);
 

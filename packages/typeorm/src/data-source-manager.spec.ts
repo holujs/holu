@@ -52,8 +52,8 @@ describe('DataSourceManager', () => {
   });
 
   it('should destroy all initialized DataSources on shutdown', async () => {
-    const destroy1 = jest.fn<any>().mockResolvedValue(undefined);
-    const destroy2 = jest.fn<any>().mockResolvedValue(undefined);
+    const destroy1 = jest.fn<DataSource['destroy']>().mockResolvedValue(undefined);
+    const destroy2 = jest.fn<DataSource['destroy']>().mockResolvedValue(undefined);
 
     const ds1 = { isInitialized: true, destroy: destroy1 } as unknown as DataSource;
     const ds2 = { isInitialized: true, destroy: destroy2 } as unknown as DataSource;
@@ -73,8 +73,8 @@ describe('DataSourceManager', () => {
 
   it('should catch and log errors via logMediator during DataSource destroy on shutdown', async () => {
     const destroyError = new Error('Connection error during close');
-    const destroyFail = jest.fn<any>().mockRejectedValue(destroyError);
-    const destroySuccess = jest.fn<any>().mockResolvedValue(undefined);
+    const destroyFail = jest.fn<DataSource['destroy']>().mockRejectedValue(destroyError);
+    const destroySuccess = jest.fn<DataSource['destroy']>().mockResolvedValue(undefined);
 
     const dsFail = { isInitialized: true, destroy: destroyFail } as unknown as DataSource;
     const dsSuccess = { isInitialized: true, destroy: destroySuccess } as unknown as DataSource;

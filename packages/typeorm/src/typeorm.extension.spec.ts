@@ -61,7 +61,7 @@ describe('TypeormExtension', () => {
         manager: mockManager,
       };
 
-      const dataSourceFactory = jest.fn<any>().mockResolvedValue(mockDs);
+      const dataSourceFactory = jest.fn<() => Promise<typeof mockDs>>().mockResolvedValue(mockDs);
 
       const tempInjectorPerMod = Injector.resolveAndCreate([
         {
@@ -99,8 +99,8 @@ describe('TypeormExtension', () => {
       const mockDefaultDs = { isInitialized: true, manager: {} };
       const mockAnalyticsDs = { isInitialized: true, manager: {} };
 
-      const defaultFactory = jest.fn<any>().mockResolvedValue(mockDefaultDs);
-      const analyticsFactory = jest.fn<any>().mockResolvedValue(mockAnalyticsDs);
+      const defaultFactory = jest.fn<() => Promise<typeof mockDefaultDs>>().mockResolvedValue(mockDefaultDs);
+      const analyticsFactory = jest.fn<() => Promise<typeof mockAnalyticsDs>>().mockResolvedValue(mockAnalyticsDs);
 
       const tempInjectorPerMod = Injector.resolveAndCreate([
         {
@@ -135,8 +135,8 @@ describe('TypeormExtension', () => {
       const mockDs1 = { isInitialized: true, manager: {} };
       const mockDs2 = { isInitialized: true, manager: {} };
 
-      const factory1 = jest.fn<any>().mockResolvedValue(mockDs1);
-      const factory2 = jest.fn<any>().mockResolvedValue(mockDs2);
+      const factory1 = jest.fn<() => Promise<typeof mockDs1>>().mockResolvedValue(mockDs1);
+      const factory2 = jest.fn<() => Promise<typeof mockDs2>>().mockResolvedValue(mockDs2);
 
       const tempInjectorPerMod = Injector.resolveAndCreate([
         {
@@ -161,7 +161,7 @@ describe('TypeormExtension', () => {
       EntitiesMetadataStorage.addEntities('default', [UserEntity]);
 
       const mockDs = { isInitialized: true, manager: {} };
-      const dataSourceFactory = jest.fn<any>().mockResolvedValue(mockDs);
+      const dataSourceFactory = jest.fn<() => Promise<typeof mockDs>>().mockResolvedValue(mockDs);
 
       const tempInjectorPerMod = Injector.resolveAndCreate([
         {
@@ -181,7 +181,7 @@ describe('TypeormExtension', () => {
       EntitiesMetadataStorage.addEntities('default', [PostEntity]);
 
       const mockDs = { isInitialized: true, manager: {} };
-      const dataSourceFactory = jest.fn<any>().mockResolvedValue(mockDs);
+      const dataSourceFactory = jest.fn<() => Promise<typeof mockDs>>().mockResolvedValue(mockDs);
 
       const tempInjectorPerMod = Injector.resolveAndCreate([
         {
@@ -199,7 +199,7 @@ describe('TypeormExtension', () => {
 
     it('should update existing placeholder providers rather than pushing duplicates', async () => {
       const mockDs = { isInitialized: true, manager: {} };
-      const dataSourceFactory = jest.fn<any>().mockResolvedValue(mockDs);
+      const dataSourceFactory = jest.fn<() => Promise<typeof mockDs>>().mockResolvedValue(mockDs);
       const dsToken = getDataSourceToken('default');
       const emToken = getEntityManagerToken('default');
 
@@ -427,7 +427,7 @@ describe('TypeormExtension', () => {
 
     it('should warn on duplicate names across sync and async options', async () => {
       const mockDs = { isInitialized: true, manager: {} };
-      const factory = jest.fn<any>().mockResolvedValue(mockDs);
+      const factory = jest.fn<() => Promise<typeof mockDs>>().mockResolvedValue(mockDs);
 
       const tempInjectorPerMod = Injector.resolveAndCreate([
         {
