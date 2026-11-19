@@ -39,7 +39,7 @@ describe('AuthjsInterceptor', () => {
     jest.clearAllMocks();
     config = new AuthjsConfig();
     interceptor = new AuthjsInterceptor(config);
-    nextHandler = { handle: jest.fn<any>().mockResolvedValue('next-result') };
+    nextHandler = { handle: jest.fn<HttpHandler['handle']>().mockResolvedValue('next-result') };
     reqCtx = {
       protocol: 'http',
       rawReq: {

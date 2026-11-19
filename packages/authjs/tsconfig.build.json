@@ -5,13 +5,12 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/build.tsbuildinfo"
   },
-  "include": [
-    "src"
-  ],
+  "include": ["src"],
+  "exclude": ["src/**/*.spec.ts"],
   "files": [],
   "references": [
     { "path": "../core/tsconfig.build.json" },
     { "path": "../rest/tsconfig.build.json" },
-    { "path": "../body-parser/tsconfig.build.json" },
+    { "path": "../body-parser/tsconfig.build.json" }
   ]
 }
