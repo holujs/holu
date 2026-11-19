@@ -38,8 +38,8 @@
     "@holu/rest": "0.3.0"
   },
   "dependencies": {
-    "@sentry/core": "^10.78.0",
-    "@sentry/node": "^10.78.0"
+    "@sentry/core": "^11.14.0",
+    "@sentry/node": "^11.14.0"
   },
   "devDependencies": {
     "jest": "^30.5.2",
