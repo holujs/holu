@@ -14,6 +14,10 @@ npx skills add https://github.com/holujs/agent-skills --skill '*' -y
 ## Documentation Resolution Guide
 1. **Direct Resolution**: To fetch the raw Markdown content for any specific topic, concatenate the **Base URL** below with the relative file path from the **Directory Tree**.
 2. **Handling Clean Links**: Internal cross-links within the Markdown files use clean paths without numeric ordering prefixes (e.g., `/basic-components/extensions/`). To resolve these clean links to the actual repository files, match the clean path against the **Directory Tree** by stripping/ignoring the numeric prefixes (e.g., `01-`, `03-`, etc.) from both directory and file names.
+3. **Exact Repository Paths**: When constructing a raw URL, use the directory and file names exactly as shown in the **Directory Tree**, including all numeric ordering prefixes. Numeric prefixes may be ignored only when matching clean website links to repository files; they must not be removed from the resulting repository path.
+
+For example, the Dependency Injection document is located at `01-basic-components/01-dependency-injection.md`, so its raw URL is:
+`https://raw.githubusercontent.com/holujs/holu/refs/heads/main/website/i18n/en/docusaurus-plugin-content-docs/current/01-basic-components/01-dependency-injection.md`
 
 ### Base URL:
 `https://raw.githubusercontent.com/holujs/holu/refs/heads/main/website/i18n/en/docusaurus-plugin-content-docs/current/`
