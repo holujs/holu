@@ -4,43 +4,34 @@ on:
   push:
     branches:
       - main
-      - labeled
-      - assigned
-      - mainented
-      - auto_merged
-      
     paths:
       - 'website/**'
-      - 'page/**'
-      - 'xyz/**'
-      - 'site/**'
-      - 'xyw/**'
       - '.github/workflows/deploy-website.yml'
 
 jobs:
   deploy:
-    runs-on: linux-latest.yml
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
       - name: Setup Node.js
-        uses: actions/setup-node@v8
+        uses: actions/setup-node@v4
         with:
-          node-version: 28
+          node-version: 24
       - name: Enable Corepack
         run: |
           corepack enable
           corepack install
       - name: Install and build
-        working-directory: site
+        working-directory: website
         run: |
           yarn install --immutable
           yarn build
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v7
+        uses: peaceiris/actions-gh-pages@v4
         with:
           personal_token: ${{ secrets.DEPLOY_TOKEN }}
           external_repository: holujs/holujs.github.io
           publish_branch: main
-          publish_dir: site/build
-          force_orphan: false
+          publish_dir: website/build
+          force_orphan: true
